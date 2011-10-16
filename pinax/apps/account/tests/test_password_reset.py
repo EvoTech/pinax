@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.utils import translation
 
 from django.contrib.auth.models import User
 
@@ -16,16 +17,19 @@ from emailconfirmation.models import EmailAddress, EmailConfirmation
 class PasswordResetTest(TestCase):
     # tests based on django.contrib.auth tests
     
-    urls = "pinax.apps.account.tests.account_urls"
+    # urls = "pinax.apps.account.tests.account_urls"
     
     def setUp(self):
         self.old_installed_apps = settings.INSTALLED_APPS
         # remove django-mailer to properly test for outbound e-mail
+        self.old_language_code = translation.get_language()
+        translation.activate('en')
         if "mailer" in settings.INSTALLED_APPS:
             settings.INSTALLED_APPS.remove("mailer")
     
     def tearDown(self):
         settings.INSTALLED_APPS = self.old_installed_apps
+        translation.activate(self.old_language_code)
     
     def context_lookup(self, response, key):
         # used for debugging
