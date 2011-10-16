@@ -5,7 +5,11 @@ from django.contrib.auth.models import User
 
 
 class AuthenticationBackend(ModelBackend):
-    
+
+    supports_object_permissions = False
+    supports_anonymous_user = False
+    supports_inactive_user = False
+
     def authenticate(self, **credentials):
         lookup_params = {}
         if settings.ACCOUNT_EMAIL_AUTHENTICATION:
@@ -23,7 +27,7 @@ class AuthenticationBackend(ModelBackend):
             if user.check_password(credentials["password"]):
                 return user
     
-    def has_perm(self, user, perm):
+    def has_perm(self, user, perm, obj=None):
         # @@@ allow all users to add wiki pages
         wakawaka_perms = [
             "wakawaka.add_wikipage",
