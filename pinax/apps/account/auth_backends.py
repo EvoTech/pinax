@@ -37,7 +37,7 @@ class AuthenticationBackend(ModelBackend):
             )
 
         if obj and hasattr(obj, 'is_allowed'):
-            return obj.is_allowed(user, perm=permission_code)
+            return obj.is_allowed(user, perm=perm)
 
         # @@@ allow all users to add wiki pages
         wakawaka_perms = [
