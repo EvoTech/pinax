@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 class AuthenticationBackend(ModelBackend):
 
-    supports_object_permissions = False
+    supports_object_permissions = True
     supports_anonymous_user = False
     supports_inactive_user = False
 
@@ -28,6 +28,17 @@ class AuthenticationBackend(ModelBackend):
                 return user
     
     def has_perm(self, user, perm, obj=None):
+
+        if obj and '.' not in perm and hasattr(obj, '_meta'):
+            perm = '{app}.{perm}_{mod}'.format(
+                app=obj._meta.app_label,
+                perm=perm,
+                mod=obj._meta.module_name
+            )
+
+        if obj and hasattr(obj, 'is_allowed'):
+            return obj.is_allowed(user, perm=permission_code)
+
         # @@@ allow all users to add wiki pages
         wakawaka_perms = [
             "wakawaka.add_wikipage",
@@ -38,6 +49,5 @@ class AuthenticationBackend(ModelBackend):
         if perm in wakawaka_perms:
             return True
         return super(AuthenticationBackend, self).has_perm(user, perm)
-
 
 EmailModelBackend = AuthenticationBackend
