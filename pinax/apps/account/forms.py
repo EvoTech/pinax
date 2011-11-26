@@ -30,6 +30,7 @@ alnum_re = re.compile(r"^\w+$")
 # @@@ might want to find way to prevent settings access globally here.
 REQUIRED_EMAIL = getattr(settings, "ACCOUNT_REQUIRED_EMAIL", False)
 EMAIL_VERIFICATION = getattr(settings, "ACCOUNT_EMAIL_VERIFICATION", False)
+EMAIL_VERIFICATION_PASSWORD_RESET = getattr(settings, "ACCOUNT_EMAIL_VERIFICATION_PASSWORD_RESET", False)
 EMAIL_AUTHENTICATION = getattr(settings, "ACCOUNT_EMAIL_AUTHENTICATION", False)
 UNIQUE_EMAIL = getattr(settings, "ACCOUNT_UNIQUE_EMAIL", False)
 
@@ -383,7 +384,7 @@ class ResetPasswordForm(forms.Form):
     )
     
     def clean_email(self):
-        if EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"], verified=True).count() == 0:
+        if EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"], verified=True).count() == 0:
             raise forms.ValidationError(_("Email address not verified for any user account"))
         return self.cleaned_data["email"]
     
