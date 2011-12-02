@@ -17,21 +17,23 @@ def username_autocomplete_all(request):
         from django.contrib.auth.models import User
         from avatar.templatetags.avatar_tags import avatar
         q = request.GET.get("q")
-        users = User.objects.all()
+        q = q.split(',').pop().strip()
+        if not q:
+            return HttpResponse("")
+        users = User.objects.filter(username__istartswith=q).order_by("username")
         content = []
         # @@@ temporary hack -- don't try this at home (or on real sites)
-        for user in users:
-            if user.username.lower().startswith(q):
-                try:
-                    profile = user.get_profile()
-                    entry = "%s,,%s,,%s" % (
-                        avatar(user, 40),
-                        user.username,
-                        profile.location
-                    )
-                except ObjectDoesNotExist:
-                    pass
-                content.append(entry)
+        for user in users[:10]:
+            try:
+                profile = user.get_profile()
+                entry = "%s,,%s,,%s" % (
+                    avatar(user, 40),
+                    user.username,
+                    profile.location
+                )
+            except ObjectDoesNotExist:
+                pass
+            content.append(entry)
         response = HttpResponse("\n".join(content))
     else:
         response = HttpResponseForbidden()
@@ -48,6 +50,9 @@ def username_autocomplete_friends(request):
         from friends.models import Friendship
         from avatar.templatetags.avatar_tags import avatar
         q = request.GET.get("q")
+        q = q.split(',').pop().strip()
+        if not q:
+            return HttpResponse("")
         friends = Friendship.objects.friends_for_user(request.user)
         content = []
         for friendship in friends:
