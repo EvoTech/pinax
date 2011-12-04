@@ -130,9 +130,13 @@ def profile(request, username, template_name="profiles/profile.html", extra_cont
                 "to_user": username,
                 "message": ugettext("Let's be friends!"),
             })
-    
-    previous_invitations_to = FriendshipInvitation.objects.invitations(to_user=other_user, from_user=request.user)
-    previous_invitations_from = FriendshipInvitation.objects.invitations(to_user=request.user, from_user=other_user)
+
+    previous_invitations_to   = None
+    previous_invitations_from = None
+
+    if request.user.is_authenticated():
+        previous_invitations_to = FriendshipInvitation.objects.invitations(to_user=other_user, from_user=request.user)
+        previous_invitations_from = FriendshipInvitation.objects.invitations(to_user=request.user, from_user=other_user)
     
     return render_to_response(template_name, dict({
         "is_me": is_me,
