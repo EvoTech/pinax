@@ -3,6 +3,8 @@ from datetime import datetime
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
+from tagging.forms import TagField
+from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from pinax.apps.blog.models import Post
 
 
@@ -13,7 +15,12 @@ class BlogForm(forms.ModelForm):
         max_length = 20,
         help_text = _("a short version of the title consisting only of letters, numbers, underscores and hyphens."),
     )
-    
+    tags = TagField(label="Tags", required=False,
+                    widget = TagAutoCompleteInput(
+                        app_label=Post._meta.app_label,
+                        model=Post._meta.module_name
+                    ))
+
     class Meta:
         model = Post
         exclude = [
