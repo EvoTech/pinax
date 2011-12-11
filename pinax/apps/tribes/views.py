@@ -131,6 +131,8 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
             )
             is_member = True
             if notification:
+                # Fix pickle problem
+                tribe = tribe.__class__.objects.get(pk=tribe.pk)
                 notification.send([tribe.creator], "tribes_created_new_member", {
                     "user": request.user,
                     "tribe": tribe
