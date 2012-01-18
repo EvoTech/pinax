@@ -72,7 +72,7 @@ def tribes(request, template_name="tribes/tribes.html"):
     tribes = tribes.extra(select=SortedDict([
         ("member_count", MEMBER_COUNT_SQL),
         ("topic_count", TOPIC_COUNT_SQL),
-    ]), select_params=(content_type.id,))
+    ]), select_params=(content_type.id,)).order_by("-topic_count", "-member_count", "name")
     
     return render_to_response(template_name, {
         "tribes": tribes,
