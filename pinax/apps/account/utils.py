@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from django.contrib.auth import login
+from django.utils.translation import ugettext_lazy as _
 
 from pinax.apps.account.signals import user_logged_in
 
@@ -27,7 +28,10 @@ def get_default_redirect(request, fallback_url, redirect_field_name="next", sess
 
 def user_display(user):
     func = getattr(settings, "ACCOUNT_USER_DISPLAY", lambda user: user.username)
-    return func(user)
+    try:
+        return func(user)
+    except AttributeError:
+        return _("deleted user")
 
 
 def has_openid(request):
