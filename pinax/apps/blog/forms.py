@@ -4,12 +4,13 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from tagging.forms import TagField
+from markup_form.forms import make_maprkup_form
 from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from pinax.apps.blog.models import Post
 
 
 
-class BlogForm(forms.ModelForm):
+class BlogFormBase(forms.ModelForm):
     
     slug = forms.SlugField(
         max_length = 20,
@@ -33,7 +34,7 @@ class BlogForm(forms.ModelForm):
     
     def __init__(self, user=None, *args, **kwargs):
         self.user = user
-        super(BlogForm, self).__init__(*args, **kwargs)
+        super(BlogFormBase, self).__init__(*args, **kwargs)
     
     def clean_slug(self):
         if not self.instance.pk:
@@ -52,3 +53,8 @@ class BlogForm(forms.ModelForm):
         except Post.DoesNotExist:
             pass
         return self.cleaned_data["slug"]
+
+BlogForm = make_maprkup_form(
+    BlogFormBase,
+    {'markup': ['body', 'tease', ], }
+)

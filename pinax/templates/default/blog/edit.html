@@ -2,8 +2,13 @@
 
 {% load i18n %}
 {% load uni_form_tags %}
+{% load markup_form_tags %}
 
 {% block head_title %}{% blocktrans %}Editing Post{% endblocktrans %}{% endblock %}
+
+{% block extra_head %}
+    {% mapkup_form_init %}
+{% endblock %}
 
 {% block body %}
     {% ifequal post.author request.user %}
