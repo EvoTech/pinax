@@ -38,7 +38,7 @@
                 {% if other_user.get_profile.name %}<p><b>{% trans "Name" %}</b>: <span class="fn">{{ other_user.get_profile.name }}</span></p>{% endif %}
                 {% if other_user.get_profile.about %}<p><b>{% trans "About" %}</b>: {{ other_user.get_profile.about }}</p>{% endif %}
                 {% if other_user.get_profile.location%}<p><b>{% trans "Location" %}</b>: {{ other_user.get_profile.location }}</p>{% endif %}
-                {% if other_user.get_profile.website %}<p><b>{% trans "Website" %}</b>: <a class="url" href="{{ other_user.get_profile.website }}">{{ other_user.get_profile.website }}</a></p>{% endif %}
+                {% if other_user.get_profile.website %}<p><b>{% trans "Website" %}</b>: <a class="url" href="#" onMouseOver="this.href='{{ other_user.get_profile.website }}'" rel="nofollow">{{ other_user.get_profile.website }}</a></p>{% endif %}
             </div>
             
             {% if is_me %}
@@ -120,7 +120,7 @@
                 
                 {% if other_user.article_set.all %}
                     <table class="bookmarks">
-                        {% for article in other_user.article_set.all %}
+                        {% for article in other_user.article_set.all|slice:":5" %}
                         <tr class="{% cycle odd,even %}">
                             <td class="meta">
                                 {{ article.created_at|date }}
@@ -140,7 +140,7 @@
                 
                 {% if other_user.saved_bookmarks.all %}
                     <table class="bookmarks narrow">
-                        {% for bookmark_instance in other_user.saved_bookmarks.all.select_related %}
+                        {% for bookmark_instance in other_user.saved_bookmarks.all.select_related|slice:":5" %}
                             <tr class="{% cycle odd,even %} xfolkentry">
                                 <td class="meta">
                                     {{ bookmark_instance.saved|date }}
@@ -163,7 +163,7 @@
                 <h2>{% trans "Blog Posts" %}</h2>
                 
                 {% if other_user.added_posts.all %}
-                    {% for blog_post in other_user.added_posts.all %}
+                    {% for blog_post in other_user.added_posts.all|slice:":5" %}
                         {% show_blog_post blog_post %}
                     {% endfor %}
                 {% else %}
@@ -186,7 +186,7 @@
                 
                 {% if photos %}
                     <div class="clearfix">
-                    {% for photo in photos %}
+                    {% for photo in photos|slice:":10" %}
                         <div class="gallery-photo-thumb">
                             <a href="/photos/details/{{ photo.id }}/"><img src="{{ photo.get_thumbnail_url }}" alt="{{ photo.title }}"/></a>
                         </div>
