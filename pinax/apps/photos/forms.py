@@ -3,12 +3,20 @@ from datetime import datetime
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
+from tagging.forms import TagField
+from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
+
 from pinax.apps.photos.models import Image
 
 
 
 class PhotoUploadForm(forms.ModelForm):
-    
+
+    tags = TagField(label="Tags", required=False,
+                    widget = TagAutoCompleteInput(
+                    app_label=Image._meta.app_label,
+                    model=Image._meta.module_name))
+
     class Meta:
         model = Image
         exclude = ["member", "photoset", "title_slug", "effect", "crop_from"]
@@ -25,6 +33,11 @@ class PhotoUploadForm(forms.ModelForm):
 
 
 class PhotoEditForm(forms.ModelForm):
+
+    tags = TagField(label="Tags", required=False,
+                    widget = TagAutoCompleteInput(
+                    app_label=Image._meta.app_label,
+                    model=Image._meta.module_name))
     
     class Meta:
         model = Image

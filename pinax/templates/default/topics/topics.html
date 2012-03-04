@@ -35,6 +35,7 @@
         <form class="uniForm" method="POST" action="">
             {% csrf_token %}
             <fieldset class="inlineLabels">
+                {{ topic_form.media }}
                 {{ topic_form|as_uni_form }}
                 <div class="form_block">
                     <input type="hidden" name="next" value="{{ request.path }}" />
