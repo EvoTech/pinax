@@ -13,7 +13,13 @@
 
 {% block body %}
     
-    <h1>{% trans "Latest Photos" %}</h1>
+    <h1>{% spaceless %}
+    {% if group %}
+        {% blocktrans with group.get_absolute_url as group_url and group.name as group_name %}Latest Photos for <a href="{{ group_url }}">{{ group_name }}</a>{% endblocktrans %}
+    {% else %}
+        {% trans "Latest Photos" %}
+    {% endif %}
+    {% endspaceless %}</h1>
     
     {% if photos %}
     {% autopaginate photos %}

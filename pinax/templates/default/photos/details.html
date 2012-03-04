@@ -4,6 +4,7 @@
 {% load humanize %}
 {% load account_tags %}
 {% load tagging_tags %}
+{% load group_tags %}
 {% load comments_tag %}
 {% load photo_tags %}
 {% load flag_tags %}
@@ -18,6 +19,11 @@
     </div>
     
     <div class="left_panel">
+    {% if group %}
+        <h1>{% spaceless %}
+        {% blocktrans with group.get_absolute_url as group_url and group.name as group_name %}Photos for <a href="{{ group_url }}">{{ group_name }}</a>{% endblocktrans %}
+        {% endspaceless %}</h1>
+    {% endif %}
     <h1>{% trans "Photo Details" %}</h1>
     
     {% if photo %}
