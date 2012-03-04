@@ -30,7 +30,7 @@ class TagAutoCompleteInput(forms.TextInput):
                 max: 10,
                 highlight: false,
                 multiple: true,
-                multipleSeparator: " ",
+                multipleSeparator: ", ",
                 scroll: true,
                 scrollHeight: 300,
                 matchContains: true,
