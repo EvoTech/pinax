@@ -21,8 +21,7 @@ class Profile(models.Model):
     )
     website = models.URLField(_("website"),
         null = True,
-        blank = True,
-        verify_exists = False
+        blank = True
     )
     
     class Meta:
