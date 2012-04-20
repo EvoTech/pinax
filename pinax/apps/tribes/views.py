@@ -141,7 +141,7 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
         is_member = tribe.user_is_member(request.user)
 
     is_allow = tribe.private and not is_member\
-        and not request.user.has_perms('view', tribe):
+        and not request.user.has_perms('view', tribe)
 
     action = request.POST.get("action")
     if action == "update" and tribe_form.is_valid():
