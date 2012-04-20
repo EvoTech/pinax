@@ -31,7 +31,7 @@ class Tribe(Group):
         return User.objects.filter(
             tribes__status='active',
             tribes__tribe=self,
-        ).all()
+        )
 
     def user_is_member(self, user):
         if not user.is_authenticated():

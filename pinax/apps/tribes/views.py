@@ -140,18 +140,40 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
     else:
         is_member = tribe.user_is_member(request.user)
 
-    if getattr(tribe, 'private', False)\
-            and not is_member\
-            and not request.user.has_perms('view', tribe):
-        raise PermissionDenied
+    is_allow = tribe.private and not is_member\
+        and not request.user.has_perms('view', tribe):
 
     action = request.POST.get("action")
     if action == "update" and tribe_form.is_valid():
         tribe = tribe_form.save()
     elif action == "join":
-        if not is_member:
+        try:
+            member = tribe.members.get(user=request.user)
+        except:
+            member = None
+        if is_member:
+            messages.add_message(request, messages.WARNING,
+                ugettext("You have already joined tribe %(tribe_name)s") % {
+                    "tribe_name": tribe.name
+                }
+            )
+        elif member is not None:
+            if member.status in ('inactive', 'requested', 'invited', ):
+                messages.add_message(request, messages.WARNING,
+                    ugettext("You have already joined tribe %(tribe_name)s, but your status is not approved yet") % {
+                        "tribe_name": tribe.name
+                    }
+                )
+            elif member.status == 'blocked':
+                messages.add_message(request, messages.WARNING,
+                    ugettext("You are blocked in tribe %(tribe_name)s") % {
+                        "tribe_name": tribe.name
+                    }
+                )
+        else:
+            status = 'inactive' if tribe.private else 'active'
             member = TribeMember(
-                status='active',
+                status=status,
                 tribe=tribe,
                 user=request.user
             )
@@ -174,12 +196,6 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
                     "user": request.user,
                     "tribe": tribe
                 })
-        else:
-            messages.add_message(request, messages.WARNING,
-                ugettext("You have already joined tribe %(tribe_name)s") % {
-                    "tribe_name": tribe.name
-                }
-            )
     elif action == "leave":
         tribe.members.get(user=request.user).delete()
         messages.add_message(request, messages.SUCCESS,
