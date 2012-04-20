@@ -14,6 +14,8 @@ class Tribe(Group):
         related_name = "tribes",
         verbose_name = _("members")
     )
+    # private means only members can see the project
+    private = models.BooleanField(_("private"), default=False)
     
     def get_absolute_url(self):
         return reverse("tribe_detail", kwargs={"group_slug": self.slug})

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
@@ -117,7 +118,10 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
         is_member = False
     else:
         is_member = tribe.user_is_member(request.user)
-    
+
+    if not is_member and not request.user.has_perms('view', tribe):
+        raise PermissionDenied
+
     action = request.POST.get("action")
     if action == "update" and tribe_form.is_valid():
         tribe = tribe_form.save()
