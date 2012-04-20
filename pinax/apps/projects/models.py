@@ -27,6 +27,8 @@ class Project(Group):
         return self.member_users.all()
     
     def user_is_member(self, user):
+        if not user.is_authenticated():
+            return False
          return ProjectMember.objects.filter(project=self, user=user).exists()
 
 
