@@ -37,6 +37,7 @@ class GroupPrivateMiddleware(object):
     def process_view(self, request, view, view_args, view_kwargs):
         """Raises PermissionDenied if user has not access to group."""
         group = getattr(request, 'group', None)
-        if group and getattr(group, 'private', False) and not group.user_is_member(request.user)\
+        if group is not None and getattr(group, 'private', False)\
+                and not group.user_is_member(request.user)\
                 and not request.user.has_perms('view', group):
             raise PermissionDenied

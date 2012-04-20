@@ -17,7 +17,7 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
-from pinax.apps.tribes.models import Tribe
+from pinax.apps.tribes.models import Tribe, TribeMember
 from pinax.apps.tribes.forms import TribeForm, TribeUpdateForm
 
 
@@ -31,8 +31,9 @@ WHERE
 """
 MEMBER_COUNT_SQL = """
 SELECT COUNT(*)
-FROM tribes_tribe_members
-WHERE tribes_tribe_members.tribe_id = tribes_tribe.id
+FROM tribes_tribemember
+WHERE tribes_tribemember.tribe_id = tribes_tribe.id
+AND tribes_tribemember.status='active'
 """
 
 
@@ -45,8 +46,12 @@ def create(request, form_class=TribeForm, template_name="tribes/create.html"):
         tribe = tribe_form.save(commit=False)
         tribe.creator = request.user
         tribe.save()
-        tribe.members.add(request.user)
-        tribe.save()
+        member = TribeMember(
+            status='active',
+            tribe=tribe,
+            user=request.user
+        )
+        tribe.members.add(member)
         if notification:
             # @@@ might be worth having a shortcut for sending to all users
             notification.send(User.objects.all(), "tribes_new_tribe", {
@@ -70,10 +75,13 @@ def tribes(request, template_name="tribes/tribes.html"):
     
     content_type = ContentType.objects.get_for_model(Tribe)
     
-    tribes = tribes.extra(select=SortedDict([
-        ("member_count", MEMBER_COUNT_SQL),
-        ("topic_count", TOPIC_COUNT_SQL),
-    ]), select_params=(content_type.id,)).order_by("-topic_count", "-member_count", "name")
+    tribes = tribes.extra(
+        select=SortedDict([
+            ("member_count", MEMBER_COUNT_SQL),
+            ("topic_count", TOPIC_COUNT_SQL),
+        ]),
+        select_params=(content_type.id,)
+    ).order_by("-topic_count", "-member_count", "name")
     
     return render_to_response(template_name, {
         "tribes": tribes,
@@ -87,9 +95,9 @@ def delete(request, group_slug=None, redirect_url=None):
         redirect_url = reverse("tribe_list")
     
     # @@@ eventually, we'll remove restriction that tribe.creator can't leave
-    # tribe but we'll still require tribe.members.all().count() == 1
+    # tribe but we'll still require tribe.member_queryset().all().count() == 1
     if (request.user.is_authenticated() and request.method == "POST" and
-            request.user == tribe.creator and tribe.members.all().count() == 1):
+            request.user == tribe.creator and tribe.member_queryset().all().count() == 1):
         tribe.delete()
         messages.add_message(request, messages.SUCCESS,
             ugettext("Tribe %(tribe_name)s deleted.") % {
@@ -103,8 +111,21 @@ def delete(request, group_slug=None, redirect_url=None):
 
 @login_required
 def your_tribes(request, template_name="tribes/your_tribes.html"):
+
+    content_type = ContentType.objects.get_for_model(Tribe)
+    tribes = Tribe.objects.extra(
+        select=SortedDict([
+            ("member_count", MEMBER_COUNT_SQL),
+            ("topic_count", TOPIC_COUNT_SQL),
+        ]),
+        select_params=(content_type.id,)
+    ).filter(
+        members__user=request.user,
+        members__status='active'
+    ).order_by("-topic_count", "-member_count", "name")
+
     return render_to_response(template_name, {
-        "tribes": Tribe.objects.filter(members=request.user).order_by("name"),
+        "tribes": tribes
     }, context_instance=RequestContext(request))
 
 
@@ -119,7 +140,9 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
     else:
         is_member = tribe.user_is_member(request.user)
 
-    if not is_member and not request.user.has_perms('view', tribe):
+    if getattr(tribe, 'private', False)\
+            and not is_member\
+            and not request.user.has_perms('view', tribe):
         raise PermissionDenied
 
     action = request.POST.get("action")
@@ -127,7 +150,13 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
         tribe = tribe_form.save()
     elif action == "join":
         if not is_member:
-            tribe.members.add(request.user)
+            member = TribeMember(
+                status='active',
+                tribe=tribe,
+                user=request.user
+            )
+            tribe.members.add(member)
+
             messages.add_message(request, messages.SUCCESS,
                 ugettext("You have joined the tribe %(tribe_name)s") % {
                     "tribe_name": tribe.name
@@ -141,7 +170,7 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
                     "user": request.user,
                     "tribe": tribe
                 })
-                notification.send(tribe.members.all(), "tribes_new_member", {
+                notification.send(tribe.member_queryset().all(), "tribes_new_member", {
                     "user": request.user,
                     "tribe": tribe
                 })
@@ -152,7 +181,7 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
                 }
             )
     elif action == "leave":
-        tribe.members.remove(request.user)
+        tribe.members.get(user=request.user).delete()
         messages.add_message(request, messages.SUCCESS,
             ugettext("You have left the tribe %(tribe_name)s") % {
                 "tribe_name": tribe.name

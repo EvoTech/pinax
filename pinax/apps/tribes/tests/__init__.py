@@ -50,7 +50,7 @@ class TribesTest(TestCase):
         self.assertEqual(response.status_code, 302)
         #self.assertEqual(response["location"], "http://testserver/tribes/tribe/test/")
         self.assertEqual(Tribe.objects.get(slug="test").creator.username, "tester")
-        self.assertEqual(Tribe.objects.get(slug="test").members.all()[0].username, "tester")
+        self.assertEqual(Tribe.objects.get(slug="test").member_queryset().all()[0].username, "tester")
     
     def test_auth_creator_membership(self):
         """
@@ -66,5 +66,5 @@ class TribesTest(TestCase):
         })
         response = self.client.get(reverse("tribe_detail", args=["test"]))
         self.assertEqual(Tribe.objects.get(slug="test").creator.username, "tester")
-        self.assertEqual(Tribe.objects.get(slug="test").members.all()[0].username, "tester")
+        self.assertEqual(Tribe.objects.get(slug="test").member_queryset().all()[0].username, "tester")
         self.assertEqual(response.context[0]["is_member"], True)

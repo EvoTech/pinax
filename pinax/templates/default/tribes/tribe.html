@@ -23,7 +23,7 @@
             <div class="members">
                 <h2>{% trans "Members" %}</h2>
                 <table width="100%">
-                    {% for member in tribe.members.all %}
+                    {% for member in tribe.member_queryset.all %}
                         {% if forloop.counter0|divisibleby:"3" %}<tr>{% endif %}
                         <td>
                             <div class="avatar">{% avatar member 40 %}</div>
@@ -31,7 +31,7 @@
                         </td>
                         {% if forloop.counter0|add:"1"|divisibleby:"3" %}</tr>{% endif %}
                     {% endfor %}
-                    {% if tribe.members.all|length|divisibleby:"3" %}{% else %}</tr>{% endif %}
+                    {% if tribe.member_queryset.all|length|divisibleby:"3" %}{% else %}</tr>{% endif %}
                 </table>
             </div>
         </div>
@@ -67,7 +67,7 @@
                 </form>
             </div>
             
-            {% ifequal tribe.members.all.count 1 %}
+            {% ifequal tribe.member_queryset.all.count 1 %}
                 <p>{% silk "delete" %} <a href="#" onclick="$('#delete_tribe_form').toggle(); return false;">{% trans "Delete tribe" %}</a><p>
                  <form class="delete_form" id="delete_tribe_form" action="{% url tribe_delete tribe.slug %}" method="POST" style="display: none;">
                      {% csrf_token %}
