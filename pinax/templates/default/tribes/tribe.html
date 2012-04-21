@@ -12,11 +12,16 @@
 {% load topics_tags %}
 {% load photo_tags %}
 {% load theme_tags %}
+{% load is_allowed_tags %}
 
 {% block head_title %}{{ tribe.name }}{% endblock %}
 
 {% block body %}
-    
+
+    {% is_allowed perm="tribes.view_tribe" obj=tribe as allowed_for_view %}
+    {% is_allowed perm="tribes.change_tribe" obj=tribe as allowed_for_change %}
+    {% is_allowed perm="tribes.delete_tribe" obj=tribe as allowed_for_delete %}
+
     {% if user.is_authenticated %}
         <div class="right_panel">
             <div class="members">
@@ -38,7 +43,16 @@
     
     <div style="width: 550px;">
         
-        <h1>{% trans "Tribe" %} {{ tribe.name }}</h1>
+        <h1>{% trans "Tribe" %} {{ tribe.name }}
+            {% if tribe.private %}
+                {% trans "Private tribe" as private_msg %}
+                {% if allowed_for_view %}
+                    {% silk "lock_open" alt=private_msg title=private_msg %}
+                {% else %}
+                    {% silk "lock" alt=private_msg title=private_msg %}
+                {% endif %}
+            {% endif %}
+        </h1>
         
         <p>
             {% trans "Slug:" %} <tt>{{ tribe.slug }}</tt><br />
@@ -50,7 +64,7 @@
         
         <p>{{ tribe.description }}</p>
         
-        {% ifequal user tribe.creator %}
+        {% if allowed_for_change %}
             <div class="form-toggle">
                 <p><span id="edit-tribe-toggle">{% trans "Edit details" %}</span></p>
                 
@@ -65,8 +79,8 @@
                     </fieldset>
                 </form>
             </div>
-            
-            {% ifequal tribe.member_queryset.all.count 1 %}
+            {% if allowed_for_delete %}
+            {% if tribe.member_queryset.all.count == 1 %}
                 <p>{% silk "delete" %} <a href="#" onclick="$('#delete_tribe_form').toggle(); return false;">{% trans "Delete tribe" %}</a><p>
                  <form class="delete_form" id="delete_tribe_form" action="{% url tribe_delete tribe.slug %}" method="POST" style="display: none;">
                      {% csrf_token %}
@@ -74,9 +88,10 @@
                 </form>
             {% else %}
                 <p>{% trans "You are not the only member of the tribe so you can't delete the tribe." %}</p>
-            {% endifequal %}
+            {% endif %}
+            {% endif %}
             
-        {% endifequal %}
+        {% endif %}
         
         {% if user.is_authenticated %}
             <div>
@@ -102,7 +117,7 @@
         {% endif %}
         
         
-        {# if user.is_authenticated #}
+        {% if allowed_for_view %}
             <h2>{% trans "Discussion Topics" %}{% if tribe.topics.all.count %} ({{ tribe.topics.all.count }}){% endif %}</h2>
             
             {% get_topics_for_group tribe as topic_queryset %}
@@ -190,7 +205,7 @@
             </p>
 {% endcomment %}
             
-        {# endif #}
+        {% endif %}
     </div>
 
 {% endblock %}

@@ -97,7 +97,8 @@ def delete(request, group_slug=None, redirect_url=None):
     # @@@ eventually, we'll remove restriction that tribe.creator can't leave
     # tribe but we'll still require tribe.member_queryset().all().count() == 1
     if (request.user.is_authenticated() and request.method == "POST" and
-            request.user == tribe.creator and tribe.member_queryset().all().count() == 1):
+            request.user.has_perm('tribes.delete_tribe', tribe) and
+            tribe.member_queryset().all().count() == 1):
         tribe.delete()
         messages.add_message(request, messages.SUCCESS,
             ugettext("Tribe %(tribe_name)s deleted.") % {
@@ -130,7 +131,7 @@ def your_tribes(request, template_name="tribes/your_tribes.html"):
 
 
 def tribe(request, group_slug=None, form_class=TribeUpdateForm,
-        template_name="tribes/tribe.html"):
+          template_name="tribes/tribe.html"):
     tribe = get_object_or_404(Tribe, slug=group_slug)
     
     tribe_form = form_class(request.POST or None, instance=tribe)
@@ -140,11 +141,10 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
     else:
         is_member = tribe.user_is_member(request.user)
 
-    is_allow = tribe.private and not is_member\
-        and not request.user.has_perms('view', tribe)
-
     action = request.POST.get("action")
-    if action == "update" and tribe_form.is_valid():
+    if action == "update" and\
+            request.user.has_perm('tribes.change_tribe', tribe) and\
+            tribe_form.is_valid():
         tribe = tribe_form.save()
     elif action == "join":
         try:
@@ -160,13 +160,13 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
         elif member is not None:
             if member.status in ('inactive', 'requested', 'invited', ):
                 messages.add_message(request, messages.WARNING,
-                    ugettext("You have already joined tribe %(tribe_name)s, but your status is not approved yet") % {
+                    ugettext("You have already joined tribe %(tribe_name)s, but your status is awaiting approval") % {
                         "tribe_name": tribe.name
                     }
                 )
             elif member.status == 'blocked':
                 messages.add_message(request, messages.WARNING,
-                    ugettext("You are blocked in tribe %(tribe_name)s") % {
+                    ugettext("You are blocked for tribe %(tribe_name)s") % {
                         "tribe_name": tribe.name
                     }
                 )
@@ -197,15 +197,26 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
                     "tribe": tribe
                 })
     elif action == "leave":
-        tribe.members.get(user=request.user).delete()
-        messages.add_message(request, messages.SUCCESS,
-            ugettext("You have left the tribe %(tribe_name)s") % {
-                "tribe_name": tribe.name
-            }
-        )
-        is_member = False
-        if notification:
-            pass # @@@ no notification on departure yet
+        member = tribe.members.get(user=request.user)
+        if member.status in ('inactive', 'requested', 'invited', 'active', ):
+            member.delete()
+            messages.add_message(
+                request, messages.SUCCESS,
+                ugettext("You have left the tribe %(tribe_name)s") % {
+                    "tribe_name": tribe.name
+                }
+            )
+            is_member = False
+            if notification:
+                pass # @@@ no notification on departure yet
+        elif member.status == 'blocked':
+            messages.add_message(
+                request, messages.SUCCESS,
+                ugettext("You are blocked for tribee %(tribe_name)s") % {
+                    "tribe_name": tribe.name
+                }
+            )
+            is_member = False
     
     return render_to_response(template_name, {
         "tribe_form": tribe_form,

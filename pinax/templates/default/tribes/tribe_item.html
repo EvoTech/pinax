@@ -2,11 +2,20 @@
 {% load account_tags %}
 {% load extra_tagging_tags %}
 {% load theme_tags %}
+{% load is_allowed_tags %}
 
+{% is_allowed perm="tribes.view_tribe" obj=tribe as allowed_for_view %}
 <dt>
     <a href="{{ tribe.get_absolute_url }}">{{ tribe.name }}</a>
     (<a href="{{ tribe.get_absolute_url }}">{{ tribe.slug }}</a>)
-    {% if tribe.private %}{% trans "private" as private %}{% silk "lock" alt=private title=private %}{% endif %}
+    {% if tribe.private %}
+        {% trans "Private tribe" as private_msg %}
+        {% if allowed_for_view %}
+            {% silk "lock_open" alt=private_msg title=private_msg %}
+        {% else %}
+            {% silk "lock" alt=private_msg title=private_msg %}
+        {% endif %}
+    {% endif %}
 </dt>
 <dd>
     {{ tribe.description }}

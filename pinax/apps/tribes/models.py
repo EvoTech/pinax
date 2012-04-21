@@ -42,6 +42,16 @@ class Tribe(Group):
             user=user
         ).exists()
 
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if perm == 'tribes.view_tribe':
+            return not self.private or self.user_is_member(user)
+        if perm == 'tribes.browse_tribe':
+            return True
+        if perm in ('tribes.add_tribe', 'tribes.change_tribe', ):
+            return user == self.creator
+        return False
+
 
 class TribeMember(models.Model):
     """Tribe member"""
