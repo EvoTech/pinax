@@ -1,14 +1,15 @@
 {% load i18n %}
 {% load avatar_tags %}
 {% load account_tags %}
+{% load tribes_tags %}
 
 {% user_display other_user as other_user_display %}
 
 {% if is_me %}
     <div class="groups">
         <h2>{% trans "Your Tribes" %}</h2>
-        {% if other_user.tribes.all %}
-            {% for tribe in other_user.tribes.all %}
+        {% if other_user|tribes_for_user %}
+            {% for tribe in other_user|tribes_for_user %}
                 <a href="{% url tribe_detail tribe.slug %}">{{ tribe.name }}</a>
             {% endfor %}
         {% else %}
@@ -40,8 +41,8 @@
 {% if is_friend %}
     <div class="groups">
         <h2>{% blocktrans %}{{ other_user_display }}'s Tribes{% endblocktrans %}</h2>
-        {% if other_user.tribes.all %}
-            {% for tribe in other_user.tribes.all %}
+        {% if other_user|tribes_for_user %}
+            {% for tribe in other_user|tribes_for_user %}
                 <a href="{% url tribe_detail tribe.slug %}">{{ tribe.name }}</a>
             {% endfor %}
         {% else %}

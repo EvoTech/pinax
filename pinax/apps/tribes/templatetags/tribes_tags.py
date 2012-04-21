@@ -1,6 +1,7 @@
 from django import template
 
 from pinax.apps.tribes.forms import TribeForm
+from pinax.apps.tribes.models import Tribe
 
 
 
@@ -31,3 +32,11 @@ def persist_getvars(request):
     if len(getvars.keys()) > 0:
         return "?%s" % getvars.urlencode()
     return ""
+
+
+@register.filter
+def tribes_for_user(user):
+    return Tribe.objects.filter(
+        members__status='active',
+        members__user=user
+    ).order_by('name')
