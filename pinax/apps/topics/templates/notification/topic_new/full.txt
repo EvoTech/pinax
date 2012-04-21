@@ -1,0 +1,14 @@
+{% load i18n %}
+{% if group %}
+{% blocktrans %}{{ creator }} has added a topic '{{ topic }}' in '{{ group }}'.{% endblocktrans %}
+{% else %}
+{% blocktrans %}{{ creator }} has added a topic '{{ topic }}'.{% endblocktrans %}
+{% endif %}
+
+
+Topic details:
+{{ topic.body }}
+
+{% blocktrans with topic.tags as topic_tags %}Tags: {{ topic_tags }}{% endblocktrans %}
+
+Link: http://{{ current_site }}{{ topic.get_absolute_url }}

@@ -1,0 +1,6 @@
+{% load i18n %}{% url profile_detail username=creator.username as creator_url %}
+{% if group %}
+{% blocktrans with topic.get_absolute_url as topic_url and group.get_absolute_url as group_url %}<a href="{{ creator_url }}">{{ creator }}</a> has added a topic '<a href="{{ topic_url }}">{{ topic }}</a>' in '<a href="{{ group_url }}">{{ group }}</a>'.{% endblocktrans %}
+{% else %}
+{% blocktrans with topic.get_absolute_url as topic_url %}<a href="{{ creator_url }}">{{ creator }}</a> has added a topic '<a href="{{ topic_url }}">{{ topic }}</a>'.{% endblocktrans %}
+{% endif %}

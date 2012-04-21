@@ -62,5 +62,14 @@ def new_comment(sender, instance, **kwargs):
         if notification:
             # @@@ how do I know which notification type to send?
             # @@@ notification.send([topic.creator], "tribes_topic_response", {"user": instance.user, "topic": topic})
-            pass
+            #pass
+            group = topic.group
+            if group:
+                notify_list = group.member_queryset().exclude(id__exact=instance.user.id) # @@@
+            else:
+                notify_list = User.objects.all().exclude(id__exact=instance.user.id)
+            
+            notification.send(notify_list, "topic_comment", {
+                "user": instance.user, "topic": topic, "comment": instance, "group": group,
+            })
 models.signals.post_save.connect(new_comment, sender=ThreadedComment)
