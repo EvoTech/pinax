@@ -22,7 +22,7 @@
     {% is_allowed perm="tribes.change_tribe" obj=tribe as allowed_for_change %}
     {% is_allowed perm="tribes.delete_tribe" obj=tribe as allowed_for_delete %}
 
-    {% if user.is_authenticated %}
+    {% if allowed_for_view %}
         <div class="right_panel">
             <div class="members">
                 <h2>{% trans "Members" %}</h2>
