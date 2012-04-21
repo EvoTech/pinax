@@ -28,7 +28,9 @@
     
     {% if photo %}
         <div class="gallery-photo">
-            <img src="{{ photo_url }}" alt="{{ photo.title }}"/>
+            <a href="{{ photo.image.url }}">
+                <img src="{{ photo_url }}" alt="{{ photo.title }}"/>
+            </a>
         </div>
         <div class="photo-title">
             <h2>{{ photo.title }}</h2>
