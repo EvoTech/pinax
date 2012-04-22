@@ -32,8 +32,9 @@
             {% blocktrans with photo.view_count as view_count %}Viewed {{ view_count }} times{% endblocktrans %}
         </div>
         {% endfor %}
-        </div>
+        <div class="clear"></div>
         {% paginate %}
+        </div>
     {% else %}
         <p>{% trans "No photos were found." %}</p>
     {% endif %}
