@@ -1,4 +1,4 @@
-{% extends "site_base.html" %}
+{% extends request.bridge.group_base_template|default:"site_base.html" %}
 
 {% load i18n %}
 {% load group_tags %}

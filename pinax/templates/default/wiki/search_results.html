@@ -35,18 +35,15 @@
     {% endif %}
 	{% if articles_by_content %}
 	    {% autopaginate articles_by_content %}
-        <h2>{% trans "Matches by content/summary" %}</h2>
-		<ul>
-			{% for article in articles_by_content %}
-			    {% ifchanged article.created_at.date  %}<h2 class="join_date">{{ article.created_at.date|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2>{% endifchanged %}
-				<li>
-                    <a href="{% groupurl wiki_article group title=article.title %}">{{ article.title }}</a>
-                    {% if article.summary %}
-                        <blockquote>{{ article.summary }}</blockquote>
-                    {% endif %}
-            </li>
-			{% endfor %}
-		</ul>
+            <h2>{% trans "Matches by content/summary" %}</h2>
+            <table class="topics">
+                {% for article in articles_by_content %}
+                    {% ifchanged article.created_at.date  %}
+                        <tr><td colspan="2"><h2>{{ article.created_at.date|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2></td></tr>
+                    {% endifchanged %}
+                    {% show_teaser article %}
+                {% endfor %}
+            </table>
 		{% paginate %}
 	{% else %}
         {% if search_term %}<h2>{% trans "No results." %}</h2>{% endif %}

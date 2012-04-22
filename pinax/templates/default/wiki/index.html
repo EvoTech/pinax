@@ -17,17 +17,19 @@
 
     {% if articles %}
         {% autopaginate articles %}
-        <ul>
-        {% for article in articles %}
-            {% ifchanged article.created_at.date  %}<h2 class="join_date">{{ article.created_at.date|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2>{% endifchanged %}
-            <li><a href="{% groupurl wiki_article group title=article.title %}">{{ article.title }}</a></li>
-        {% endfor %}
-        </ul>
+            <table class="topics">
+                {% for article in articles %}
+                    {% ifchanged article.created_at.date  %}
+                        <tr><td colspan="2"><h2>{{ article.created_at.date|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2></td></tr>
+                    {% endifchanged %}
+                    {% show_teaser article %}
+                {% endfor %}
+            </table>
         {% paginate %}
     {% endif %}
 
     {% if allow_write %}
-        <p>Start a <a href="{% groupurl wiki_edit group title=new_article.title %}">NewArticle</a>.</p>
+        <p>+ Start a <a href="{% groupurl wiki_edit group title=new_article.title %}">NewArticle</a>.</p>
     {% endif %}
 
 {% endblock %}

@@ -138,7 +138,7 @@
             
             {% if articles %}
                 <table class="topics">
-                    {% for article in articles %}
+                    {% for article in articles|slice:":5" %}
                         {% show_teaser article %}
                     {% endfor %}
                 </table>
@@ -159,7 +159,7 @@
             
             {% if photos %}
                 <div class="thumb-row clearfix">
-                    {% for photo in photos|slice:":30" %}
+                    {% for photo in photos|slice:":20" %}
                     <div class="gallery-photo-thumb">
                         <a href="{% groupurl photo_details tribe id=photo.photo.id %}"><img src="{{ photo.photo.get_thumbnail_url }}" alt="{{ photo.photo.title }}"/></a><br />
                         {% silk "comment" %}<a href="{% groupurl photo_details tribe id=photo.photo.id %}">{% get_comment_count for photo as commentcount %} {% blocktrans %}{{ commentcount }} Comments {% endblocktrans %}</a>
