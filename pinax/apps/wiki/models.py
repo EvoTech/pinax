@@ -155,6 +155,19 @@ class Article(models.Model):
     def __unicode__(self):
         return self.title
 
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if self.group:
+            if perm in ('wiki.view_article', 'wiki.browse_article', ):
+                return user.has_perm('view', self.group)
+        else:
+            return True
+        if perm in ('wiki.add_article', 'wiki.change_article', ):
+            return user.is_authenticated() and user.has_perm('view', self)
+        if perm in ('wiki.observe_wiki_observed_article_changed_article', ):
+            return user.is_authenticated() and user.has_perm('view', self)
+        return False
+
 
 class NonRevertedChangeSetManager(QuerySetManager):
 

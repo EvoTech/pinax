@@ -135,26 +135,20 @@ def has_read_perm(user, group, is_member, is_private):
     """ Return True if the user has permission to *read*
     Articles, False otherwise.
     """
-    # patched
-    #if group and not group.user_is_member(user):
-    #    return False
-    # end patch
-    if (group is None) or (is_member is None) or is_member(user, group):
+    if group:
+        return user.has_perm('view', group)
+    else:
         return True
-    if (is_private is not None) and is_private(group):
-        return False
     return True
 
 def has_write_perm(user, group, is_member):
     """ Return True if the user have permission to edit Articles,
     False otherwise.
     """
-    # patched
-    if group and not group.user_is_member(user):
-        return False
-    # end of patch
-    if (group is None) or (is_member is None) or is_member(user, group):
-        return True
+    if group:
+        return user.is_authenticated() and user.has_perm('view', group)
+    else:
+        return user.is_authenticated()
     return False
 
 
