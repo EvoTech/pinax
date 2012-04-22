@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 from django.conf import settings
+from django.db.models import Q
 from django.core.cache import cache
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
@@ -98,7 +99,7 @@ def get_url(urlname, group=None, args=None, kw=None, bridge=None):
         return reverse(urlname, args=args, kwargs=kw)
     else:
         return bridge.reverse(urlname, group, kwargs=kw)
-        
+
 
 class ArticleEditLock(object):
     """ A soft lock to edting an article.
@@ -156,10 +157,10 @@ def has_write_perm(user, group, is_member):
         return True
     return False
 
-#patched
+
 #@login_required
 def article_list(request,
-                 tribe_slug=None, bridge=None,
+                 group_slug=None, bridge=None,
                  article_qs=ALL_ARTICLES,
                  ArticleClass=Article,
                  SearchFormClass=SearchForm,
@@ -208,7 +209,7 @@ def article_list(request,
 #@login_required
 def view_article(request, title,
                  ArticleClass=Article, # to create an unsaved instance
-                 tribe_slug=None, bridge=None,
+                 group_slug=None, bridge=None,
                  article_qs=ALL_ARTICLES,
                  template_name='view.html',
                  template_dir='wiki',
@@ -216,7 +217,7 @@ def view_article(request, title,
                  is_member=None,
                  is_private=None,
                  *args, **kw):
-    #import rpdb2; rpdb2.start_embedded_debugger('111')
+
     if request.method == 'GET':
         group, bridge = group_and_bridge(request)
         if group:
@@ -259,7 +260,7 @@ def view_article(request, title,
 
 @login_required
 def edit_article(request, title,
-                 tribe_slug=None, bridge=None,
+                 group_slug=None, bridge=None,
                  article_qs=ALL_ARTICLES,
                  ArticleClass=Article, # to get the DoesNotExist exception
                  ArticleFormClass=ArticleForm,
@@ -306,11 +307,11 @@ def edit_article(request, title,
                 form.group = group
 
             new_article, changeset = form.save()
-            
+
             url = get_url('wiki_article', group, kw={
                 'title': new_article.title,
             }, bridge=bridge)
-            
+
             return redirect_to(request, url)
 
     elif request.method == 'GET':
@@ -350,7 +351,7 @@ def edit_article(request, title,
 
 @login_required
 def remove_article(request, title,
-                   tribe_slug=None, bridge=None,
+                   group_slug=None, bridge=None,
                    article_qs=ALL_ARTICLES,
                    template_name='confirm_remove.html',
                    template_dir='wiki',
@@ -390,7 +391,7 @@ def remove_article(request, title,
 
 @login_required
 def view_changeset(request, title, revision,
-                   tribe_slug=None, bridge=None,
+                   group_slug=None, bridge=None,
                    article_qs=ALL_ARTICLES,
                    changes_qs=ALL_CHANGES,
                    template_name='changeset.html',
@@ -411,7 +412,6 @@ def view_changeset(request, title, revision,
                                        is_private)
             allow_write = has_write_perm(request.user, group, is_member)
         else:
-            group = None
             allow_read = allow_write = True
             article_args.update({'article__object_id': None})
 
@@ -442,7 +442,7 @@ def view_changeset(request, title, revision,
 
 @login_required
 def article_history(request, title,
-                    tribe_slug=None, bridge=None,
+                    group_slug=None, bridge=None,
                     article_qs=ALL_ARTICLES,
                     template_name='history.html',
                     template_dir='wiki',
@@ -463,7 +463,6 @@ def article_history(request, title,
                                        is_private)
             allow_write = has_write_perm(request.user, group, is_member)
         else:
-            group = None
             allow_read = allow_write = True
             article_args.update({'object_id': None})
 
@@ -489,7 +488,7 @@ def article_history(request, title,
 
 @login_required
 def revert_to_revision(request, title,
-                       tribe_slug=None, bridge=None,
+                       group_slug=None, bridge=None,
                        article_qs=ALL_ARTICLES,
                        extra_context=None,
                        is_member=None,
@@ -511,7 +510,6 @@ def revert_to_revision(request, title,
                                        is_private)
             allow_write = has_write_perm(request.user, group, is_member)
         else:
-            group = None
             allow_read = allow_write = True
             article_args.update({'object_id': None})
 
@@ -529,11 +527,11 @@ def revert_to_revision(request, title,
         if request.user.is_authenticated():
             request.user.message_set.create(
                 message=u"The article was reverted successfully.")
-                
+
         url = get_url('wiki_article_history', group, kw={
             'title': title,
         }, bridge=bridge)
-        
+
         return redirect_to(request, url)
 
     return HttpResponseNotAllowed(['POST'])
@@ -541,42 +539,84 @@ def revert_to_revision(request, title,
 
 @login_required
 def search_article(request,
-                   tribe_slug=None, bridge=None,
+                   group_slug=None, bridge=None,
                    article_qs=ALL_ARTICLES,
                    SearchFormClass=SearchForm,
+                   template_name='search_results.html',
+                   template_dir='wiki',
                    extra_context=None,
                    is_member=None,
                    is_private=None,
                    *args, **kw):
-    if request.method == 'POST':
-        search_form = SearchFormClass(request.POST)
-        if search_form.is_valid():
-            search_term = search_form.cleaned_data['search_term']
+    if request.method == 'GET':
+        articles_by_content = None
+        article_by_title = None
 
-            group, bridge = group_and_bridge(request)
-            if group:
-                allow_read = has_read_perm(request.user, group, is_member,
-                                           is_private)
-            else:
-                group = None
-                allow_read = True
+        search_term = ''
+        if not request.GET:
+            search_form = SearchFormClass()
+        else:
+            search_form = SearchFormClass(request.GET)
+            if search_form.is_valid():
+                search_term = search_form.cleaned_data.get('q')
+                title_only = search_form.cleaned_data.get('title_only')
 
-            if not allow_read:
-                return HttpResponseForbidden()
+                group, bridge = group_and_bridge(request)
+                articles, group = get_articles_by_group(article_qs, group,
+                                                        bridge)
+                articles = articles.order_by('-created_at')
+                if group:
+                    allow_read = has_read_perm(request.user, group, is_member,
+                                               is_private)
+                else:
+                    allow_read = True
 
-            # go to article by title
-            url = get_url('wiki_article', group, kw={
-                'title': search_term,
-            }, bridge=bridge)
-            
-            return redirect_to(request, url)
+                if not allow_read:
+                    return HttpResponseForbidden()
 
-    return HttpResponseNotAllowed(['POST'])
+                url = None
+                if title_only:
+                    # go to article by title
+                    url = get_url('wiki_article', group, kw={
+                        'title': search_term,
+                    }, bridge=bridge)
+                else:
+                    articles_by_content = articles.filter(
+                        Q(content__icontains=search_term)
+                        | Q(summary__icontains=search_term))
+
+                    try:
+                        article_by_title = articles.get_by(search_term, group)
+                    except ObjectDoesNotExist:
+                        pass
+
+                    if article_by_title is not None:
+                        if not articles_by_content.count():
+                            url = article_by_title.get_absolute_url()
+                    elif articles_by_content.count() == 1:
+                        url = articles_by_content.get().get_absolute_url()
+
+                if url is not None:
+                    return redirect_to(request, url)
+
+        template_params = {
+            'search_form': search_form,
+            'search_term': search_term,
+            'articles_by_content': articles_by_content,
+            'article_by_title': article_by_title,
+            'group': group,
+        }
+
+        return render_to_response(os.path.join(template_dir, template_name),
+                                  template_params,
+                                  context_instance=RequestContext(request))
+
+    return HttpResponseNotAllowed(['GET'])
 
 
 @login_required
 def history(request,
-            tribe_slug=None, bridge=None,
+            group_slug=None, bridge=None,
             article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
             template_name='recentchanges.html',
             template_dir='wiki',
@@ -592,7 +632,6 @@ def history(request,
                                        is_private)
             allow_write = has_write_perm(request.user, group, is_member)
         else:
-            group = None
             allow_read = allow_write = True
             changes_qs = changes_qs.filter(article__object_id=None)
 
@@ -614,7 +653,7 @@ def history(request,
 
 @login_required
 def observe_article(request, title,
-                    tribe_slug=None, bridge=None,
+                    group_slug=None, bridge=None,
                     article_qs=ALL_ARTICLES,
                     template_name='recentchanges.html',
                     template_dir='wiki',
@@ -632,7 +671,6 @@ def observe_article(request, title,
             allow_read = has_read_perm(request.user, group, is_member,
                                        is_private)
         else:
-            group = None
             allow_read = True
 
         if not allow_read:
@@ -642,11 +680,11 @@ def observe_article(request, title,
 
         notification.observe(article, request.user,
                              'wiki_observed_article_changed')
-        
+
         url = get_url('wiki_article', group, kw={
             'title': article.title,
         }, bridge=bridge)
-        
+
         return redirect_to(request, url)
 
     return HttpResponseNotAllowed(['POST'])
@@ -654,7 +692,7 @@ def observe_article(request, title,
 
 @login_required
 def stop_observing_article(request, title,
-                           tribe_slug=None, bridge=None,
+                           group_slug=None, bridge=None,
                            article_qs=ALL_ARTICLES,
                            template_name='recentchanges.html',
                            template_dir='wiki',
@@ -672,7 +710,6 @@ def stop_observing_article(request, title,
             allow_read = has_read_perm(request.user, group, is_member,
                                        is_private)
         else:
-            group = None
             allow_read = True
             article_args.update({'object_id': None})
 
@@ -682,17 +719,17 @@ def stop_observing_article(request, title,
         article = get_object_or_404(article_qs, **article_args)
 
         notification.stop_observing(article, request.user)
-        
+
         url = get_url('wiki_article', group, kw={
             'title': article.title,
         }, bridge=bridge)
-        
+
         return redirect_to(request, url)
     return HttpResponseNotAllowed(['POST'])
 
 
 def article_history_feed(request, feedtype, title,
-                         tribe_slug=None, bridge=None,
+                         group_slug=None, bridge=None,
                          article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
                          extra_context=None,
                          is_member=None,
@@ -718,7 +755,7 @@ def article_history_feed(request, feedtype, title,
 
 
 def history_feed(request, feedtype,
-                 tribe_slug=None, bridge=None,
+                 group_slug=None, bridge=None,
                  article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
                  extra_context=None,
                  is_member=None,

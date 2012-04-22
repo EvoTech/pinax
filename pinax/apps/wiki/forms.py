@@ -20,6 +20,10 @@ except AttributeError:
 
 wikiword_pattern = re.compile('^' + WIKI_WORD_RE + '$')
 
+try:
+    WIKI_BANNED_TITLES = settings.WIKI_BANNED_TITLES
+except AttributeError:
+    WIKI_BANNED_TITLES = ('NewArticle', 'EditArticle',)
 
 class ArticleFormBase(forms.ModelForm):
 
@@ -56,6 +60,8 @@ class ArticleFormBase(forms.ModelForm):
         """ Page title must be a WikiWord.
         """
         title = self.cleaned_data['title']
+        if title in WIKI_BANNED_TITLES:
+            raise forms.ValidationError(_('Invalid page title.'))
         if not wikiword_pattern.match(title):
             raise forms.ValidationError(_('Must be a WikiWord.'))
 
@@ -117,7 +123,8 @@ class ArticleFormBase(forms.ModelForm):
 
 
 class SearchForm(forms.Form):
-    search_term = forms.CharField(required=True)
+    q = forms.CharField(required=True, label=_('Search'))
+    title_only = forms.BooleanField(required=False, label=_('Title only?'))
 
 ArticleForm = make_maprkup_form(
     ArticleFormBase,

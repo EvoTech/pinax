@@ -13,18 +13,17 @@
 
     {% include "wiki/searchbox.html" %}
 
-    {% autopaginate articles %}
-
-    {% regroup articles by created_at.date as articles_by_creation_date %}
+    
 
     {% if articles %}
-        {% for date in articles_by_creation_date %}
-            <h2 class="join_date">{{ date.grouper|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2>
-
-            {% for article in date.list %}
-                <a href="{% groupurl wiki_article group title=article.title %}">{{ article.title }}</a><br />
-            {% endfor %}
+        {% autopaginate articles %}
+        <ul>
+        {% for article in articles %}
+            {% ifchanged article.created_at.date  %}<h2 class="join_date">{{ article.created_at.date|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2>{% endifchanged %}
+            <li><a href="{% groupurl wiki_article group title=article.title %}">{{ article.title }}</a></li>
         {% endfor %}
+        </ul>
+        {% paginate %}
     {% endif %}
 
     {% if allow_write %}

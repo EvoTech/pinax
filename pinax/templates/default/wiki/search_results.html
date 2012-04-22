@@ -1,0 +1,54 @@
+{% extends 'wiki/base.html' %}
+
+{% load i18n %}
+{% load wiki_tags %}
+{% load group_tags %}
+{% load pagination_tags %}
+{% load humanize %}
+
+{% block head_title %}{% blocktrans %}Found wiki pages for {{ group.name }}{% endblocktrans %}{% endblock %}
+
+{% block searchbox %}{% endblock %}
+
+{% block body %}
+	<h1>{% wiki_title group %}</h1>
+    {% if search_term %}<p>{% blocktrans %}You searched for {{ search_term }}.{% endblocktrans %}</p>{% endif %}
+
+    <form method="get" action="{% groupurl wiki_search group %}">
+        {% for field in search_form %}{{ field.errors }}{% endfor %}
+        <p>
+            {% for field in search_form %}{{ field.label }}&nbsp;{{ field }}&nbsp;&nbsp;{% endfor %}
+            <input type="submit" value="{% trans "Go" %}" accesskey="g">
+        </p>
+    </form>
+
+	{% if article_by_title %}
+        <h2>{% trans "Matches by title" %}</h2>
+		<ul>
+			<li>
+                <a href="{% groupurl wiki_article group title=article.title %}">{{ article_by_title.title }}</a>
+                {% if article_by_title.summary %}
+                    <blockquote>{{ article_by_title.summary }}</blockquote>
+                {% endif %}
+            </li>
+		</ul>
+    {% endif %}
+	{% if articles_by_content %}
+	    {% autopaginate articles_by_content %}
+        <h2>{% trans "Matches by content/summary" %}</h2>
+		<ul>
+			{% for article in articles_by_content %}
+			    {% ifchanged article.created_at.date  %}<h2 class="join_date">{{ article.created_at.date|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2>{% endifchanged %}
+				<li>
+                    <a href="{% groupurl wiki_article group title=article.title %}">{{ article.title }}</a>
+                    {% if article.summary %}
+                        <blockquote>{{ article.summary }}</blockquote>
+                    {% endif %}
+            </li>
+			{% endfor %}
+		</ul>
+		{% paginate %}
+	{% else %}
+        {% if search_term %}<h2>{% trans "No results." %}</h2>{% endif %}
+	{% endif %}
+{% endblock %}

@@ -62,15 +62,15 @@ class Article(models.Model):
     content = models.TextField(_(u"Content"))
     summary = models.CharField(_(u"Summary"), max_length=150,
                                null=True, blank=True)
-    markup = models.CharField(_(u"Content Markup"), max_length=20,
+    markup = models.CharField(_(u"Content Markup"), max_length=100,
                               choices=markup_choices,
                               null=True, blank=True)
     creator = models.ForeignKey(User, verbose_name=_('Article Creator'),
                                 null=True)
     creator_ip = models.IPAddressField(_("IP Address of the Article Creator"),
                                        blank=True, null=True)
-    created_at = models.DateTimeField(default=datetime.now)
-    last_update = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now=True, auto_now_add=True)
     removed = models.BooleanField(_("Is removed?"), default=False)
 
     content_type = models.ForeignKey(ContentType, null=True)
@@ -98,10 +98,6 @@ class Article(models.Model):
         if self.group is None:
             return reverse('wiki_article', args=(self.title,))
         return self.group.get_absolute_url() + 'wiki/' + self.title
-
-    def save(self, force_insert=False, force_update=False):
-        self.last_update = datetime.now()
-        super(Article, self).save(force_insert, force_update)
 
     def remove(self):
         """ Mark the Article as 'removed'. If the article is
@@ -182,7 +178,7 @@ class ChangeSet(models.Model):
 
     # How to recreate this version
     old_title = models.CharField(_(u"Old Title"), max_length=50, blank=True)
-    old_markup = models.CharField(_(u"Article Content Markup"), max_length=20,
+    old_markup = models.CharField(_(u"Article Content Markup"), max_length=100,
                                   choices=markup_choices,
                                   null=True, blank=True)
     content_diff = models.TextField(_(u"Content Patch"), blank=True)
@@ -267,8 +263,8 @@ class ChangeSet(models.Model):
         if None not in (notification, self.editor):
             notification.send([self.editor], "wiki_revision_reverted",
                               {'revision': self, 'article': self.article})
-### patched
-    def save(self, force_insert=False, force_update=False, **kwargs):
+
+    def save(self, *args, **kwargs):
         """ Saves the article with a new revision.
         """
         if self.id is None:
@@ -277,7 +273,7 @@ class ChangeSet(models.Model):
                     article=self.article).latest().revision + 1
             except self.DoesNotExist:
                 self.revision = 1
-        super(ChangeSet, self).save(force_insert, force_update, **kwargs)
+        super(ChangeSet, self).save(*args, **kwargs)
 
     def display_diff(self):
         ''' Returns a HTML representation of the diff.
