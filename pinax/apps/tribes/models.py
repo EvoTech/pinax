@@ -24,6 +24,9 @@ class Tribe(Group):
     # private means only members can see the tribe
     private = models.BooleanField(_("private"), default=False)
 
+    def __unicode__(self):
+        return u"{0} ({1})".format(self.name, self.slug)
+
     def get_absolute_url(self):
         return reverse("tribe_detail", kwargs={"group_slug": self.slug})
 
@@ -77,12 +80,18 @@ class TribeMember(models.Model):
     class Meta:
         unique_together = [("user", "tribe")]
 
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.tribe, self.user)
+
 
 class TribeRole(models.Model):
     """Tribe's role'"""
     name = models.CharField(_("name"), max_length=50, unique=True)
     title = models.CharField(_("title"), max_length=150, default="")
     description = models.TextField(_("description"), default="")
+
+    def __unicode__(self):
+        return self.name
 
 
 class TribeMemberRole(models.Model):
@@ -99,6 +108,9 @@ class TribeMemberRole(models.Model):
     )
     actor = models.ForeignKey(User)
     date = models.DateTimeField(_("date"), auto_now_add=True)
+
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.member, self.role)
 
 
 class TribeMemberHistory(models.Model):
@@ -118,3 +130,6 @@ class TribeMemberHistory(models.Model):
     message = models.TextField(_("message"), default="")
     date = models.DateTimeField(_("date"), auto_now_add=True)
     actor = models.ForeignKey(User)
+
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.member, self.status)

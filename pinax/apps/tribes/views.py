@@ -17,7 +17,7 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
-from pinax.apps.tribes.models import Tribe, TribeMember
+from pinax.apps.tribes.models import Tribe, TribeMember, TribeMemberHistory
 from pinax.apps.tribes.forms import TribeForm, TribeUpdateForm
 
 
@@ -134,14 +134,14 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
           template_name="tribes/tribe.html"):
     tribe = get_object_or_404(Tribe, slug=group_slug)
     
-    tribe_form = form_class(request.POST or None, instance=tribe)
-    
     if not request.user.is_authenticated():
         is_member = False
     else:
         is_member = tribe.user_is_member(request.user)
 
     action = request.POST.get("action")
+    tribe_form = form_class(action == "update" and request.POST or None,
+                            instance=tribe)
     if action == "update" and\
             request.user.has_perm('tribes.change_tribe', tribe) and\
             tribe_form.is_valid():
@@ -172,12 +172,18 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
                 )
         else:
             status = 'inactive' if tribe.private else 'active'
-            member = TribeMember(
+            member = TribeMember.objects.create(
                 status=status,
                 tribe=tribe,
                 user=request.user
             )
             tribe.members.add(member)
+            TribeMemberHistory.objects.create(
+                member=member,
+                status=status,
+                message=u"",
+                actor=request.user
+            )
 
             messages.add_message(request, messages.SUCCESS,
                 ugettext("You have joined the tribe %(tribe_name)s") % {
