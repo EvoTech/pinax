@@ -15,15 +15,15 @@ MEMBER_STATUSES = [
 
 
 class Tribe(Group):
-    
+
     member_users = models.ManyToManyField(
         User,
-        through = "TribeMember",
-        verbose_name = _("members")
+        through="TribeMember",
+        verbose_name=_("members")
     )
     # private means only members can see the tribe
     private = models.BooleanField(_("private"), default=False)
-    
+
     def get_absolute_url(self):
         return reverse("tribe_detail", kwargs={"group_slug": self.slug})
 
@@ -57,7 +57,7 @@ class TribeMember(models.Model):
     """Tribe member"""
 
     status = models.CharField(
-        verbose_name=_("Status"),
+        verbose_name=_("status"),
         max_length=10,
         choices=MEMBER_STATUSES,
         default='inactive',
@@ -65,14 +65,56 @@ class TribeMember(models.Model):
     )
     tribe = models.ForeignKey(
         Tribe,
-        related_name = "members",
-        verbose_name = _("tribe")
+        related_name="members",
+        verbose_name=_("tribe")
     )
     user = models.ForeignKey(
         User,
-        related_name = "tribes",
-        verbose_name = _("user")
+        related_name="tribes",
+        verbose_name=_("user")
     )
 
     class Meta:
         unique_together = [("user", "tribe")]
+
+
+class TribeRole(models.Model):
+    """Tribe's role'"""
+    name = models.CharField(_("name"), max_length=50, unique=True)
+    title = models.CharField(_("title"), max_length=150, default="")
+    description = models.TextField(_("description"), default="")
+
+
+class TribeMemberRole(models.Model):
+    """Member roles"""
+    member = models.ForeignKey(
+        TribeMember,
+        verbose_name=_("member"),
+        related_name="roles"
+    )
+    role = models.ForeignKey(
+        TribeRole,
+        verbose_name=_("role"),
+        related_name="members"
+    )
+    actor = models.ForeignKey(User)
+    date = models.DateTimeField(_("date"), auto_now_add=True)
+
+
+class TribeMemberHistory(models.Model):
+    """History of members relations"""
+    member = models.ForeignKey(
+        TribeMember,
+        verbose_name=_("member"),
+        related_name="history"
+    )
+    status = models.CharField(
+        verbose_name=_("status"),
+        max_length=10,
+        choices=MEMBER_STATUSES,
+        default='inactive',
+        db_index=True
+    )
+    message = models.TextField(_("message"), default="")
+    date = models.DateTimeField(_("date"), auto_now_add=True)
+    actor = models.ForeignKey(User)
