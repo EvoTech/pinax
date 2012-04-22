@@ -12,7 +12,7 @@
                 {{ body|apply_markup:blog_post.markup }}
             {% endwith %}
         {% else %}
-            {% with blog_post.body|truncatewords:"150" as body %}
+            {% with blog_post.body|truncatewords_html:"150" as body %}
                 {{ body|apply_markup:blog_post.markup }}
             {% endwith %}
         {% endif %}
