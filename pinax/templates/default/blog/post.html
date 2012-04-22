@@ -4,6 +4,7 @@
 {% load humanize %}
 {% load account_tags %}
 {% load comments_tag %}
+{% load markup_tags %}
 {% load tagging_tags %}
 {% load blog_tags %}
 {% load theme_tags %}
@@ -31,7 +32,7 @@
             {% endifequal %}
         </div>
         
-        {% show_blog_post post %}
+        <div>{{ post.body|apply_markup:post.markup }}</div>
         
     </div>
     
