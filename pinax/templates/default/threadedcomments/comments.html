@@ -1,11 +1,13 @@
 {% load account_tags %}
-{% load threadedcommentstags %}
+{% load comments %}
+{% load threadedcomments_tags %}
 {% load i18n %}
 {% load uni_form_tags %}
 {% load pagination_tags %}
 {% load avatar_tags %}
+{% load is_allowed_tags %}
 
-{% get_threaded_comment_tree for object as responses %}
+{% get_comment_list for object as responses %}
 {% autopaginate responses %}
 
 <ul class="responses">
@@ -14,24 +16,43 @@
             <div class="meta">
                 <div class="avatar">{% avatar response.user 40 %}</div>
                 <div class="details"><a href="{% url profile_detail response.user.username %}">{% user_display response.user %}</a></div>
-                {{ response.date_submitted|date }}
+                {{ response.submit_date|date }}
             </div>
             <div class="bulk">
                 <div class="body">{{ response.comment|urlize|linebreaks }}</div>
-                {% ifequal user response.user %}
-                <form method="POST" action="{% url tc_comment_delete response.id %}">
+                {% ifallowed obj=response perm="comments.delete_comment" %}
+                <form method="POST" action="{% url comments-delete response.id %}">
                     {% csrf_token %}
                     <input type="submit" value="{% trans "Delete Post" %}" />
                     <input type="hidden" name="next" value="{{ request.path }}" />
                 </form>
-                {% endifequal %}
+                {% endifallowed %}
+                {% if request.user.is_authenticated %}
                 <a href="javascript:toggle_comment_form({{ response.id }})">{% trans "Reply to This Post" %}</a>
-                <form class="hidden" method="POST" action="{% get_comment_url object response %}" id="comment_form_{{ response.id }}">
+                <form class="hidden" method="POST" action="{% comment_form_target %}" id="comment_form_{{ response.id }}">
                     {% csrf_token %}
-                    <table><tr><td><textarea rows="10" cols="40" name="comment"></textarea></td></tr>
-                    <tr><td><input type="submit" value="{% trans "Post Response" %}" /></td></tr></table>
-                    <input type="hidden" name="next" value="{{ request.path }}" />
+                    {% get_comment_form for object as form with response.pk %}
+                    <table><tr><td>
+                    {% for field in form %}
+                        {% if field.is_hidden or field.name == "name" or field.name == "url" or field.name == "email" or field.name == "title"  %}
+                          <div style="display:none;">{{ field }}</div>
+                        {% else %}
+                          {% if field.errors %}{{ field.errors }}{% endif %}
+                          <div
+                            {% if field.errors %} class="error"{% endif %}
+                            {% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}>
+                            <label>{{ field.label_tag }}</label> {{ field }}
+                          </div>
+                        {% endif %}
+                    {% endfor %}
+                    </td></tr>
+                    <tr><td>
+                        <input type="submit" value="{% trans "Post Response" %}" />
+                        {# <input type="submit" name="preview" value="Preview"> #}
+                    </td></tr></table>
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                 </form>
+                {% endif %}
             </div>
         </li>
     {% endfor %}
@@ -39,16 +60,25 @@
 
 {% paginate %}
 
-{% if user.is_authenticated %}
+{% if request.user.is_authenticated %}
     <fieldset class="inlineLabels">
-        <form class="uniForm" method="POST" action="{% get_comment_url object %}">
+        <form class="uniForm" method="POST" action="{% comment_form_target %}">
             {% csrf_token %}
-                <div class="ctrlHolder">
-                    <label for="id_comment">Comment</label>
-                    <textarea id="id_comment" rows="10" cols="40" name="comment"></textarea>
-                </div>
+                {% get_comment_form for object as form %}
+                {% for field in form %}
+                    {% if field.is_hidden or field.name == "name" or field.name == "url" or field.name == "email" or field.name == "title"  %}
+                      <div style="display:none;">{{ field }}</div>
+                    {% else %}
+                      {% if field.errors %}{{ field.errors }}{% endif %}
+                      <div class="ctrlHolder"
+                        {% if field.errors %} class="error"{% endif %}
+                        {% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}>
+                        <label>{{ field.label_tag }}</label> {{ field }}
+                      </div>
+                    {% endif %}
+                {% endfor %}
                 <div class="form_block">
-                    <input type="hidden" name="next" value="{{ request.path }}" />
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                     <input type="submit" value="{% trans "Post Response" %}" />
                 </div>
         </form>
