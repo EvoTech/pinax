@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% load i18n %}
-{% load openid_tags %}
 {% load generic_flatblocks %}
 {% load analytics %}
 
@@ -16,7 +15,7 @@
 
 {% block login %}
     {% if user.is_authenticated %}
-       <a class="tab_logout" href="/openid/logout/?next={% url acct_logout %}"><span>{% trans "Logout" %}</span></a>
+       <a class="tab_logout" href="{% url acct_logout %}"><span>{% trans "Logout" %}</span></a>
        <a class="tab_account" href="{% url acct_email %}"><span>{% trans "Account" %}</span></a>
     {% else %}
         <a class="tab_login" href="{% url acct_login %}"><span>{% trans "Login" %}</span></a>
