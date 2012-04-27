@@ -5,12 +5,7 @@ from django.views.generic.simple import direct_to_template
 from django.contrib import admin
 admin.autodiscover()
 
-from pinax.apps.account.openid_consumer import PinaxConsumer
-
-
-
 handler500 = "pinax.views.server_error"
-
 
 urlpatterns = patterns("",
     # some simple pages
@@ -25,7 +20,6 @@ urlpatterns = patterns("",
     
     # pinax provided
     (r"^account/", include("pinax.apps.account.urls")),
-    (r"^openid/(.*)", PinaxConsumer()),
     (r"^admin/", include(admin.site.urls)),
 )
 

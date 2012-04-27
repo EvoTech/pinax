@@ -13,16 +13,13 @@ from swaps.models import Offer
 from tagging.models import TaggedItem
 from wakawaka.models import WikiPage
 
-from pinax.apps.account.openid_consumer import PinaxConsumer
 from pinax.apps.blog.feeds import BlogFeedAll, BlogFeedUser
 from pinax.apps.blog.models import Post
 from pinax.apps.photos.models import Image
 from pinax.apps.topics.models import Topic
 from pinax.apps.tribes.models import Tribe
 
-
 handler500 = "pinax.views.server_error"
-
 
 tweets_feed_dict = {"feed_dict": {
     "all": TweetFeedAll,
@@ -46,7 +43,6 @@ urlpatterns = patterns("",
     url(r"^admin/", include(admin.site.urls)),
     url(r"^about/", include("about.urls")),
     url(r"^account/", include("pinax.apps.account.urls")),
-    url(r"^openid/", include(PinaxConsumer().urls)),
     url(r"^profiles/", include("pinax.apps.profiles.urls")),
     url(r"^bbauth/", include("pinax.apps.bbauth.urls")),
     url(r"^authsub/", include("pinax.apps.authsub.urls")),

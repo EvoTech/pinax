@@ -87,7 +87,7 @@ def signup(request, **kwargs):
             }
             form = form_class(initial=initial, group=group)
         else:
-            if not settings.ACCOUNT_OPEN_SIGNUP:
+            if not False:  # Not social-auth signup
                 ctx.update({
                     "code": code,
                 })

@@ -9,13 +9,10 @@ from bookmarks.models import BookmarkInstance
 from tagging.models import TaggedItem
 from wakawaka.models import WikiPage
 
-from pinax.apps.account.openid_consumer import PinaxConsumer
 from pinax.apps.tasks.models import Task
 from pinax.apps.topics.models import Topic
 
-
 handler500 = "pinax.views.server_error"
-
 
 urlpatterns = patterns("",
     url(r"^$", direct_to_template, {
@@ -24,7 +21,6 @@ urlpatterns = patterns("",
     url(r"^admin/invite_user/$", "pinax.apps.signup_codes.views.admin_invite_user", name="admin_invite_user"),
     url(r"^admin/", include(admin.site.urls)),
     url(r"^account/", include("pinax.apps.account.urls")),
-    url(r"^openid/", include(PinaxConsumer().urls)),
     url(r"^profiles/", include("idios.urls")),
     url(r"^notices/", include("notification.urls")),
     url(r"^announcements/", include("announcements.urls")),

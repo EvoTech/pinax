@@ -97,7 +97,6 @@ MIDDLEWARE_CLASSES = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django_openid.consumer.SessionConsumer",
     "django.contrib.messages.middleware.MessageMiddleware",
     "pinax.apps.account.middleware.LocaleMiddleware",
     "pinax.apps.account.middleware.AuthenticatedMiddleware",
@@ -144,7 +143,6 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "mailer",
     "uni_form",
-    "django_openid",
     "ajax_validation",
     "timezones",
     "emailconfirmation",
@@ -187,7 +185,6 @@ AUTHENTICATED_EXEMPT_URLS = [
     r"^/account/signup/$",
     r"^/account/password_reset",
     r"^/account/confirm_email",
-    r"/openid",
     r"^/waitinglist",
     r"^/__debug__",
 ]

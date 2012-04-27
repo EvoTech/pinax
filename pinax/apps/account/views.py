@@ -18,10 +18,6 @@ from django.contrib.auth.tokens import default_token_generator
 
 from emailconfirmation.models import EmailAddress, EmailConfirmation
 
-association_model = models.get_model("django_openid", "Association")
-if association_model is not None:
-    from django_openid.models import UserOpenidAssociation
-
 from pinax.apps.account.utils import get_default_redirect, user_display
 from pinax.apps.account.models import OtherServiceInfo
 from pinax.apps.account.forms import AddEmailForm, ChangeLanguageForm, ChangePasswordForm
@@ -62,8 +58,6 @@ def login(request, **kwargs):
     form_class = kwargs.pop("form_class", LoginForm)
     template_name = kwargs.pop("template_name", "account/login.html")
     success_url = kwargs.pop("success_url", None)
-    associate_openid = kwargs.pop("associate_openid", False)
-    openid_success_url = kwargs.pop("openid_success_url", None)
     url_required = kwargs.pop("url_required", False)
     extra_context = kwargs.pop("extra_context", {})
     redirect_field_name = kwargs.pop("redirect_field_name", "next")
@@ -83,12 +77,6 @@ def login(request, **kwargs):
         form = form_class(request.POST, group=group)
         if form.is_valid():
             form.login(request)
-            if associate_openid and association_model is not None:
-                for openid in request.session.get("openids", []):
-                    assoc, created = UserOpenidAssociation.objects.get_or_create(
-                        user=form.user, openid=openid.openid
-                    )
-                success_url = openid_success_url or success_url
             messages.add_message(request, messages.SUCCESS,
                 ugettext(u"Successfully logged in as %(user)s.") % {
                     "user": user_display(form.user)
@@ -295,10 +283,10 @@ def password_delete(request, **kwargs):
     
     template_name = kwargs.pop("template_name", "account/password_delete.html")
     
-    # prevent this view when openids is not present or it is empty.
-    if not request.user.password or \
-        (not hasattr(request, "openids") or \
-            not getattr(request, "openids", None)):
+    # prevent this view when social-auth is not present or it is empty.
+    # Don't allowed to delete password currently.
+    # Even social auth integrated - we will to generate random password
+    if not request.user.password or True:
         return HttpResponseForbidden()
     
     group, bridge = group_and_bridge(kwargs)

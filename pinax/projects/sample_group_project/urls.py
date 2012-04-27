@@ -8,7 +8,6 @@ admin.autodiscover()
 from tagging.models import TaggedItem
 from wakawaka.models import WikiPage
 
-from pinax.apps.account.openid_consumer import PinaxConsumer
 from pinax.apps.projects.models import Project
 from pinax.apps.tasks.models import Task
 from pinax.apps.topics.models import Topic
@@ -25,7 +24,6 @@ urlpatterns = patterns("",
     url(r"^admin/", include(admin.site.urls)),
     url(r"^about/", include("about.urls")),
     url(r"^account/", include("pinax.apps.account.urls")),
-    url(r"^openid/", include(PinaxConsumer().urls)),
     url(r"^profiles/", include("idios.urls")),
     url(r"^notices/", include("notification.urls")),
     url(r"^announcements/", include("announcements.urls")),

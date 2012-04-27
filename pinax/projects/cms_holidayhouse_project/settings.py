@@ -98,7 +98,6 @@ MIDDLEWARE_CLASSES = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django_openid.consumer.SessionConsumer",
     "django.contrib.messages.middleware.MessageMiddleware",
     "pinax.apps.account.middleware.LocaleMiddleware",
     "django.middleware.doc.XViewMiddleware",
@@ -145,7 +144,6 @@ INSTALLED_APPS = [
     
     # external
     "notification", # must be first
-    "django_openid",
     "emailconfirmation",
     "mailer",
     "pagination",
