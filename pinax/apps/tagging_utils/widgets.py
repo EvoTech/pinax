@@ -18,14 +18,14 @@ class TagAutoCompleteInput(forms.TextInput):
         return output + mark_safe(u"""<script type="text/javascript">
             jQuery("#id_{name}").autocomplete({{
                 focus: function(){{
-			// prevent value inserted on focus
-			return false;
-		}},
+                    // prevent value inserted on focus
+                    return false;
+                }},
                 source: function(request, response){{
-			$.getJSON("{url}", {{
-				term: request.term.split( /,\s*/ ).pop()
-			}}, response);
-		}},
+                    $.getJSON("{url}", {{
+                        term: request.term.split( /,\s*/ ).pop()
+                    }}, response);
+                }},
                 select: function(event, ui) {{
                     var terms = this.value.split( /,\s*/ );
                     // remove the current input

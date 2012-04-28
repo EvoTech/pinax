@@ -19,25 +19,40 @@
 {% block extra_body %}
     {{ block.super }}
     <script type="text/javascript">
-        $().ready(function() {
-            $("#id_recipient").autocomplete("{% url profile_username_autocomplete %}", {
-                formatItem: function(data, i, n, value) {
-                    values = value.split(",,");
-                    return values[0] + values[1] + "<br />" + values[2];
+        $(function() {
+            jQuery("#id_recipient").autocomplete({
+                focus: function(){
+                    // prevent value inserted on focus
+                    return false;
                 },
-                formatResult: function(data, value) {
-                    return value.split(",,")[1];
+                source: function(request, response){
+                    $.getJSON("{% url profile_username_autocomplete %}", {
+                        term: request.term.split( /,\s*/ ).pop()
+                    }, response);
                 },
-                // TODO: improve highlighting to only affect username.
-                highlight: false,
-                max: 10,
-                multiple: true,
-                multipleSeparator: ", "
-            });
-            $("#id_recipient").result(function() {
-                $("#id_subject").focus();
-            });
-            $("#id_recipient").focus()
+                select: function(event, ui) {
+                    var terms = this.value.split( /,\s*/ );
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push(ui.item.value);
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push("");
+                    this.value = terms.join(", ");
+                    return false;
+                }
+            }).data( "autocomplete" )._renderItem = function( ul, item) {
+                var html = item.avatar + item.label + (item.location ? "<br />" + item.location : "");
+		        return $( "<li></li>" )
+			        .data( "item.autocomplete", item )
+			        .append( $( "<a></a>" ).html( html ) )
+			        .appendTo( ul );
+	        };
+	        $("#id_recipient").closest('form').submit(function(){
+	            var el = $("#id_recipient");
+	            el.val(el.val().replace(/[, ]+$/, ''));
+	        });
+            $("#id_recipient").focus();
         });
     </script>
 {% endblock %}
