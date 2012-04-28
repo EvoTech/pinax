@@ -7,16 +7,6 @@ from django.utils.safestring import mark_safe
 
 class TagAutoCompleteInput(forms.TextInput):
     
-    class Media:
-        css = {
-            "all": (settings.STATIC_URL + "pinax/css/jquery.autocomplete.css",)
-        }
-        js = (
-            settings.STATIC_URL + "pinax/js/jquery.bgiframe.min.js",
-            settings.STATIC_URL + "pinax/js/jquery.ajaxQueue.js",
-            settings.STATIC_URL + "pinax/js/jquery.autocomplete.min.js"
-        )
-    
     def __init__(self, app_label, model, *args, **kwargs):
         self.app_label = app_label
         self.model = model
@@ -26,20 +16,31 @@ class TagAutoCompleteInput(forms.TextInput):
         output = super(TagAutoCompleteInput, self).render(name, value, attrs)
         
         return output + mark_safe(u"""<script type="text/javascript">
-            jQuery("#id_%s").autocomplete("%s", {
-                max: 10,
-                highlight: false,
-                multiple: true,
-                multipleSeparator: ", ",
-                scroll: true,
-                scrollHeight: 300,
-                matchContains: true,
-                selectFirst: false,
-                autoFill: true
-            });
-            </script>""" % (
-                name,
-                reverse("tagging_utils_autocomplete", kwargs={
+            jQuery("#id_{name}").autocomplete({{
+                focus: function(){{
+			// prevent value inserted on focus
+			return false;
+		}},
+                source: function(request, response){{
+			$.getJSON("{url}", {{
+				term: request.term.split( /,\s*/ ).pop()
+			}}, response);
+		}},
+                select: function(event, ui) {{
+                    var terms = this.value.split( /,\s*/ );
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push(ui.item.value);
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push("");
+                    this.value = terms.join(", ");
+                    return false;
+                }}
+            }});
+            </script>""".format(
+                name=name,
+                url=reverse("tagging_utils_autocomplete", kwargs={
                     "app_label": self.app_label,
                     "model": self.model
                 })
