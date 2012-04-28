@@ -17,8 +17,19 @@ def get_query(self,q,request):
     return self.model.objects.filter(**kwargs).order_by(self.search_field)[:limit]
 
 
+def check_auth(self,request):
+    """ to ensure that nobody can get your data via json simply by knowing the URL.
+        public facing forms should write a custom LookupChannel to implement as you wish.
+        also you could choose to return HttpResponseForbidden("who are you?")
+        instead of raising PermissionDenied (401 response)
+    """
+    if not request.user.is_authenticated():
+        raise PermissionDenied
+
+
 def patch_lookup_channel():
     """Patches the ajax_select.LookupChannel"""
     setattr(LookupChannel, 'get_query', get_query)
+    setattr(LookupChannel, 'check_auth', check_auth)
 
 patch_lookup_channel()
