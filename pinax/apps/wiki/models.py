@@ -160,12 +160,17 @@ class Article(models.Model):
         if self.group:
             if perm in ('wiki.view_article', 'wiki.browse_article', ):
                 return user.has_perm('view', self.group)
+            if perm in ('wiki.add_article',
+                        'wiki.change_article',
+                        'wiki.observe_wiki_observed_article_changed_article', ):
+                return self.group.user_is_member(self, user)
         else:
-            return True
-        if perm in ('wiki.add_article', 'wiki.change_article', ):
-            return user.is_authenticated() and user.has_perm('view', self)
-        if perm in ('wiki.observe_wiki_observed_article_changed_article', ):
-            return user.is_authenticated() and user.has_perm('view', self)
+            if perm in ('wiki.view_article', 'wiki.browse_article', ):
+                return True
+            if perm in ('wiki.add_article', 'wiki.change_article', ):
+                return user.is_authenticated()
+            if perm in ('wiki.observe_wiki_observed_article_changed_article', ):
+                return user.is_authenticated()
         return False
 
 
