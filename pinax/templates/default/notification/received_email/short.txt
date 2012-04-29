@@ -1,0 +1,1 @@
+{% load i18n %}{% load account_tags %}{% user_display message.sender as sender_display %}{% blocktrans with message_sender=message.sender %}{{ notice }} from {{ sender_display }}{% endblocktrans %}

@@ -1,0 +1,7 @@
+/* MESSAGES */
+.django-messages .topics .read {
+    font-weight: normal;
+}
+.django-messages .topics .unread {
+    font-weight: bold;
+}
