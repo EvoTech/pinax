@@ -1,6 +1,5 @@
 {% load i18n %}
 {% load uni_form_tags %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/token-input.css" type="text/css" />
 <form id="message-modal-form" 
       action="{% url messages_compose %}" method="post"
       class="uniForm modal-message-form grey-form">
@@ -19,40 +18,11 @@
 </form>
 
 <!-- remove if you have these dependencies are already satisfied in your app -->
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.5.2.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.form.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.tokeninput.js"></script>
-<script type="text/javascript">
+    <script type="text/javascript">
     $(document).ready(function() {
-        var recipient =  $("#id_recipient").val();
-        $("#id_recipient").val("")
-
-        var parameters = {
-            classes: {
-                tokenList: "token-input-list",
-                token: "token-input-token",
-                tokenDelete: "token-input-delete-token",
-                selectedToken: "token-input-selected-token",
-                highlightedToken: "token-input-highlighted-token",
-                dropdown: "token-input-dropdown",
-                dropdownItem: "token-input-dropdown-item",
-                dropdownItem2: "token-input-dropdown-item2",
-                selectedDropdownItem: "token-input-selected-dropdown-item",
-                inputToken: "token-input-input-token"
-            },
-
-            hintText: "{% trans "Type in a search term" %}",
-            noResultsText: "{% trans "No results" %}",
-            searchingText: "{% trans "Searching" %}...",
-            queryParam: "term",
-        };
-
-        if(recipient){
-            parameters["prePopulate"] = [{id:recipient, name:"{{ form.recipient.first_name }} {{ form.recipient.last_name }}"}]
-        }
-
-        $("#id_recipient").tokenInput("{% url recipient_search %}?format=json", parameters);
-        
+        $("#id_recipient").val("");
+        $("#id_recipient").focus()
+        return;
         $('#message-modal-form').ajaxForm({
             //target: "target",
             beforeSubmit: function (){
@@ -69,8 +39,45 @@
                     $(document).trigger('close.facebox');
                 });
             },
-        })
-        $("#id_recipient").focus()
+        });
 
     });
-</script>
+        $(function() {
+            jQuery("#id_recipient").autocomplete({
+                open: function(event, ui) {
+                    $(this).autocomplete('widget').css('z-index', 500);
+                },
+                focus: function() {
+                    // prevent value inserted on focus
+                    return false;
+                },
+                source: function(request, response){
+                    $.getJSON("{% url profile_username_autocomplete %}", {
+                        term: request.term.split( /,\s*/ ).pop()
+                    }, response);
+                },
+                select: function(event, ui) {
+                    var terms = this.value.split( /,\s*/ );
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push(ui.item.value);
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push("");
+                    this.value = terms.join(", ");
+                    return false;
+                }
+            }).data( "autocomplete" )._renderItem = function( ul, item) {
+                var html = item.avatar + item.label + (item.location ? "<br />" + item.location : "");
+		        return $( "<li></li>" )
+			        .data( "item.autocomplete", item )
+			        .append( $( "<a></a>" ).html( html ) )
+			        .appendTo( ul );
+	        };
+	        $("#id_recipient").closest('form').submit(function(){
+	            var el = $("#id_recipient");
+	            el.val(el.val().replace(/[, ]+$/, ''));
+	        });
+            $("#id_recipient").focus();
+        });
+    </script>

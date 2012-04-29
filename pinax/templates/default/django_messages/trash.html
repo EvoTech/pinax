@@ -1,20 +1,37 @@
 {% extends "django_messages/base.html" %}
-{% load i18n %} 
+{% load i18n %}
+{% load avatar_tags %}
+{% load account_tags %}
+
+
 {% block body %} 
 <h1>{% trans "Deleted Messages" %}</h1>
-<table class="messages">
+<table class="topics trash">
     <thead>
-        <tr><th>{% trans "Sender" %}</th><th>{% trans "Subject" %}</th><th>{% trans "Date" %}</th><th>{% trans "Action" %}</th></tr>
+        <tr><th>{% trans "Sender" %}</th><th>{% trans "Subject" %}</th><th>{% trans "Deleted at" %}</th><th>{% trans "Action" %}</th></tr>
     </thead>
     <tbody>
-{% for message in message_list %} 
-    <tr>
-        <td>{{ message.sender }}</td>
-        <td> 
-        {{ message.subject }}
+{% for message in message_list %}
+    <tr class="{% cycle odd,even %}">
+        <td class="meta">
+            <div class="avatar">{% avatar message.thread.latest_msg.sender 40 %}</div>
+            <div class="details">
+                <a href="{% url profile_detail message.thread.latest_msg.sender.username %}">
+                    {% user_display message.thread.latest_msg.sender %}
+                </a>
+            </div>
+            {{ message.thread.latest_msg.sent_at|date }}
         </td>
-        <td>{{ message.sent_at|date:_("DATETIME_FORMAT") }}</td>
-        <td><a href="{% url messages_undelete message.id %}">{% trans "undelete" %}</a></td>
+        <td>
+            <h2 class="{% if message.new %}uread{% else %}read{% endif %}"><a href="{{message.thread.get_absolute_url }}">{{ message.thread.subject|truncatewords_html:8 }}</a>{% if message.replied %}{% endif %}</h2>
+            <div class="body">{{ message.thread.latest_msg.body|truncatewords_html:20|linebreaksbr }}</div>
+        </td>
+        <td>
+            {{ message.deleted_at|date }}
+        </td>
+        <td>
+            <a href="{% url messages_undelete message.thread.id %}">{% trans "undelete" %}</a>
+        </td>
     </tr>
 {% endfor %}
     </tbody>

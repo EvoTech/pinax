@@ -1,0 +1,5 @@
+{% load i18n %}{% load account_tags %}{% user_display message.sender as sender_display %}{% blocktrans with message_body=message.body|striptags message_url=thread.get_absolute_url %}{{ sender_display }} has sent you a message:
+
+{{ message_body }}
+
+http://{{ current_site }}{{ message_url }}{% endblocktrans %}

@@ -1,24 +1,23 @@
 {% load i18n %}
 {% load avatar_tags %}
+{% load account_tags %}
 
-<div class="message">
-    <div class="avatar">
-        <a href="{{ message.sender.get_absolute_url }}">
-            {% avatar message.sender 40 %}
-        </a>
-    </div>
-    <div class="message-body">
-        <h4><a href="{{ message.sender.get_absolute_url }}">{{ message.sender }}</a></h4>
-        {{ message.body|linebreaksbr }}
-    </div>
-    <div class="extra-info">
-        <div class="date">{{ message.sent_at|date:_("DATETIME_FORMAT")}}</div>
-        {% ifnotequal message.sender request.user %}
-            <div>
-                 
-            </div>
-        {% endifnotequal %}
-    </div>
-    <div style="clear: both"></div>
-</div>
 
+<tr class="{% cycle odd,even %}">
+    <td class="meta">
+        <div class="avatar">{% avatar message.sender 40 %}</div>
+        <div class="details">
+            <a href="{% url profile_detail message.sender.username %}">
+                {% user_display message.sender %}
+            </a>
+        </div>
+        {{ message.sent_at|date }}
+    </td>
+    <td>
+        <div class="body {% if unread %}unread{% else %}read{% endif %}">{{ message.body|linebreaksbr }}</div>
+    </td>
+    <td>
+       {% if message.sender != request.user %}{% endif %}
+       {% if message.replied %}{% endif %}
+    </td>
+</tr>

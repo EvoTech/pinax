@@ -1,5 +1,6 @@
 {% extends "django_messages/base.html" %}
 {% load i18n %}
+{% load account_tags %}
 {% load avatar_tags %}
 {% load pagination_tags %}
 {% load truncchar_tag %}
@@ -13,10 +14,12 @@
           {% trans "Inbox"|upper %}
         </h2>
         <div class="prefix_0 grid_6">
+          {% comment %}
           <form action="{% url messages_search %}" method="GET" style="float: right">
             <label class="inline" for="q">{% if keywords %}{{ keywords }}{% else %}{% trans 'Search Messages' %}{% endif %}</label>
             <input type="text" title="{% trans 'Search Messages' %}" id="q" name="q" class="message-search forum-search" />
           </form>
+          {% endcomment %}
           <a href="{% url modal_messages_compose %}" style="float: right" class="small-green-button" rel='facebox'>
              {% trans "Create message" %}
           </a>
@@ -40,41 +43,32 @@
              <div style="clear:both;"></div>
         </div>
         <div style="clear: both;"></div>
-        <div class="inbox">
-            <div class="message message-header">
-              <div class="sender grid_5"><h3>{% trans "Sender" %}</h3></div>
-              <div class="avatar grid_1"></div>
-              <div class="subject grid_6"><h3>{% trans "Subject" %}</h3></div>
-            </div>
-            <div style="clear: both;"></div>
-
+        <table class="topics inbox">
             {% for message in thread_list %}
-              <div class="message {% if message.new %}unread{% endif %}">
-                  <div class="avatar grid_1">
-                    <a href="{{ message.thread.latest_msg.sender.get_absolute_url }}">{% avatar message.thread.latest_msg.sender 30 %}</a>
-                  </div>
-                  <div class="sender grid_4">
-                    <a href="{{ message.thread.latest_msg.sender.get_absolute_url }}">{{ message.thread.latest_msg.sender }}</a>
-                    <span class="date">{{ message.thread.latest_msg.sent_at|date:_("DATETIME_FORMAT") }}</span>
-                  </div>
-                  <div class="subject grid_6">
-                    <a href="{{message.thread.get_absolute_url }}">{% if message.new %}<b>{% endif %}{{ message.thread.subject|truncchar:45 }}{% if message.new %}</b>{% endif %}</a>
-                    <span class="message-tease">{{message.thread.latest_msg.body|truncatewords:8}}</span>
-                  </div>
-
-                  <div class="checkbox grid_1">
-                    <input name="batchupdateids" type="checkbox" value="{{message.thread.pk}}" />
-                  </div>
-                  {% if message.replied %}{% endif %}
-                  {% if message.new %}{% endif %}
-                  <div style="clear: both;"></div>
-              </div>
+                <tr class="{% cycle odd,even %}">
+                    <td class="meta">
+                        <div class="avatar">{% avatar message.thread.latest_msg.sender 40 %}</div>
+                        <div class="details">
+                            <a href="{% url profile_detail message.thread.latest_msg.sender.username %}">
+                                {% user_display message.thread.latest_msg.sender %}
+                            </a>
+                        </div>
+                        {{ message.thread.latest_msg.sent_at|date }}
+                    </td>
+                    <td>
+                        <h2><a href="{{message.thread.get_absolute_url }}" class="{% if message.new %}uread{% else %}read{% endif %}">{{ message.thread.subject|truncatewords_html:8 }}</a>{% if message.replied %}{% endif %}</h2>
+                        <div class="body">{{ message.thread.latest_msg.body|truncatewords_html:20|linebreaksbr }}</div>
+                    </td>
+                    <td>
+                        <input name="batchupdateids" type="checkbox" value="{{message.thread.pk}}" />
+                    </td>
+                </tr>
             {% empty %}
-                <div class="message unread">
-                    <b class="no-message">{% trans "No messages" %}</b>
-                </div>
+                <tr class="{% cycle odd,even %}">
+                    <td>{% trans "No messages" %}</td>
+                </tr>
             {% endfor %}
-        </div>
+        </table>
     </form>
     <div class="messages-footer">{% paginate %}</div>
 {% endblock %}

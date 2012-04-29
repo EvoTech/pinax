@@ -17,37 +17,37 @@
      </span>
     <div style="clear: both;"></div>
     <div class="inbox-bar">
+        {% comment %}
         <div class="page-search">
           <form action="{% url messages_search %}" method="GET">
             <input name="q" type="text" title="{% trans 'Search Messages' %}" />
             <button type="submit" class="lupe-on-white"></button>
           </form>
         </div>
-        <a href="{% url modal_messages_compose %}" class="small-green-button" rel="facebox">
-           {% trans "create message" %}
-        </a>
-
-        <a href="{% url messages_delete thread.pk %}" class="small-green-button">
-           {% trans "delete" %}
-        </a>
-        
-        <div style="clear: left;"></div>
+        {% endcomment %}
         <a href="{% url messages_inbox %}" class="back">
              &lt; {% trans "back to inbox" %}
-        </a>
-        <div style="clear: both;"></div>
+        </a> |
+        <a href="{% url modal_messages_compose %}" class="small-green-button" rel="facebox">
+           {% trans "create message" %}
+        </a> |
+        {% if participant.deleted_at %}
+            <a href="{% url messages_undelete thread.pk %}" class="small-green-button">{% trans "undelete" %}</a>
+        {% else %}
+            <a href="{% url messages_delete thread.pk %}" class="small-green-button">
+               {% trans "delete" %}
+            </a>
+        {% endif %}
     </div>
     <hr />
 
 
     <div class="message-thread">
-      <div class="message-list">
-        {% for message_tuple in message_list %}
-          {% with message_tuple.0 as message %}
+      <table class="topics inbox message-list">
+        {% for message, unread in message_list %}
             {% include "django_messages/message_list_view.html" %}
-          {% endwith %}
         {% endfor %}
-      </div>
+      </table>
       <div class="messageReplyForm message-form">
         <div class="avatar">{% avatar request.user 50 %}</div>
         <form method="POST" class="reply-form" action="{% url message_reply thread.pk %}">
@@ -69,8 +69,6 @@
 
 {% block extra_body %}
     {{ block.super }}
-    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.5.2.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.form.js"></script>
      <script type="text/javascript">
          $(document).ready(function(){
              $('.reply-form').ajaxForm({
@@ -81,7 +79,7 @@
                  success: function(data){
                      $('.reply-form').removeClass("ajax-form-disabled")
                      $('.message-list').append(data)
-                     resetForm()
+                     $('.reply-form').resetForm()
                  }
              })
          })
