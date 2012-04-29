@@ -1,0 +1,83 @@
+{% load i18n %}
+{% load uni_form_tags %}
+<form id="message-modal-form" 
+      action="{% url messages_compose %}" method="post"
+      class="uniForm modal-message-form grey-form">
+    {% csrf_token %}
+    <fieldset class="inlineLabels">
+        <input type="hidden" name="attachment_id" id="attachment_id" />
+        {{ form|as_uni_form }}
+    </fieldset>
+    <div class="button-bar">
+      <button type="submit" class="small-green-button" onclick="$.facebox.close()">{% trans "Cancel" %}</button>
+  
+      <button id="modal-send-button" class="small-green-button" type="submit" onclick="$('#message-modal-form').submit()">
+          {% trans "Send" %}
+      </button>
+    </div>
+</form>
+
+<!-- remove if you have these dependencies are already satisfied in your app -->
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $("#id_recipient").val("");
+        $("#id_recipient").focus()
+        return;
+        $('#message-modal-form').ajaxForm({
+            //target: "target",
+            beforeSubmit: function (){
+                $('#message-modal-form').addClass("ajax-form-disabled")
+            },
+            success: function(){
+                $('#message-modal-form').removeClass("ajax-form-disabled")
+                $('#message-modal-form').html("<div id='message'></div>");
+                $('#message-modal-form #message').html("<h2>{% trans "Message sent" %}!</h2>")
+                .append("<p></p>")
+                .hide()
+                .fadeIn(2500, function() {
+                    // hide facebox
+                    $(document).trigger('close.facebox');
+                });
+            },
+        });
+
+    });
+        $(function() {
+            jQuery("#id_recipient").autocomplete({
+                open: function(event, ui) {
+                    $(this).autocomplete('widget').css('z-index', 500);
+                },
+                focus: function() {
+                    // prevent value inserted on focus
+                    return false;
+                },
+                source: function(request, response){
+                    $.getJSON("{% url profile_username_autocomplete %}", {
+                        term: request.term.split( /,\s*/ ).pop()
+                    }, response);
+                },
+                select: function(event, ui) {
+                    var terms = this.value.split( /,\s*/ );
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push(ui.item.value);
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push("");
+                    this.value = terms.join(", ");
+                    return false;
+                }
+            }).data( "autocomplete" )._renderItem = function( ul, item) {
+                var html = item.avatar + item.label + (item.location ? "<br />" + item.location : "");
+		        return $( "<li></li>" )
+			        .data( "item.autocomplete", item )
+			        .append( $( "<a></a>" ).html( html ) )
+			        .appendTo( ul );
+	        };
+	        $("#id_recipient").closest('form').submit(function(){
+	            var el = $("#id_recipient");
+	            el.val(el.val().replace(/[, ]+$/, ''));
+	        });
+            $("#id_recipient").focus();
+        });
+    </script>

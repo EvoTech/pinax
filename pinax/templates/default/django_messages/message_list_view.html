@@ -1,0 +1,23 @@
+{% load i18n %}
+{% load avatar_tags %}
+{% load account_tags %}
+
+
+<tr class="{% cycle odd,even %}">
+    <td class="meta">
+        <div class="avatar">{% avatar message.sender 40 %}</div>
+        <div class="details">
+            <a href="{% url profile_detail message.sender.username %}">
+                {% user_display message.sender %}
+            </a>
+        </div>
+        {{ message.sent_at|date }}
+    </td>
+    <td>
+        <div class="body {% if unread %}unread{% else %}read{% endif %}">{{ message.body|linebreaksbr }}</div>
+    </td>
+    <td>
+       {% if message.sender != request.user %}{% endif %}
+       {% if message.replied %}{% endif %}
+    </td>
+</tr>

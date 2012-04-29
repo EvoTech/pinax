@@ -1,0 +1,61 @@
+{% extends "django_messages/base.html" %}
+
+{% load i18n %}
+{% load uni_form_tags %}
+
+{% block css_block %}{% endblock %}
+
+{% block body %}
+    <h1>{% trans "Compose Message"|upper %}</h1>
+    
+    <form action="" method="post" class="uniForm">
+        {% csrf_token %}
+        <fieldset class="inlineLabels">
+            {{ form|as_uni_form }}
+            <div class="form_block">
+                <input class="green-button" type="submit" value="{% trans "Send" %} &raquo;"/>
+            </div>
+        </fieldset>
+    </form>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(function() {
+            jQuery("#id_recipient").autocomplete({
+                focus: function(){
+                    // prevent value inserted on focus
+                    return false;
+                },
+                source: function(request, response){
+                    $.getJSON("{% url profile_username_autocomplete %}", {
+                        term: request.term.split( /,\s*/ ).pop()
+                    }, response);
+                },
+                select: function(event, ui) {
+                    var terms = this.value.split( /,\s*/ );
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push(ui.item.value);
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push("");
+                    this.value = terms.join(", ");
+                    return false;
+                }
+            }).data( "autocomplete" )._renderItem = function( ul, item) {
+                var html = item.avatar + item.label + (item.location ? "<br />" + item.location : "");
+		        return $( "<li></li>" )
+			        .data( "item.autocomplete", item )
+			        .append( $( "<a></a>" ).html( html ) )
+			        .appendTo( ul );
+	        };
+	        $("#id_recipient").closest('form').submit(function(){
+	            var el = $("#id_recipient");
+	            el.val(el.val().replace(/[, ]+$/, ''));
+	        });
+            $("#id_recipient").focus();
+        });
+    </script>
+{% endblock %}
