@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import os
+import hashlib
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib import messages
 from django.db.models import Q
 from django.core.cache import cache
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.http import (Http404, HttpResponseRedirect,
                          HttpResponseNotAllowed, HttpResponse, HttpResponseForbidden)
 from django.shortcuts import get_object_or_404, render_to_response
@@ -41,7 +43,7 @@ except ImportError:
 ALL_ARTICLES = Article.non_removed_objects.all()
 ALL_CHANGES = ChangeSet.objects.all()
 
-######################
+
 def group_and_bridge(request):
     """
     Given the request we can depend on the GroupMiddleware to provide the
@@ -66,9 +68,6 @@ def group_context(group, bridge):
     if group:
         ctx["group_base"] = bridge.group_base_template()
     return ctx
-#  #######################
-
-
 
 
 def get_real_ip(request):
@@ -80,6 +79,7 @@ def get_real_ip(request):
         return request.META['HTTP_X_FORWARDED_FOR']
     return request.META['REMOTE_ADDR']
 
+
 def get_articles_by_group(article_qs, group=None, bridge=None):
     if group:
         article_qs = group.content_objects(article_qs)
@@ -87,11 +87,13 @@ def get_articles_by_group(article_qs, group=None, bridge=None):
         article_qs = article_qs.filter(object_id=None)
     return article_qs, group
 
+
 def get_articles_for_object(object, article_qs=None):
     if article_qs is None:
         article_qs = ALL_ARTICLES
     return article_qs.filter( content_type=get_ct(object),
                                        object_id=object.id)
+
 
 def get_url(urlname, group=None, args=None, kw=None, bridge=None):
     if group is None:
@@ -108,26 +110,48 @@ class ArticleEditLock(object):
     def __init__(self, title, request, message_template=None):
         self.title = title
         self.user_ip = get_real_ip(request)
+        self.user = request.user
         self.created_at = datetime.now()
 
         if message_template is None:
-            message_template = ('Possible edit conflict:'
-            ' another user started editing this article at %s')
+            message_template = _('Possible edit conflict:' +\
+            ' another user started editing this article %s min. ago.')
 
         self.message_template = message_template
+        
+        cache.set(self.__class__.get_cache_name(title), self,
+                  WIKI_LOCK_DURATION * 60)
 
-        cache.set(title, self, WIKI_LOCK_DURATION*60)
+    @classmethod
+    def get(cls, title, request, message_template=None):
+        instance = cache.get(cls.get_cache_name(title), None)
+        if instance is None:
+            instance = cls(title, request, message_template)
+        return instance
+
+    @classmethod
+    def unlock(cls, title):
+        cache.delete(cls.get_cache_name(title))
+
+    @classmethod
+    def get_cache_name(cls, name):
+        name_hash = hashlib.md5(unicode(name).encode('utf-8')).hexdigest()
+        return 'wiki_article_lock_{0}'.format(name_hash)
 
     def create_message(self, request):
         """ Send a message to the user if there is another user
         editing this article.
         """
         if not self.is_mine(request):
-            user = request.user
-            user.message_set.create(
-                message=self.message_template%self.created_at)
+            delt = datetime.now() - self.created_at
+            messages.warning(
+                request,
+                self.message_template % (int(delt.seconds / 60) or 1)
+            )
 
     def is_mine(self, request):
+        if self.user.is_authenticated() or request.user.is_authenticated():
+            return self.user == request.user
         return self.user_ip == get_real_ip(request)
 
 
@@ -137,8 +161,6 @@ def has_read_perm(user, group, is_member, is_private):
     """
     if group:
         return user.has_perm('view', group)
-    else:
-        return True
     return True
 
 def has_write_perm(user, group, is_member):
@@ -146,10 +168,11 @@ def has_write_perm(user, group, is_member):
     False otherwise.
     """
     if group:
-        return user.is_authenticated() and user.has_perm('view', group)
-    else:
-        return user.is_authenticated()
-    return False
+        if is_member is not None:
+            return is_member(user, group)
+        else:
+            return group.user_is_member(user)
+    return user.is_authenticated()
 
 
 #@login_required
@@ -166,8 +189,7 @@ def article_list(request,
                  *args, **kw):
     if request.method == 'GET':
         group, bridge = group_and_bridge(request)
-        articles, group = get_articles_by_group(
-            article_qs, group, bridge)
+        articles, group = get_articles_by_group(article_qs, group, bridge)
 
         allow_read = has_read_perm(request.user, group, is_member, is_private)
         allow_write = has_write_perm(request.user, group, is_member)
@@ -214,13 +236,8 @@ def view_article(request, title,
 
     if request.method == 'GET':
         group, bridge = group_and_bridge(request)
-        if group:
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-            allow_write = has_write_perm(request.user, group, is_member)
-        else:
-            group = None
-            allow_read = allow_write = True
+        allow_read = has_read_perm(request.user, group, is_member, is_private)
+        allow_write = has_write_perm(request.user, group, is_member)
 
         if not allow_read:
             return HttpResponseForbidden()
@@ -266,14 +283,8 @@ def edit_article(request, title,
                  is_private=None,
                  *args, **kw):
     group, bridge = group_and_bridge(request)
-    if group:
-        allow_read = has_read_perm(request.user, group, is_member,
-                                   is_private)
-        allow_write = has_write_perm(request.user, group, is_member)
-    else:
-        group = None
-        allow_read = allow_write = True
-
+    allow_read = has_read_perm(request.user, group, is_member, is_private)
+    allow_write = has_write_perm(request.user, group, is_member)
 
     if not allow_write:
         return HttpResponseForbidden()
@@ -301,6 +312,7 @@ def edit_article(request, title,
                 form.group = group
 
             new_article, changeset = form.save()
+            ArticleEditLock.unlock(title)
 
             url = get_url('wiki_article', group, kw={
                 'title': new_article.title,
@@ -311,9 +323,7 @@ def edit_article(request, title,
     elif request.method == 'GET':
         user_ip = get_real_ip(request)
 
-        lock = cache.get(title, None)
-        if lock is None:
-            lock = ArticleEditLock(title, request)
+        lock = ArticleEditLock.get(title, request)
         lock.create_message(request)
 
         initial = {'user_ip': user_ip}
@@ -355,12 +365,13 @@ def remove_article(request, title,
                    *args, **kw):
     """ Show a confirmation page on GET, delete the article on POST.
     """
-
     if request.method == 'GET':
         
         group, bridge = group_and_bridge(request)
         
         article = article_qs.get_by(title, group)
+        if not request.user.has_perm('wiki.delete_article', article):
+            raise PermissionDenied()
 
         request.session['article_to_remove'] = article
 
@@ -376,6 +387,8 @@ def remove_article(request, title,
     elif request.method == 'POST':
 
         article = request.session['article_to_remove']
+        if not request.user.has_perm('wiki.delete_article', article):
+            raise PermissionDenied()
         article.remove()
 
         return redirect_to(request, reverse('wiki_index'))
@@ -398,19 +411,18 @@ def view_changeset(request, title, revision,
     if request.method == "GET":
         article_args = {'article__title': title}
         group, bridge = group_and_bridge(request)
+        allow_read = has_read_perm(request.user, group, is_member,is_private)
+        allow_write = has_write_perm(request.user, group, is_member)
+
+        if not allow_read:
+            return HttpResponseForbidden()
+
         if group:
             # @@@ hmm, need to look into this for the bridge i think
             article_args.update({'article__content_type': get_ct(group),
                                  'article__object_id': group.id})
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-            allow_write = has_write_perm(request.user, group, is_member)
         else:
-            allow_read = allow_write = True
             article_args.update({'article__object_id': None})
-
-        if not allow_read:
-            return HttpResponseForbidden()
 
         changeset = get_object_or_404(
             changes_qs.select_related(),
@@ -449,19 +461,18 @@ def article_history(request, title,
 
         article_args = {'title': title}
         group, bridge = group_and_bridge(request)
+        allow_read = has_read_perm(request.user, group, is_member, is_private)
+        allow_write = has_write_perm(request.user, group, is_member)
+
+        if not allow_read:
+            return HttpResponseForbidden()
+
         if group:
             # @@@ use bridge instead
             article_args.update({'content_type': get_ct(group),
                                  'object_id': group.id})
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-            allow_write = has_write_perm(request.user, group, is_member)
         else:
-            allow_read = allow_write = True
             article_args.update({'object_id': None})
-
-        if not allow_read:
-            return HttpResponseForbidden()
 
         article = get_object_or_404(article_qs, **article_args)
         changes = article.changeset_set.all().order_by('-revision')
@@ -496,19 +507,18 @@ def revert_to_revision(request, title,
         article_args = {'title': title}
 
         group, bridge = group_and_bridge(request)
+        allow_read = has_read_perm(request.user, group, is_member, is_private)
+        allow_write = has_write_perm(request.user, group, is_member)
+
+        if not allow_write:
+            return HttpResponseForbidden()
+
         if group:
             # @@@ use bridge instead
             article_args.update({'content_type': get_ct(group),
                                  'object_id': group.id})
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-            allow_write = has_write_perm(request.user, group, is_member)
         else:
-            allow_read = allow_write = True
             article_args.update({'object_id': None})
-
-        if not (allow_read or allow_write):
-            return HttpResponseForbidden()
 
         article = get_object_or_404(article_qs, **article_args)
 
@@ -556,17 +566,16 @@ def search_article(request,
                 title_only = search_form.cleaned_data.get('title_only')
 
                 group, bridge = group_and_bridge(request)
-                articles, group = get_articles_by_group(article_qs, group,
-                                                        bridge)
-                articles = articles.order_by('-created_at')
-                if group:
-                    allow_read = has_read_perm(request.user, group, is_member,
-                                               is_private)
-                else:
-                    allow_read = True
+                allow_read = has_read_perm(request.user, group, is_member,
+                                           is_private)
+                allow_write = has_write_perm(request.user, group, is_member)
 
                 if not allow_read:
                     return HttpResponseForbidden()
+
+                articles, group = get_articles_by_group(article_qs, group,
+                                                        bridge)
+                articles = articles.order_by('-created_at')
 
                 url = None
                 if title_only:
@@ -619,18 +628,17 @@ def history(request,
 
     if request.method == 'GET':
         group, bridge = group_and_bridge(request)
-        if group:
-            changes_qs = changes_qs.filter(article__content_type=get_ct(group),
-                                           article__object_id=group.id)
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-            allow_write = has_write_perm(request.user, group, is_member)
-        else:
-            allow_read = allow_write = True
-            changes_qs = changes_qs.filter(article__object_id=None)
+        allow_read = has_read_perm(request.user, group, is_member, is_private)
+        allow_write = has_write_perm(request.user, group, is_member)
 
         if not allow_read:
             return HttpResponseForbidden()
+
+        if group:
+            changes_qs = changes_qs.filter(article__content_type=get_ct(group),
+                                           article__object_id=group.id)
+        else:
+            changes_qs = changes_qs.filter(article__object_id=None)
 
         template_params = {'changes': changes_qs.order_by('-modified'),
                            'allow_write': allow_write}
@@ -659,16 +667,14 @@ def observe_article(request, title,
 
         article_args = {'title': title}
         group, bridge = group_and_bridge(request)
-        if group:
-            article_args.update({'content_type': get_ct(group),
-                                 'object_id': group.id})
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-        else:
-            allow_read = True
+        allow_read = has_read_perm(request.user, group, is_member, is_private)
 
         if not allow_read:
             return HttpResponseForbidden()
+
+        if group:
+            article_args.update({'content_type': get_ct(group),
+                                 'object_id': group.id})
 
         article = get_object_or_404(article_qs, **article_args)
 
@@ -698,17 +704,16 @@ def stop_observing_article(request, title,
 
         article_args = {'title': title}
         group, bridge = group_and_bridge(request)
-        if group:
-            article_args.update({'content_type': get_ct(group),
-                                 'object_id': group.id})
-            allow_read = has_read_perm(request.user, group, is_member,
-                                       is_private)
-        else:
-            allow_read = True
-            article_args.update({'object_id': None})
+        allow_read = has_read_perm(request.user, group, is_member, is_private)
 
         if not allow_read:
             return HttpResponseForbidden()
+
+        if group:
+            article_args.update({'content_type': get_ct(group),
+                                 'object_id': group.id})
+        else:
+            article_args.update({'object_id': None})
 
         article = get_object_or_404(article_qs, **article_args)
 
