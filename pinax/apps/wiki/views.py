@@ -239,11 +239,10 @@ def view_article(request, title,
         allow_read = has_read_perm(request.user, group, is_member, is_private)
         allow_write = has_write_perm(request.user, group, is_member)
 
-        if not allow_read:
-            return HttpResponseForbidden()
-
         try:
             article = article_qs.get_by(title, group)
+            allow_read = request.user.has_perm('wiki.view_article', article)
+            allow_write = request.user.has_perm('wiki.change_article', article)
             if notification is not None:
                 is_observing = notification.is_observing(article, request.user)
             else:
@@ -251,6 +250,9 @@ def view_article(request, title,
         except ArticleClass.DoesNotExist:
             article = ArticleClass(title=title)
             is_observing = False
+
+        if not allow_read:
+            return HttpResponseForbidden()
 
         template_params = {'article': article,
                            'allow_write': allow_write}
@@ -286,13 +288,15 @@ def edit_article(request, title,
     allow_read = has_read_perm(request.user, group, is_member, is_private)
     allow_write = has_write_perm(request.user, group, is_member)
 
-    if not allow_write:
-        return HttpResponseForbidden()
-
     try:
         article = article_qs.get_by(title, group)
+        allow_read = request.user.has_perm('wiki.view_article', article)
+        allow_write = request.user.has_perm('wiki.change_article', article)
     except ArticleClass.DoesNotExist:
         article = None
+
+    if not allow_write:
+        return HttpResponseForbidden()
 
     if request.method == 'POST':
 
@@ -411,11 +415,6 @@ def view_changeset(request, title, revision,
     if request.method == "GET":
         article_args = {'article__title': title}
         group, bridge = group_and_bridge(request)
-        allow_read = has_read_perm(request.user, group, is_member,is_private)
-        allow_write = has_write_perm(request.user, group, is_member)
-
-        if not allow_read:
-            return HttpResponseForbidden()
 
         if group:
             # @@@ hmm, need to look into this for the bridge i think
@@ -430,6 +429,11 @@ def view_changeset(request, title, revision,
             **article_args)
 
         article = changeset.article
+        allow_read = request.user.has_perm('wiki.view_article', article)
+        allow_write = request.user.has_perm('wiki.change_article', article)
+
+        if not allow_read:
+            return HttpResponseForbidden()
 
         template_params = {'article': article,
                            'article_title': article.title,
@@ -461,11 +465,6 @@ def article_history(request, title,
 
         article_args = {'title': title}
         group, bridge = group_and_bridge(request)
-        allow_read = has_read_perm(request.user, group, is_member, is_private)
-        allow_write = has_write_perm(request.user, group, is_member)
-
-        if not allow_read:
-            return HttpResponseForbidden()
 
         if group:
             # @@@ use bridge instead
@@ -475,6 +474,12 @@ def article_history(request, title,
             article_args.update({'object_id': None})
 
         article = get_object_or_404(article_qs, **article_args)
+        allow_read = request.user.has_perm('wiki.view_article', article)
+        allow_write = request.user.has_perm('wiki.change_article', article)
+
+        if not allow_read:
+            return HttpResponseForbidden()
+
         changes = article.changeset_set.all().order_by('-revision')
 
         template_params = {'article': article,
@@ -507,11 +512,6 @@ def revert_to_revision(request, title,
         article_args = {'title': title}
 
         group, bridge = group_and_bridge(request)
-        allow_read = has_read_perm(request.user, group, is_member, is_private)
-        allow_write = has_write_perm(request.user, group, is_member)
-
-        if not allow_write:
-            return HttpResponseForbidden()
 
         if group:
             # @@@ use bridge instead
@@ -521,6 +521,11 @@ def revert_to_revision(request, title,
             article_args.update({'object_id': None})
 
         article = get_object_or_404(article_qs, **article_args)
+        allow_read = request.user.has_perm('wiki.view_article', article)
+        allow_write = request.user.has_perm('wiki.change_article', article)
+
+        if not allow_write:
+            return HttpResponseForbidden()
 
         if request.user.is_authenticated():
             article.revert_to(revision, get_real_ip(request), request.user)
@@ -667,16 +672,17 @@ def observe_article(request, title,
 
         article_args = {'title': title}
         group, bridge = group_and_bridge(request)
-        allow_read = has_read_perm(request.user, group, is_member, is_private)
-
-        if not allow_read:
-            return HttpResponseForbidden()
 
         if group:
             article_args.update({'content_type': get_ct(group),
                                  'object_id': group.id})
 
         article = get_object_or_404(article_qs, **article_args)
+        allow_read = request.user.has_perm('wiki.view_article', article)
+        allow_write = request.user.has_perm('wiki.change_article', article)
+
+        if not allow_read:
+            return HttpResponseForbidden()
 
         notification.observe(article, request.user,
                              'wiki_observed_article_changed')
@@ -704,10 +710,6 @@ def stop_observing_article(request, title,
 
         article_args = {'title': title}
         group, bridge = group_and_bridge(request)
-        allow_read = has_read_perm(request.user, group, is_member, is_private)
-
-        if not allow_read:
-            return HttpResponseForbidden()
 
         if group:
             article_args.update({'content_type': get_ct(group),
@@ -716,6 +718,11 @@ def stop_observing_article(request, title,
             article_args.update({'object_id': None})
 
         article = get_object_or_404(article_qs, **article_args)
+        allow_read = request.user.has_perm('wiki.view_article', article)
+        allow_write = request.user.has_perm('wiki.change_article', article)
+
+        if not allow_read:
+            return HttpResponseForbidden()
 
         notification.stop_observing(article, request.user)
 
