@@ -163,7 +163,7 @@ class Article(models.Model):
             if perm in ('wiki.add_article',
                         'wiki.change_article',
                         'wiki.observe_wiki_observed_article_changed_article', ):
-                return self.group.user_is_member(self, user)
+                return self.group.user_is_member(user)
         else:
             if perm in ('wiki.view_article', 'wiki.browse_article', ):
                 return True
