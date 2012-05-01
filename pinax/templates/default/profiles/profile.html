@@ -9,6 +9,7 @@
 {% load blog_tags %}
 {% load tagging_tags %}
 {% load photo_tags %}
+{% load theme_tags %}
 
 {% block head_title %}{% user_display other_user as other_user_display %}{% blocktrans %}Profile for {{ other_user_display }}{% endblocktrans %}{% endblock %}
 
@@ -61,6 +62,7 @@
                             {% else %}
                                 <input type="hidden" name="action" value="follow" /><input type="submit" value="{% trans "follow tweets" %}"/>
                             {% endif %}
+                            <a href="{% url messages_compose_to other_user.username %}">{% trans "Send private message." as priv_msg %}{% silk 'email_go' alt=priv_msg title=priv_msg %}</a>
                         </form>
                     </div>
                     
@@ -97,7 +99,8 @@
                             {% if previous_invitations_to %}
                                 <p>{% trans "Friendship request sent." %}</p>
                             {% else %}
-                                <h2>{% trans "Add As Friend" %}</h2>
+                                <a href="javascript:;" onclick="$(this).next().slideToggle();" >{% trans "Add As Friend" %}</a>
+                                <div style="display: none;">
                                 <form class="uniForm" method="POST" action="">
                                     {% csrf_token %}
                                     <fieldset class="inlineLabels">
@@ -109,6 +112,7 @@
                                         </div>
                                     </fieldset>
                                 </form>
+                                </div>
                             {% endif %} {# previous_invitations_to #}
                         {% endif %} {# previous_invitations_from #}
                     {% endif %} {# is_friend #}
