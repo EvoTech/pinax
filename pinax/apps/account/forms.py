@@ -15,12 +15,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
 
+from captcha.fields import CaptchaField
 from emailconfirmation.models import EmailAddress
 from timezones.forms import TimeZoneField
 
 from pinax.apps.account.models import Account, PasswordReset
 from pinax.apps.account.models import OtherServiceInfo, other_service, update_other_services
 from pinax.apps.account.utils import user_display, perform_login
+from pinax.utils.make_agreement_form import make_agreement_form
 
 
 
@@ -112,7 +114,7 @@ class LoginForm(GroupForm):
             request.session.set_expiry(0)
 
 
-class SignupForm(GroupForm):
+class SignupFormBase(GroupForm):
     
     username = forms.CharField(
         label = _("Username"),
@@ -133,9 +135,10 @@ class SignupForm(GroupForm):
         required = False,
         widget = forms.HiddenInput()
     )
+    captcha = CaptchaField()
     
     def __init__(self, *args, **kwargs):
-        super(SignupForm, self).__init__(*args, **kwargs)
+        super(SignupFormBase, self).__init__(*args, **kwargs)
         if REQUIRED_EMAIL or EMAIL_VERIFICATION or EMAIL_AUTHENTICATION:
             self.fields["email"].label = ugettext("E-mail")
             self.fields["email"].required = True
@@ -253,6 +256,8 @@ class SignupForm(GroupForm):
         """
         pass
 
+SignupForm = make_agreement_form(SignupFormBase)
+
 
 class UserForm(forms.Form):
     
@@ -271,7 +276,7 @@ class AccountForm(UserForm):
             self.account = Account(user=self.user)
 
 
-class AddEmailForm(UserForm):
+class AddEmailFormBase(UserForm):
     
     email = forms.EmailField(
         label = _("E-mail"),
@@ -302,6 +307,8 @@ class AddEmailForm(UserForm):
     
     def save(self):
         return EmailAddress.objects.add_email(self.user, self.cleaned_data["email"])
+
+AddEmailForm = make_agreement_form(AddEmailFormBase)
 
 
 class ChangePasswordForm(UserForm):
