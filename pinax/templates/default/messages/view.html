@@ -19,7 +19,7 @@
         <dd>{% user_display message.recipient %}</dd>
     </dl>
     
-    <p>{% oembed %}{{ message.body|linebreaksbr }}{% endoembed %}</p>
+    <p>{{ message.body|force_escape|oembed:""|linebreaksbr }}</p>
     
     {% ifequal message.recipient user %}
         <p><a href="{% url messages_reply message.id %}">{% trans "Reply" %}</a></p>

@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load account_tags %}
 {% load blog_tags %}
-{% load markup %}
+{% load markup_tags %}
 {% load switchcase %}
 {% load tagging_tags %}
 {% load restructuredtext %}
@@ -29,17 +29,17 @@
             {% for post in blogs %}
                 <tr class="{% cycle odd,even %}">
                     <td><b><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></b><br />
-                        {% with post.tease|truncatewords:"50" as body %}
-                            {% if post.markup %}
-                                {% switch post.markup %}
-                                    {% case 'rst' %}{{ body|restructuredtext|safe }}{% endcase %}
-                                    {% case 'mrk' %}{{ body|force_escape|markdown }}{% endcase %}
-                                    {% case 'txl' %}{{ body|force_escape|textile }}{% endcase %}
-                                {% endswitch %}
-                            {% else %}
-                                {{ body|force_escape|linebreaks|safe }}
-                            {% endif %}
-                        {% endwith %}
+                        <div>
+                        {% if post.tease %}
+                             {% with post.tease as body %}
+                                {{ body|apply_markup:post.markup }}
+                            {% endwith %}
+                        {% else %}
+                            {% with post.body|truncatewords_html:"40" as body %}
+                                {{ body|apply_markup:post.markup }}
+                            {% endwith %}
+                        {% endif %}
+                        </div>
                     </td>
                     <td nowrap>{{ post.publish|date }}</td>
                     <td>
