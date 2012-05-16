@@ -163,7 +163,7 @@ INSTALLED_APPS = [
     "ajax_validation",
     "tagging",
     "uni_form",
-    "wakawaka",
+    "pinax.apps.wiki",
     "django_sorting",
     "attachments",
     "django_markup",
