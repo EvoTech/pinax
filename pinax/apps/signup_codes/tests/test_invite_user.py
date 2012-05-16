@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils.hashcompat import sha_constructor
@@ -66,8 +66,9 @@ class InviteUserTest(TestCase):
         # Create and authenticate a staff level user
         admin_user = User.objects.create_user("tester","bob@example.com", "tester")
         admin_user.save()
-        admin_user.is_staff = True
-        admin_user.save()
+        perm = Permission.objects.get(content_type__app_label='signup_codes',
+                                      codename='add_signupcode')
+        admin_user.user_permissions.add(perm)
         
         self.client.login(username="tester", password="tester")
         
