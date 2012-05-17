@@ -1,9 +1,26 @@
-import re
 from django import template
 from django.template.defaultfilters import stringfilter
-from django.utils.encoding import force_unicode
+
+from pinax.utils.oembed_ext import replace, clearfix
 
 register = template.Library()
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def oembed_ext(text, args=None):
+    """More intelligent oembed filter"""
+    if args:
+        try:
+            width, height = map(int, args.lower().split('x'))
+        except ValueError:
+            raise template.TemplateSyntaxError("Oembed's optional " \
+                "WIDTHxHEIGHT argument requires WIDTH and HEIGHT to be " \
+                "positive integers.")
+    else:
+        width, height = None, None
+
+    return replace(text, max_width=width, max_height=height)
 
 
 @register.filter(is_safe=True)
@@ -14,15 +31,4 @@ def oembed_clearfix(string):
     For example, if oembed filter applied after urlize.
     Like this: <a href="<iframe...></iframe>">...</a>
     """
-    string = force_unicode(string)
-    A_RE = re.compile(
-        u'<a[^>]*((?:<[^>]*>(?:[^<>]+<[^>]*>)*)+)[^>]*>.*</a>',
-        re.UNICODE|re.IGNORECASE|re.S
-    )
-    IMG_RE = re.compile(
-        u'<img[^>]*((?:<[^>]*>(?:[^<>]+<[^>]*>)*)+)[^>]*(?:/>|</img>)',
-        re.UNICODE|re.IGNORECASE|re.S
-    )
-    string = A_RE.sub(u'\\1', string)
-    string = IMG_RE.sub(u'\\1', string)
-    return string
+    return clearfix(string)
