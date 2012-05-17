@@ -11,6 +11,35 @@ word_split_re = re.compile(r'(\s+)')
 simple_url_re = re.compile(r'^https?://\w', re.IGNORECASE)
 simple_url_2_re = re.compile(r'^www\.|^(?!http)\w[^@]+\.(com|edu|gov|int|mil|net|org)$', re.IGNORECASE)
 
+URL_PATTERN = '(https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_|])'
+URL_RE = re.compile(URL_PATTERN)
+
+
+def replace_bs(text, max_width=None, max_height=None, autoescape=False):
+    """More intelligent oembed replacer, bsaed on BeautifulSoup."""
+    from BeautifulSoup import BeautifulSoup
+    safe_input = isinstance(text, SafeData)
+    soup = BeautifulSoup(text)
+    for url in soup.findAll(text=re.compile(URL_RE)):
+        if url.parent.name == 'a':
+            continue
+        new_str = replace_orig(unicode(url), max_width=max_width,
+                               max_height=max_height)
+        url.replaceWith(new_str)
+    for a in soup.findAll('a'):
+        url = u' {0} '.format(a['href'])
+        new_str = replace_orig(url, max_width=max_width,
+                               max_height=max_height)
+        if unicode(new_str) != url:
+            a.replaceWith(new_str)
+
+    result = unicode(soup)
+    if safe_input:
+        result = mark_safe(result)
+    elif autoescape:
+        result = escape(result)
+    return result
+
 
 def replace(text, max_width=None, max_height=None, autoescape=False):
     """More intelligent oembed replacer"""

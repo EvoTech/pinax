@@ -1,7 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-from pinax.utils.oembed_ext import replace, clearfix
+from pinax.utils.oembed_ext import replace, replace_bs, clearfix
 
 register = template.Library()
 
@@ -20,7 +20,7 @@ def oembed_ext(text, args=None):
     else:
         width, height = None, None
 
-    return replace(text, max_width=width, max_height=height)
+    return replace_bs(text, max_width=width, max_height=height)
 
 
 @register.filter(is_safe=True)
