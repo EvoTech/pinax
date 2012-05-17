@@ -1,7 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-from pinax.utils.oembed_ext import replace, replace_bs, clearfix
+from django_markup_ext.utils.oembed_ext import replace, replace_bs, clearfix
 
 register = template.Library()
 
