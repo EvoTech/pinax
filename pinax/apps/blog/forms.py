@@ -17,7 +17,7 @@ class BlogFormBase(forms.ModelForm):
         help_text = _("a short version of the title consisting only of letters, numbers, underscores and hyphens."),
     )
     tags = TagField(label="Tags", required=False,
-                    widget = TagAutoCompleteInput(
+                    widget=TagAutoCompleteInput(
                         app_label=Post._meta.app_label,
                         model=Post._meta.module_name
                     ))

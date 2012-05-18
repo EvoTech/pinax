@@ -37,11 +37,11 @@ class Topic(models.Model):
     created = models.DateTimeField(_("created"), default=datetime.now)
     modified = models.DateTimeField(_("modified"), default=datetime.now) # topic modified when commented on
     body = models.TextField(_("body"), blank=True)
-    markup = models.CharField(_(u"Post Content Markup"),
-        max_length = 20,
-        choices = MARKUP_CHOICES,
-        null = True,
-        blank = True
+    markup = models.CharField(_(u"Content Markup"),
+        max_length=50,
+        choices=MARKUP_CHOICES,
+        null=True,
+        blank=True
     )
     
     tags = TagField()

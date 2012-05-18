@@ -10,9 +10,10 @@ from pinax.apps.topics.models import Topic
 class TopicFormBase(forms.ModelForm):
 
     tags = TagField(label="Tags", required=False,
-                    widget = TagAutoCompleteInput(
-                    app_label=Topic._meta.app_label,
-                    model=Topic._meta.module_name))
+                    widget=TagAutoCompleteInput(
+                        app_label=Topic._meta.app_label,
+                        model=Topic._meta.module_name
+                    ))
     
     class Meta:
         model = Topic

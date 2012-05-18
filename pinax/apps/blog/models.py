@@ -47,10 +47,10 @@ class Post(models.Model):
     created_at = models.DateTimeField(_("created at"), default=datetime.now)
     updated_at = models.DateTimeField(_("updated at"))
     markup = models.CharField(_(u"Post Content Markup"),
-        max_length = 20,
-        choices = MARKUP_CHOICES,
-        null = True,
-        blank = True
+        max_length=50,
+        choices=MARKUP_CHOICES,
+        null=True,
+        blank=True
     )
     tags = TagField()
     
