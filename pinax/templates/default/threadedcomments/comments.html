@@ -3,6 +3,7 @@
 {% load threadedcomments_tags %}
 {# load mptt_comments_tags #}
 {% load i18n %}
+{% load markup_tags %}
 {% load uni_form_tags %}
 {% load pagination_tags %}
 {% load avatar_tags %}
@@ -20,7 +21,7 @@
                 {{ response.submit_date|date }}
             </div>
             <div class="bulk">
-                <div class="body">{{ response.comment|urlize|linebreaks }}</div>
+                <div class="body">{{ response.comment|apply_markup:"filtered_html" }}</div>
                 {% ifallowed obj=response perm="comments.delete_comment" %}
                 <form method="POST" action="{% url comments-delete response.id %}">
                     {% csrf_token %}
