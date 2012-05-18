@@ -113,6 +113,7 @@ def topic(request, topic_id, edit=False, form_class=TopicForm, template_name="to
     topic_form = form_class(request.POST or None, instance=topic)
     if (request.method == "POST" and edit == True and (request.user == topic.creator or request.user == topic.group.creator)):
         if topic_form.is_valid():
+            topic_form.save()
             return HttpResponseRedirect(topic.get_absolute_url())
     
     ctx = group_context(group, bridge)
