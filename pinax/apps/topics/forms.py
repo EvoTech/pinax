@@ -1,12 +1,13 @@
 from django import forms
 
 from tagging.forms import TagField
+from markup_form.forms import make_maprkup_form
 from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from pinax.apps.topics.models import Topic
 
 
 
-class TopicForm(forms.ModelForm):
+class TopicFormBase(forms.ModelForm):
 
     tags = TagField(label="Tags", required=False,
                     widget = TagAutoCompleteInput(
@@ -15,4 +16,9 @@ class TopicForm(forms.ModelForm):
     
     class Meta:
         model = Topic
-        fields = ["title", "body", "tags"]
+        fields = ["title", "body", "markup", "tags", ]
+
+TopicForm = make_maprkup_form(
+    TopicFormBase,
+    {'markup': ['body', ], }
+)

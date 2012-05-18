@@ -17,6 +17,7 @@ else:
 from tagging.fields import TagField
 from threadedcomments.models import ThreadedComment
 
+MARKUP_CHOICES = getattr(settings, "MARKUP_CHOICES", [])
 
 
 class Topic(models.Model):
@@ -36,6 +37,12 @@ class Topic(models.Model):
     created = models.DateTimeField(_("created"), default=datetime.now)
     modified = models.DateTimeField(_("modified"), default=datetime.now) # topic modified when commented on
     body = models.TextField(_("body"), blank=True)
+    markup = models.CharField(_(u"Post Content Markup"),
+        max_length = 20,
+        choices = MARKUP_CHOICES,
+        null = True,
+        blank = True
+    )
     
     tags = TagField()
     
