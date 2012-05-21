@@ -61,11 +61,27 @@ class Topic(models.Model):
             return reverse("topic_detail", kwargs=kwargs)
 
 
-def new_comment(sender, instance, **kwargs):
+def topic_new(sender, instance, **kwargs):
+    if isinstance(instance, Topic):
+        topic = instance
+        if notification and kwargs.get('created'):
+            group = topic.group
+            if group:
+                notify_list = group.member_queryset().exclude(id__exact=instance.creator.id) # @@@
+            else:
+                notify_list = User.objects.all().exclude(id__exact=instance.creator.id)
+            
+            notification.send(notify_list, "topic_new", {
+                "user": instance.creator, "topic": topic, "group": group,
+            })
+
+models.signals.post_save.connect(topic_new, sender=Topic)
+
+
+def topic_comment(sender, instance, **kwargs):
     if isinstance(instance.content_object, Topic):
         topic = instance.content_object
-        topic.modified = datetime.now()
-        topic.save()
+        Topic.objects.filter(pk=topic.pk).update(modified=datetime.now())  # Don't send a signal
         if notification:
             # @@@ how do I know which notification type to send?
             # @@@ notification.send([topic.creator], "tribes_topic_response", {"user": instance.user, "topic": topic})
@@ -79,4 +95,5 @@ def new_comment(sender, instance, **kwargs):
             notification.send(notify_list, "topic_comment", {
                 "user": instance.user, "topic": topic, "comment": instance, "group": group,
             })
-models.signals.post_save.connect(new_comment, sender=ThreadedComment)
+
+models.signals.post_save.connect(topic_comment, sender=ThreadedComment)
