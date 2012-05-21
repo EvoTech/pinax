@@ -10,13 +10,12 @@ from django.utils.translation import ugettext_lazy as _
 from tagging.forms import TagField
 from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from markup_form.forms import make_maprkup_form
-from wiki.models import Article
+from pinax.apps.wiki.models import Article
 
-try:
-    WIKI_WORD_RE = settings.WIKI_WORD_RE
-except AttributeError:
-    WIKI_WORD_RE = r'(?:[A-Z]+[a-z]+){2,}'
+#DEFAULT_WIKI_WORD_RE = r'(?:[A-Z]+[a-z]+){2,}'
+DEFAULT_WIKI_WORD_RE = r'((([A-Z]+[a-z]+){2,})(/([A-Z]+[a-z]+){2,})*)'
 
+WIKI_WORD_RE = getattr(settings, 'WIKI_WORD_RE', DEFAULT_WIKI_WORD_RE)
 
 wikiword_pattern = re.compile('^' + WIKI_WORD_RE + '$')
 
@@ -24,6 +23,7 @@ try:
     WIKI_BANNED_TITLES = settings.WIKI_BANNED_TITLES
 except AttributeError:
     WIKI_BANNED_TITLES = ('NewArticle', 'EditArticle',)
+
 
 class ArticleFormBase(forms.ModelForm):
 

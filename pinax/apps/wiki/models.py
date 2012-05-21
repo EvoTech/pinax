@@ -16,7 +16,7 @@ from django.db.models.query import QuerySet
 from tagging.fields import TagField
 from tagging.models import Tag
 
-from wiki.utils import get_ct
+from pinax.apps.wiki.utils import get_ct
 
 try:
     from notification import models as notification
@@ -58,10 +58,10 @@ class NonRemovedArticleManager(QuerySetManager):
 class Article(models.Model):
     """ A wiki page.
     """
-    title = models.CharField(_(u"Title"), max_length=50)
+    title = models.CharField(_(u"Title"), max_length=255, db_index=True)
     content = models.TextField(_(u"Content"))
-    summary = models.CharField(_(u"Summary"), max_length=150,
-                               null=True, blank=True)
+    summary = models.CharField(_(u"Summary"), max_length=255,
+                               null=True, blank=True, db_index=True)
     markup = models.CharField(_(u"Content Markup"), max_length=100,
                               choices=markup_choices,
                               null=True, blank=True)
@@ -69,12 +69,12 @@ class Article(models.Model):
                                 null=True)
     creator_ip = models.IPAddressField(_("IP Address of the Article Creator"),
                                        blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_update = models.DateTimeField(auto_now=True, auto_now_add=True)
-    removed = models.BooleanField(_("Is removed?"), default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    last_update = models.DateTimeField(auto_now=True, auto_now_add=True, db_index=True)
+    removed = models.BooleanField(_("Is removed?"), default=False, db_index=True)
 
     content_type = models.ForeignKey(ContentType, null=True)
-    object_id = models.PositiveIntegerField(null=True)
+    object_id = models.PositiveIntegerField(null=True, db_index=True)
     group = generic.GenericForeignKey('content_type', 'object_id')
 
     tags = TagField()
@@ -96,8 +96,12 @@ class Article(models.Model):
 
     def get_absolute_url(self):
         if self.group is None:
-            return reverse('wiki_article', args=(self.title,))
-        return self.group.get_absolute_url() + 'wiki/' + self.title
+            return reverse('wiki_article', kwargs={'title': self.title, })
+        #return self.group.get_absolute_url() + 'wiki/' + self.title
+        return self.group.content_bridge.reverse(
+            'wiki_article', self.group,
+            kwargs={'title': self.title, }
+        )
 
     def remove(self):
         """ Mark the Article as 'removed'. If the article is

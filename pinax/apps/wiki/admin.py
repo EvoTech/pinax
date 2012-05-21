@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from wiki.models import Article, ChangeSet
+from pinax.apps.wiki.models import Article, ChangeSet
 
 
 class InlineChangeSet(admin.TabularInline):

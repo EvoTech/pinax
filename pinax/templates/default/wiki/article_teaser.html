@@ -15,6 +15,6 @@
     </td>
     <td>
         <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
-        <div class="body">{{ article.summary|apply_markup:article.markup }}</div>
+        <div class="body">{{ article.summary|apply_markup:article.markup|wiki_links:article.group }}</div>
     </td>
 </tr>

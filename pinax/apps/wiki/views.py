@@ -19,11 +19,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.syndication.views import FeedDoesNotExist
 
-from wiki.forms import ArticleForm, SearchForm
-from wiki.models import Article, ChangeSet
-from wiki.feeds import (RssArticleHistoryFeed, AtomArticleHistoryFeed,
+from pinax.apps.wiki.forms import ArticleForm, SearchForm
+from pinax.apps.wiki.models import Article, ChangeSet
+from pinax.apps.wiki.feeds import (RssArticleHistoryFeed, AtomArticleHistoryFeed,
                         RssHistoryFeed, AtomHistoryFeed)
-from wiki.utils import get_ct, login_required
+from pinax.apps.wiki.utils import get_ct, login_required
 
 
 # Settings
@@ -629,6 +629,8 @@ def history(request,
             template_name='recentchanges.html',
             template_dir='wiki',
             extra_context=None,
+            is_member=None,
+            is_private=None,
             *args, **kw):
 
     if request.method == 'GET':
@@ -647,7 +649,7 @@ def history(request,
 
         template_params = {'changes': changes_qs.order_by('-modified'),
                            'allow_write': allow_write}
-        template_params['group'] = group.slug
+        template_params['group'] = group
 
         if extra_context is not None:
             template_params.update(extra_context)
