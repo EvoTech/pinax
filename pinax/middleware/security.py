@@ -16,6 +16,8 @@ DEFAULT_LOGIN_REQUIRE_URL_EXCEPTIONS = [
     "acct_passwd_reset",
     "acct_passwd_reset_done",
     "acct_passwd_reset_key",
+    "captcha-image",
+    "captcha-audio",
 ]
 
 DEFAULT_LOGIN_REQUIRE_REGEXP_EXCEPTIONS = []
