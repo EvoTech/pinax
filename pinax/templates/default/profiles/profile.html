@@ -7,6 +7,7 @@
 {% load group_tags %}
 {% load microblogging_tags %}
 {% load blog_tags %}
+{% load wiki_tags %}
 {% load tagging_tags %}
 {% load photo_tags %}
 {% load theme_tags %}
@@ -124,15 +125,7 @@
                 {% if other_user.article_set.all %}
                     <table class="bookmarks">
                         {% for article in other_user.article_set.all|slice:":5" %}
-                        <tr class="{% cycle odd,even %}">
-                            <td class="meta">
-                                {{ article.created_at|date }}
-                            </td>
-                            <td>
-                                <h2><a href="{% groupurl wiki_article article.group title=article.title %}">{{ article.title }}</a></h2>
-                                <div class="body">{{ article.content|truncatewords:25 }}</div>
-                            </td>
-                        </tr>
+                            {% show_teaser article %}
                         {% endfor %}
                     </table>
                 {% else %}
