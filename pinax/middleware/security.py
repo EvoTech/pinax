@@ -54,7 +54,7 @@ class HideSensistiveFieldsMiddleware(object):
             request.POST._mutable = mutable
 
 
-class LoginRequireMiddleware(object):
+class LoginRequireEverywhereMiddleware(object):
     """Whole site requires login middleware."""
     def __init__(self):
         """Constructor."""
@@ -70,7 +70,7 @@ class LoginRequireMiddleware(object):
         if match.view_name in self.url_exceptions:
             return None
         # Looking by regexp matching
-        for url in self.rexexp_exceptions:
+        for url in self.regexp_exceptions:
             if url.match(request.path_info):
                 return None
         return redirect_to_login(request.get_full_path())
