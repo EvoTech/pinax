@@ -103,19 +103,11 @@ class Article(models.Model):
             kwargs={'title': self.title, }
         )
 
-    def remove(self):
-        """ Mark the Article as 'removed'. If the article is
-        already removed, delete it.
-        Returns True if the article was deleted, False when just marked
-        as removed.
-        """
-        if self.removed:
-            self.delete()
-            return True
-        else:
+    def mark_removed(self):
+        """ Mark the Article as 'removed'."""
+        if not self.removed:
             self.removed = True
             self.save()
-            return False
 
     def latest_changeset(self):
         try:

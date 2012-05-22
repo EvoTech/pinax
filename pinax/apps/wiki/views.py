@@ -391,9 +391,9 @@ def remove_article(request, title,
     elif request.method == 'POST':
 
         article = request.session['article_to_remove']
-        if not request.user.has_perm('wiki.delete_article', article):
+        if not request.user.has_perm('wiki.mark_removed_article', article):
             raise PermissionDenied()
-        article.remove()
+        article.mark_removed()
 
         return redirect_to(request, reverse('wiki_index'))
 
