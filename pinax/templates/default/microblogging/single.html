@@ -2,7 +2,8 @@
 
 {% load i18n %}
 {% load account_tags %}
-{% load oembed_tags %}
+{% load markup_tags %}
+{% load microblogging_tags %}
 
 {% block head_title %}{% blocktrans %}Single Tweet{% endblocktrans %}{% endblock %}
 
@@ -13,7 +14,7 @@
     
         <div class="tweet" id="t{{ tweet.id }}">
         <a href="{% url profile_detail tweet.sender %}"><b>{% user_display tweet.sender %}</b></a>
-        {{ tweet.html|force_escape|oembed:""|urlize }}
+        {{ tweet.text|apply_markup:"filtered_html"|render_tweet_text }}
         <span class="timesince">{{ tweet.sent|timesince }} ago</span>
         <a class="reply" href="{% url tweets_you_follow %}?reply={{ tweet.sender }}">reply</a>
     </div>
