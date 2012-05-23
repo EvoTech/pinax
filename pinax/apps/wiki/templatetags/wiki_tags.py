@@ -13,7 +13,7 @@ from pinax.apps.wiki.forms import WIKI_WORD_RE
 register = template.Library()
 
 # wikiword_link = re.compile(r'(?<!!)\b((?:\.?\./)*{0})\b'.format(WIKI_WORD_RE), re.U)
-wikiword_link = re.compile(r'(\!?(?:\.?\./)*{0})\b'.format(WIKI_WORD_RE), re.U)
+wikiword_link = re.compile(r'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U)
 
 
 def _re_callback(match, inside=False, group=None):
@@ -54,7 +54,7 @@ def wiki_links(text, group=None):
         url.replaceWith(new_str)
 
     for a in soup.findAll('a'):
-        url = u' {0} '.format(a['href'])
+        url = a['href']
         new_str = wikiword_link.sub(curry(_re_callback, inside=True, group=group), unicode(url))
         if unicode(new_str) != url:
             a['href'] = new_str
