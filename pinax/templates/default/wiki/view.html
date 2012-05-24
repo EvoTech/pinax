@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load wiki_tags %}
 {% load group_tags %}
+{% load comments_tag %}
 {% load markup_tags %}
 {% load extra_tagging_tags %}
 
@@ -41,7 +42,9 @@
         </p>
     {% endif %}
     
-    {{ article.content|apply_markup:article.markup|wiki_links:article.group }}
+    <div>
+        {{ article.content|apply_markup:article.markup|wiki_links:article.group }}
+    </div>
 
     {% show_tags_for article %}
 
@@ -59,4 +62,7 @@
             </form>
         {% endif %}
     {% endif %}
+
+    <h3>{% trans "Comments on This Article" %}:</h3>
+    {% comments article %}
 {% endblock %}
