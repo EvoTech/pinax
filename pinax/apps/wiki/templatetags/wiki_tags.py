@@ -67,11 +67,12 @@ def wiki_links(text, group=None):
     return result
 
 
-@register.inclusion_tag('wiki/article_teaser.html')
-def show_teaser(article):
+@register.inclusion_tag('wiki/article_teaser.html', takes_context=True)
+def show_teaser(context, article):
     """ Show a teaser box for the summary of the article.
     """
-    return {'article': article}
+    context.update({'article': article})
+    return context
 
 
 @register.inclusion_tag('wiki/wiki_title.html')

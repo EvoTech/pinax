@@ -1,8 +1,13 @@
+{% load i18n %}
 {% load account_tags %}
 {% load wiki_tags %}
 {% load avatar_tags %}
 {% load markup_tags %}
+{% load is_allowed_tags %}
+{% load theme_tags %}
 
+{% is_allowed perm="wiki.browse_article" obj=article as allowed_for_browse %}
+{% if allowed_for_browse %}
 <tr class="{% cycle odd,even %}">
     <td class="meta">
         <div class="avatar">{% avatar article.latest_changeset.editor 40 %}</div>
@@ -18,3 +23,14 @@
         <div class="body">{{ article.summary|apply_markup:article.markup|wiki_links:article.group }}</div>
     </td>
 </tr>
+{% else %}
+<tr class="{% cycle odd,even %}">
+    <td class="meta">
+        &nbsp;
+    </td>
+    <td>
+        {% trans "Private content" as private_msg %}
+        &nbsp; {% silk "lock" alt=private_msg title=private_msg %} {{ private_msg }}
+    </td>
+</tr>
+{% endif %}

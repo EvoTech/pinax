@@ -14,7 +14,7 @@
     </div>
     <div class="bulk">
         <h2><a href="{% groupurl topic_detail group topic_id=topic.id %}">{{ topic.title }}</a></h2>
-        <div class="body">{{ topic.body|apply_markup:topic.markup }}</div>
+        <div class="body">{{ topic.body|apply_markup:topic.markup|truncatewords_html:"100" }}</div>
         {% get_comment_count for topic as comment_count %}
         {% if comment_count %}
             <div class="comment_stats">
