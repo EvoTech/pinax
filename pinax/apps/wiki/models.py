@@ -132,12 +132,19 @@ class Article(models.Model):
             content_diff=content_diff)
 
         if None not in (notification, self.creator):
-            if editor is None:
-                editor = editor_ip
+            if self.group:
+                notify_list = self.group.member_queryset()
+                if editor:
+                    notify_list = notify_list.exclude(id__exact=editor.id)
+            else:
+                notify_list = [self.creator]
+
             # Fix pickle problem
             article = self.__class__.objects.get(pk=self.pk)
-            notification.send([self.creator], "wiki_article_edited",
-                              {'article': article, 'user': editor})
+
+            notification.send(notify_list, "wiki_article_edited",
+                              {'article': article, 'user': (editor or editor_ip),
+                               'context_object': article, })
 
         return cs
 
@@ -158,14 +165,18 @@ class Article(models.Model):
                 return user.has_perm('view', self.group)
             if perm in ('wiki.add_article',
                         'wiki.change_article',
-                        'wiki.observe_wiki_observed_article_changed_article', ):
+                        'wiki.observe_wiki_observed_article_changed_article',
+                        'wiki.observe_wiki_article_edited_article',
+                        'wiki.observe_wiki_revision_reverted_article', ):
                 return self.group.user_is_member(user)
         else:
             if perm in ('wiki.view_article', 'wiki.browse_article', ):
                 return True
             if perm in ('wiki.add_article', 'wiki.change_article', ):
                 return user.is_authenticated()
-            if perm in ('wiki.observe_wiki_observed_article_changed_article', ):
+            if perm in ('wiki.observe_wiki_observed_article_changed_article',
+                        'wiki.observe_wiki_article_edited_article',
+                        'wiki.observe_wiki_revision_reverted_article', ):
                 return user.is_authenticated()
         return False
 
@@ -276,7 +287,8 @@ class ChangeSet(models.Model):
 
         if None not in (notification, self.editor):
             notification.send([self.editor], "wiki_revision_reverted",
-                              {'revision': self, 'article': self.article})
+                              {'revision': self, 'article': self.article,
+                               'context_object': article, })
 
     def save(self, *args, **kwargs):
         """ Saves the article with a new revision.
