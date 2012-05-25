@@ -72,7 +72,7 @@ def topic_new(sender, instance, **kwargs):
                 notify_list = User.objects.all().exclude(id__exact=instance.creator.id)
             
             notification.send(notify_list, "topic_new", {
-                "user": instance.creator, "topic": topic, "group": group,
+                "creator": instance.creator, "topic": topic, "group": group,
             })
 
 models.signals.post_save.connect(topic_new, sender=Topic)
