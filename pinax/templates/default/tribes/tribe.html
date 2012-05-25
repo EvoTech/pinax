@@ -118,23 +118,32 @@
         
         
         {% if allowed_for_view %}
-            <h2>{% trans "Discussion Topics" %}{% if tribe.topics.all.count %} ({{ tribe.topics.all.count }}){% endif %}</h2>
-            
+
+
+
+
+
             {% get_topics_for_group tribe as topic_queryset %}
+            <h2><a href="{% groupurl topic_list tribe %}">{% trans "Discussion Topics" %}{% if topic_queryset %} ({{ topic_queryset.count }}){% endif %}</a></h2>
             {% with topic_queryset|slice:":5" as topics %}
                 {% if topics %}
                     {% for topic in topics|slice:":5" %}
                         {% show_topic topic %}
                     {% endfor %}
-                    <p><a href="{% groupurl topic_list tribe %}">{% trans "more..." %}</a></p>
+                    <p><a href="{% groupurl topic_list tribe %}">{% trans "more..." %}&nbsp;»</a></p>
                 {% else %}
                     {% groupurl topic_list tribe as new_topic_url %}
                     <p>{% blocktrans %}None yet. <a href="{{ new_topic_url }}">Start one...</a>{% endblocktrans %}</p>
                 {% endif %}
             {% endwith %}
-            
+
+
+
+
+
+
             {% content_objects tribe "wiki.Article" as articles %}
-            <h2>{% trans "Wiki Articles" %}{% if articles %} ({{ articles|length }}){% endif %}</h2>
+            <h2><a href="{% groupurl wiki_list tribe %}">{% trans "Wiki Articles" %}{% if articles %} ({{ articles|length }}){% endif %}</a></h2>
             
             {% if articles %}
                 <table class="topics">
@@ -142,7 +151,7 @@
                         {% show_teaser article %}
                     {% endfor %}
                 </table>
-                <p><a href="{% groupurl wiki_list tribe %}">{% trans "more..." %}</a></p>
+                <p><a href="{% groupurl wiki_list tribe %}">{% trans "more..." %}&nbsp;»</a></p>
             {% else %}
                 {% groupurl wiki_list tribe as wiki_url %}
                 <p>
@@ -151,11 +160,15 @@
                     {% endblocktrans %}
                 </p>
             {% endif %}
-            
+
+
+
+
+
             {% public_pool_photos as photos %}
             {% content_objects tribe photos "content_object" as photos %}
             
-            <h2>{% trans "Tribe Photo Pool" %}</h2>
+            <h2><a href="{% groupurl photos tribe %}">{% trans "Tribe Photo Pool" %}{% if photos %} ({{ photos|length }}){% endif %}</a></h2>
             
             {% if photos %}
                 <div class="thumb-row clearfix">
@@ -166,7 +179,7 @@
                    </div>
                    {% endfor %}
                </div>
-               <p><a href="{% groupurl photos tribe %}">{% trans "more..." %}</a></p>
+               <p><a href="{% groupurl photos tribe %}">{% trans "more..." %}&nbsp;»</a></p>
                {% if is_member %}
                  {% groupurl photo_upload tribe as photo_upload_url %}
                     <p><a href="{{ photo_upload_url }}">+ add a photo</a></p>
@@ -179,8 +192,12 @@
                     {% endblocktrans %}
                 </p>
             {% endif %}
-            
-            
+
+
+
+
+
+
 {% comment %}
             <h2>{% trans "Tweets" %}</h2>
             
@@ -204,7 +221,11 @@
                 <a href="{{ calendar.get_absolute_url }}">{% trans "calendar..." %}</a>
             </p>
 {% endcomment %}
-            
+
+
+
+
+
         {% endif %}
     </div>
 
