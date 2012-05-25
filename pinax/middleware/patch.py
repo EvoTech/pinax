@@ -1,6 +1,6 @@
 
 
-class UserNotLazyMiddleware:
+class UserNotLazyMiddleware(object):
     """User is not lasy, for resolving some problems with notifications.
 
     Temporary fix for django bug: "can't pickle function objects"
