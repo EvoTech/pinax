@@ -139,7 +139,6 @@ def topic_delete(request, topic_id, group_slug=None, bridge=None):
     topic = get_object_or_404(topics, id=topic_id)
     
     if (request.method == "POST" and (request.user == topic.creator or request.user == topic.group.creator)):
-        ThreadedComment.objects.all_for_object(topic).delete()
         topic.delete()
     
     return HttpResponseRedirect(request.POST["next"])

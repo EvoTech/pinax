@@ -47,12 +47,31 @@ class Tribe(Group):
 
     def is_allowed(self, user, perm=None):
         """Checks permissions."""
-        if perm == 'tribes.view_tribe':
+        if perm in ('tribes.view_tribe', ):
             return not self.private or self.user_is_member(user)
-        if perm == 'tribes.browse_tribe':
+
+        if perm  in ('tribes.browse_tribe', ):
             return True
-        if perm in ('tribes.add_tribe', 'tribes.change_tribe', ):
-            return user == self.creator
+
+        if perm in ('tribes.add_tribe', ):
+            return user.is_authenticated()
+
+        if perm in ('tribes.change_tribe', ):
+            return self.creator == user
+
+        if perm in ('tribes.delete_tribe', ):
+            return False
+
+        if perm in ('comments.add_comment', ):
+            return self.user_is_member(user)
+
+        if perm in ('tribes.observe_tribes_created_new_member_tribe',
+                    'tribes.observe_tribes_new_member_tribe', ):
+            return self.user_is_member(user)
+
+        if perm in ('tribes.observe_tribes_new_tribe_tribe', ):
+            return user.is_authenticated()
+
         return False
 
 

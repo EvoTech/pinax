@@ -75,6 +75,30 @@ class Post(models.Model):
             "slug": self.slug
         })
 
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if perm in ('blog.view_post',
+                    'blog.browse_post'):
+            return self.status == 2 or self.author == user
+
+        if perm in ('blog.add_post',
+                    'comments.add_comment', ):
+            return user.is_authenticated()
+
+        if perm in ('blog.change_post', ):
+            return self.author == user
+
+        if perm in ('blog.delete_post',
+                    'comments.change_comment', 
+                    'comments.delete_comment', ):
+            return False
+
+        if perm in ('blog.observe_blog_friend_post_post',
+                    'blog.observe_blog_post_comment_post', ):
+            return user.is_authenticated()
+
+        return False
+
 
 # handle notification of new comments
 def new_comment(sender, instance, **kwargs):

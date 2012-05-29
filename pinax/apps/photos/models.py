@@ -81,6 +81,52 @@ class Image(ImageModel):
     def get_absolute_url(self):
         return reverse("photo_details", args=[self.pk])
 
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if self.group:
+            if perm in ('photos.view_image',
+                        'photos.browse_image', ):
+                return user.has_perm('view', self.group)
+
+            if perm in ('photos.change_image', ):
+                return self.member == user or user.has_perm(perm, self.group)
+
+            if perm in ('photos.add_image',
+                        'comments.add_comment', ):
+                return self.group.user_is_member(user)
+
+            if perm in ('photos.delete_image',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return user.has_perm(perm, self.group)
+
+            if perm in ('photos.observe_image_new_image',
+                        'photos.observe_image_comment_image', ):
+                return self.group.user_is_member(user)
+
+        else:
+            if perm in ('photos.view_image',
+                        'photos.browse_image', ):
+                return True
+
+            if perm in ('photos.change_image', ):
+                return self.member == user
+
+            if perm in ('photos.add_image',
+                        'comments.add_comment', ):
+                return user.is_authenticated()
+
+            if perm in ('photos.delete_image',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return False
+
+            if perm in ('photos.observe_image_new_image',
+                        'photos.observe_image_comment_image', ):
+                return user.is_authenticated()
+
+        return False
+
 
 class Pool(models.Model):
     """

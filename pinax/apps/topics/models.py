@@ -60,6 +60,52 @@ class Topic(models.Model):
         else:
             return reverse("topic_detail", kwargs=kwargs)
 
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if self.group:
+            if perm in ('topics.view_topic',
+                        'topics.browse_topic', ):
+                return user.has_perm('view', self.group)
+
+            if perm in ('topics.change_topic', ):
+                return self.creator == user or user.has_perm(perm, self.group)
+
+            if perm in ('topics.add_topic',
+                        'comments.add_comment', ):
+                return self.group.user_is_member(user)
+
+            if perm in ('topics.delete_topic',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return user.has_perm(perm, self.group)
+
+            if perm in ('topics.observe_topic_new_topic',
+                        'topics.observe_topic_comment_topic', ):
+                return self.group.user_is_member(user)
+
+        else:
+            if perm in ('topics.view_topic',
+                        'topics.browse_topic', ):
+                return True
+
+            if perm in ('topics.change_topic', ):
+                return self.creator == user
+
+            if perm in ('topics.add_topic',
+                        'comments.add_comment', ):
+                return user.is_authenticated()
+
+            if perm in ('topics.delete_topic',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return False
+
+            if perm in ('topics.observe_topic_new_topic',
+                        'topics.observe_topic_comment_topic', ):
+                return user.is_authenticated()
+
+        return False
+
 
 def topic_new(sender, instance, **kwargs):
     if isinstance(instance, Topic):

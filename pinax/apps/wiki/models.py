@@ -161,23 +161,47 @@ class Article(models.Model):
     def is_allowed(self, user, perm=None):
         """Checks permissions."""
         if self.group:
-            if perm in ('wiki.view_article', 'wiki.browse_article', ):
+            if perm in ('wiki.view_article',
+                        'wiki.browse_article', ):
                 return user.has_perm('view', self.group)
-            if perm in ('wiki.add_article',
+
+            if perm in ('wiki.add_article',  # hierarchical?
                         'wiki.change_article',
-                        'wiki.observe_wiki_observed_article_changed_article',
+                        'comments.add_comment', ):
+                return self.group.user_is_member(user)
+
+            if perm in ('wiki.mark_removed_article',
+                        'wiki.delete_article',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return user.has_perm(perm, self.group)
+
+            if perm in ('wiki.observe_wiki_observed_article_changed_article',
                         'wiki.observe_wiki_article_edited_article',
                         'wiki.observe_wiki_revision_reverted_article', ):
                 return self.group.user_is_member(user)
+
         else:
-            if perm in ('wiki.view_article', 'wiki.browse_article', ):
+            if perm in ('wiki.view_article',
+                        'wiki.browse_article', ):
                 return True
-            if perm in ('wiki.add_article', 'wiki.change_article', ):
+
+            if perm in ('wiki.add_article',
+                        'wiki.change_article',
+                        'comments.add_comment', ):
                 return user.is_authenticated()
+
+            if perm in ('wiki.mark_removed_article',
+                        'wiki.delete_article',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return False
+
             if perm in ('wiki.observe_wiki_observed_article_changed_article',
                         'wiki.observe_wiki_article_edited_article',
                         'wiki.observe_wiki_revision_reverted_article', ):
                 return user.is_authenticated()
+
         return False
 
 
