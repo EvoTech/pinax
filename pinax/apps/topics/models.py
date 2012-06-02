@@ -140,11 +140,18 @@ def topic_comment(sender, instance, **kwargs):
             # @@@ notification.send([topic.creator], "tribes_topic_response", {"user": instance.user, "topic": topic})
             #pass
             group = topic.group
-            if group:
-                notify_list = group.member_queryset().exclude(id__exact=instance.user.id) # @@@
-            else:
-                notify_list = User.objects.all().exclude(id__exact=instance.user.id)
-            
+            notify_list = [topic.creator.pk, ]
+            from django.contrib.sites.models import Site
+            current_site = Site.objects.get_current()
+            notify_list += ThreadedComment.objects.for_model(topic).filter(
+                is_public=True,
+                is_removed=False,
+                site=current_site,
+                object_pk=topic.pk
+            ).values_list('user', flat=True)
+            notify_list = list(set(notify_list))
+            if instance.user.pk in notify_list:
+                notify_list.remove(instance.user.pk)
             notification.send(notify_list, "topic_comment", {
                 "user": instance.user,
                 "topic": topic,

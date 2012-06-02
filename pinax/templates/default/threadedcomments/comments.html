@@ -18,7 +18,7 @@
             <div class="meta">
                 <div class="avatar">{% avatar response.user 40 %}</div>
                 <div class="details"><a href="{% url profile_detail response.user.username %}">{% user_display response.user %}</a></div>
-                {{ response.submit_date|date }}
+                {{ response.submit_date|date:"M. d, Y H:i" }}
             </div>
             <div class="bulk">
                 <div class="body">{{ response.comment|apply_markup:"filtered_html" }}</div>

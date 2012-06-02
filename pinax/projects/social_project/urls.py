@@ -116,12 +116,14 @@ tagged_models = (
     ),
     dict(title="Topics",
         query=lambda tag: TaggedItem.objects.get_by_model(Topic, tag),
+        content_template="pinax_tagging_ext/topic.html",
     ),
     dict(title="Tribes",
         query=lambda tag: TaggedItem.objects.get_by_model(Tribe, tag),
     ),
     dict(title="Wiki Articles",
         query=lambda tag: TaggedItem.objects.get_by_model(WikiArticle, tag),
+        content_template="pinax_tagging_ext/wiki.html",
     ),
 )
 tagging_ext_kwargs = {

@@ -184,11 +184,18 @@ def photos_image_comment(sender, instance, **kwargs):
         image = instance.content_object
         if notification:
             group = image.group
-            if group:
-                notify_list = group.member_queryset().exclude(id__exact=instance.user.id) # @@@
-            else:
-                notify_list = User.objects.all().exclude(id__exact=instance.user.id)
-            
+            notify_list = [image.member.pk, ]
+            from django.contrib.sites.models import Site
+            current_site = Site.objects.get_current()
+            notify_list += ThreadedComment.objects.for_model(image).filter(
+                is_public=True,
+                is_removed=False,
+                site=current_site,
+                object_pk=image.pk
+            ).values_list('user', flat=True)
+            notify_list = list(set(notify_list))
+            if instance.user.pk in notify_list:
+                notify_list.remove(instance.user.pk)
             notification.send(notify_list, "photos_image_comment", {
                 "user": instance.user,
                 "image": image,

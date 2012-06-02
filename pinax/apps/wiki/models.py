@@ -365,11 +365,18 @@ def wiki_article_comment(sender, instance, **kwargs):
         # Article.objects.filter(pk=article.pk).update(last_update=datetime.now())  # Don't send a signal
         if notification:
             group = article.group
-            if group:
-                notify_list = group.member_queryset().exclude(id__exact=instance.user.id) # @@@
-            else:
-                notify_list = User.objects.all().exclude(id__exact=instance.user.id)
-            
+            notify_list = [article.creator.pk, ]
+            from django.contrib.sites.models import Site
+            current_site = Site.objects.get_current()
+            notify_list += ThreadedComment.objects.for_model(article).filter(
+                is_public=True,
+                is_removed=False,
+                site=current_site,
+                object_pk=article.pk
+            ).values_list('user', flat=True)
+            notify_list = list(set(notify_list))
+            if instance.user.pk in notify_list:
+                notify_list.remove(instance.user.pk)
             notification.send(notify_list, "wiki_article_comment", {
                 "user": instance.user,
                 "article": article,
