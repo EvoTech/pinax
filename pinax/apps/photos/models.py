@@ -91,9 +91,13 @@ class Image(ImageModel):
             if perm in ('photos.change_image', ):
                 return self.member == user or user.has_perm(perm, self.group)
 
-            if perm in ('photos.add_image',
-                        'comments.add_comment', ):
+            if perm in ('photos.add_image', ):
                 return self.group.user_is_member(user)
+
+            if perm in ('comments.add_comment', ):
+                return self.group.user_is_member(user) or\
+                    user.has_perm(perm, self.group) or\
+                    user.has_perm('photos.comment_image', self.group)
 
             if perm in ('photos.delete_image',
                         'comments.change_comment', 

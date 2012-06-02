@@ -166,9 +166,13 @@ class Article(models.Model):
                 return user.has_perm('view', self.group)
 
             if perm in ('wiki.add_article',  # hierarchical?
-                        'wiki.change_article',
-                        'comments.add_comment', ):
+                        'wiki.change_article', ):
                 return self.group.user_is_member(user)
+
+            if perm in ('comments.add_comment', ):
+                return self.group.user_is_member(user) or\
+                    user.has_perm(perm, self.group) or\
+                    user.has_perm('wiki.comment_article', self.group)
 
             if perm in ('wiki.mark_removed_article',
                         'wiki.delete_article',

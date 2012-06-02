@@ -70,9 +70,13 @@ class Topic(models.Model):
             if perm in ('topics.change_topic', ):
                 return self.creator == user or user.has_perm(perm, self.group)
 
-            if perm in ('topics.add_topic',
-                        'comments.add_comment', ):
+            if perm in ('topics.add_topic', ):
                 return self.group.user_is_member(user)
+
+            if perm in ('comments.add_comment', ):
+                return self.group.user_is_member(user) or\
+                    user.has_perm(perm, self.group) or\
+                    user.has_perm('topics.comment_topic', self.group)
 
             if perm in ('topics.delete_topic',
                         'comments.change_comment', 
