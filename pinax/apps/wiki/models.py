@@ -15,6 +15,7 @@ from django.db.models.query import QuerySet
 
 from tagging.fields import TagField
 from tagging.models import Tag
+from threadedcomments.models import ThreadedComment
 
 from pinax.apps.wiki.utils import get_ct
 
@@ -354,3 +355,24 @@ class ChangeSet(models.Model):
 
 if notification is not None:
     signals.post_save.connect(notification.handle_observations, sender=Article)
+
+
+def wiki_article_comment(sender, instance, **kwargs):
+    if isinstance(instance.content_object, Article):
+        article = instance.content_object
+        # Article.objects.filter(pk=article.pk).update(last_update=datetime.now())  # Don't send a signal
+        if notification:
+            group = article.group
+            if group:
+                notify_list = group.member_queryset().exclude(id__exact=instance.user.id) # @@@
+            else:
+                notify_list = User.objects.all().exclude(id__exact=instance.user.id)
+            
+            notification.send(notify_list, "wiki_article_comment", {
+                "user": instance.user,
+                "article": article,
+                "comment": instance,
+                "group": group,
+            })
+
+models.signals.post_save.connect(wiki_article_comment, sender=ThreadedComment)

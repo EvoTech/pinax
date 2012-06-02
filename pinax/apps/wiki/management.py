@@ -15,6 +15,10 @@ try:
         notification.create_notice_type("wiki_observed_article_changed",
                                         _("Observed Article Changed"),
                                         _("an article you observe has changed"))
+        
+        notification.create_notice_type("wiki_article_comment",
+                                        _("Article Comment"),
+                                        _("a new comment has been made on a article"))
 
 
     signals.post_syncdb.connect(create_notice_types,
