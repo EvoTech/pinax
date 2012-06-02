@@ -15,6 +15,10 @@ from photologue.models import *
 from pinax.apps.photos.models import Image, Pool
 from pinax.apps.photos.forms import PhotoUploadForm, PhotoEditForm
 
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
 
 
 def group_and_bridge(request):
@@ -70,7 +74,22 @@ def upload(request, form_class=PhotoUploadForm, template_name="photos/upload.htm
                 messages.add_message(request, messages.SUCCESS,
                     ugettext("Successfully uploaded photo '%s'") % photo.title
                 )
-                
+
+                if notification:
+                    # Fixed TypeError: can't pickle function objects
+                    # photo = Image.objects.get(pk=photo.pk)
+                    if group:
+                        notify_list = group.member_queryset().exclude(id__exact=photo.member.id)
+                    else:
+                        notify_list = User.objects.all().exclude(id__exact=photo.member.id)
+
+                    notification.send(notify_list, "photos_image_new", {
+                        "creator": photo.member,
+                        "image": photo,
+                        "group": photo.group,
+                        "context_object": photo,
+                    })
+
                 include_kwargs = {"id": photo.id}
                 if group:
                     redirect_to = bridge.reverse("photo_details", group, kwargs=include_kwargs)

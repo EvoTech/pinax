@@ -10,8 +10,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from groups.base import Group
 from tagging.fields import TagField
+from threadedcomments.models import ThreadedComment
 
 from photologue.models import *
+
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
 
 PUBLISH_CHOICES = (
     (1, _("Public")),
@@ -116,8 +122,8 @@ class Image(ImageModel):
                         'comments.delete_comment', ):
                 return user.has_perm(perm, self.group)
 
-            if perm in ('photos.observe_image_new_image',
-                        'photos.observe_image_comment_image', ):
+            if perm in ('photos.observe_photos_image_new_image',
+                        'photos.observe_photos_image_comment_image', ):
                 return self.group.user_is_member(user)
 
         else:
@@ -137,11 +143,22 @@ class Image(ImageModel):
                         'comments.delete_comment', ):
                 return False
 
-            if perm in ('photos.observe_image_new_image',
-                        'photos.observe_image_comment_image', ):
+            if perm in ('photos.observe_photos_image_new_image',
+                        'photos.observe_photos_image_comment_image', ):
                 return user.is_authenticated()
 
         return False
+
+
+def reduce_patched(self, *a, **kw):
+    """Excludes curry"""
+    r = list(super(ImageModel, self).__reduce__(*a, **kw))
+    for k, v in r[2].copy().iteritems():
+        if getattr(v, '__name__', None) == '_curried':
+            del r[2][k]
+    return tuple(r)
+
+setattr(ImageModel, '__reduce__', reduce_patched)
 
 
 class Pool(models.Model):
@@ -160,3 +177,23 @@ class Pool(models.Model):
         unique_together = [("photo", "content_type", "object_id")]
         verbose_name = _("pool")
         verbose_name_plural = _("pools")
+
+
+def photos_image_comment(sender, instance, **kwargs):
+    if isinstance(instance.content_object, Image):
+        image = instance.content_object
+        if notification:
+            group = image.group
+            if group:
+                notify_list = group.member_queryset().exclude(id__exact=instance.user.id) # @@@
+            else:
+                notify_list = User.objects.all().exclude(id__exact=instance.user.id)
+            
+            notification.send(notify_list, "photos_image_comment", {
+                "user": instance.user,
+                "image": image,
+                "comment": instance,
+                "group": group,
+            })
+
+models.signals.post_save.connect(photos_image_comment, sender=ThreadedComment)

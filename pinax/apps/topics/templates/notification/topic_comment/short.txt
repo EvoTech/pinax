@@ -1,1 +1,1 @@
-{% load i18n %}{% blocktrans %}Comment on {{ topic }}{% endblocktrans %}
+{% load i18n %}{% blocktrans %}Comment on topic: {{ topic }}{% endblocktrans %}

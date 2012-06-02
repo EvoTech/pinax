@@ -183,7 +183,8 @@ class Article(models.Model):
 
             if perm in ('wiki.observe_wiki_observed_article_changed_article',
                         'wiki.observe_wiki_article_edited_article',
-                        'wiki.observe_wiki_revision_reverted_article', ):
+                        'wiki.observe_wiki_revision_reverted_article',
+                        'wiki.observe_wiki_article_comment_article', ):
                 return self.group.user_is_member(user)
 
         else:
@@ -204,7 +205,8 @@ class Article(models.Model):
 
             if perm in ('wiki.observe_wiki_observed_article_changed_article',
                         'wiki.observe_wiki_article_edited_article',
-                        'wiki.observe_wiki_revision_reverted_article', ):
+                        'wiki.observe_wiki_revision_reverted_article',
+                        'wiki.observe_wiki_article_comment_article', ):
                 return user.is_authenticated()
 
         return False
