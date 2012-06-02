@@ -6,20 +6,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-
-from photologue.models import *
-
-from tagging.fields import TagField
-
 from django.utils.translation import ugettext_lazy as _
 
+from groups.base import Group
+from tagging.fields import TagField
 
+from photologue.models import *
 
 PUBLISH_CHOICES = (
     (1, _("Public")),
     (2, _("Private")),
 )
-
 
 
 class PhotoSet(models.Model):
@@ -79,7 +76,22 @@ class Image(ImageModel):
         return self.title
     
     def get_absolute_url(self):
+        if self.group:
+            group = self.pool_set.all()[0].content_object
+            return group.content_bridge.reverse(
+                'photo_details', group,
+                kwargs={'id': self.pk, }
+            )
         return reverse("photo_details", args=[self.pk])
+
+    @property
+    def group(self):
+        """Returns group"""
+        for pool in self.pool_set.all():
+            group = pool.content_object
+            if isinstance(group, (Group, )):
+                return group
+        return None
 
     def is_allowed(self, user, perm=None):
         """Checks permissions."""

@@ -5,15 +5,19 @@
 {% load comments %}
 {% load extra_tagging_tags %}
 {% load group_tags %}
+{% load is_allowed_tags %}
+{% load theme_tags %}
 
+{% is_allowed perm="topics.browse_topic" obj=topic as allowed_for_browse %}
+{% if allowed_for_browse %}
 <div class="topic clearfix">
-    <div class="task-meta">
+    <div class="meta">
         <div class="avatar">{% avatar topic.creator 40 %}</div>
         <div class="details"><a href="{{ topic.creator.get_profile.get_absolute_url }}">{% user_display topic.creator %}</a></div>
         <div class="created">{{ topic.created|date }}</div>
     </div>
     <div class="bulk">
-        <h2><a href="{% groupurl topic_detail group topic_id=topic.id %}">{{ topic.title }}</a></h2>
+        <h2><a href="{{ topic.get_absolute_url }}">{{ topic.title }}</a></h2>
         <div class="body">{{ topic.body|apply_markup:topic.markup|truncatewords_html:"100" }}</div>
         {% get_comment_count for topic as comment_count %}
         {% if comment_count %}
@@ -27,3 +31,14 @@
         <p>{% show_tags_for topic %}</p>
     </div>
 </div>
+{% else %}
+<div class="topic clearfix">
+    <div class="task-meta">
+        &nbsp;
+    </div>
+    <div class="bulk">
+        {% trans "Private content" as private_msg %}
+        &nbsp; {% silk "lock" alt=private_msg title=private_msg %} {{ private_msg }}
+    </div>
+</div>
+{% endif %}

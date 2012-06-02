@@ -122,7 +122,10 @@ def topic_new(sender, instance, **kwargs):
                 notify_list = User.objects.all().exclude(id__exact=instance.creator.id)
             
             notification.send(notify_list, "topic_new", {
-                "creator": instance.creator, "topic": topic, "group": group,
+                "creator": instance.creator,
+                "topic": topic,
+                "group": group,
+                "context_object": topic,
             })
 
 models.signals.post_save.connect(topic_new, sender=Topic)
@@ -143,7 +146,10 @@ def topic_comment(sender, instance, **kwargs):
                 notify_list = User.objects.all().exclude(id__exact=instance.user.id)
             
             notification.send(notify_list, "topic_comment", {
-                "user": instance.user, "topic": topic, "comment": instance, "group": group,
+                "user": instance.user,
+                "topic": topic,
+                "comment": instance,
+                "group": group,
             })
 
 models.signals.post_save.connect(topic_comment, sender=ThreadedComment)

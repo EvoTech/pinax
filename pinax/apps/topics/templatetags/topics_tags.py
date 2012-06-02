@@ -12,10 +12,11 @@ register = template.Library()
 
 @register.inclusion_tag("topics/topic_item.html", takes_context=True)
 def show_topic(context, topic):
-    return {
+    context.update({
         "topic": topic,
         "group": context.get("group"),
-    }
+    })
+    return context
 
 
 class TopicsForGroupNode(template.Node):

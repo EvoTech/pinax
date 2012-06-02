@@ -5,6 +5,7 @@
 {% load account_tags %}
 {% load tagging_tags %}
 {% load group_tags %}
+{% load markup_tags %}
 {% load comments_tag %}
 {% load photo_tags %}
 {% load flag_tags %}
@@ -36,7 +37,7 @@
             <h2>{{ photo.title }}</h2>
         </div>
         <div class="photo-caption">
-            <p>{{ photo.caption }}</p>
+            {{ photo.caption|apply_markup:"filtered_html" }}
         </div>
         
         <div class="form-toggle">

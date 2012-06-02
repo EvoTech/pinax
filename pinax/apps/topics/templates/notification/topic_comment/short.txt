@@ -1,1 +1,1 @@
-{{ topic }} (Topic #{{ topic.id }})
+{% load i18n %}{% blocktrans %}Comment on {{ topic }}{% endblocktrans %}
