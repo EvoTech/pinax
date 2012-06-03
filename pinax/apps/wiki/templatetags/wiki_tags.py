@@ -4,6 +4,7 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import stringfilter
 from django.utils.html import conditional_escape
+from django.utils.http import urlquote
 from django.utils.functional import curry
 from django.utils.safestring import mark_safe, SafeData
 
@@ -13,7 +14,7 @@ from pinax.apps.wiki.forms import WIKI_WORD_RE
 register = template.Library()
 
 # wikiword_link = re.compile(r'(?<!!)\b((?:\.?\./)*{0})\b'.format(WIKI_WORD_RE), re.U)
-wikiword_link = re.compile(r'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U)
+wikiword_link = re.compile(ur'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U|re.S)
 
 
 def _re_callback(match, inside=False, group=None):
@@ -24,7 +25,7 @@ def _re_callback(match, inside=False, group=None):
         return title[1:]
     # relative, keep as is
     if title[0] in ('.', '/'):
-        url = title
+        url = urlquote(title, safe='/')
     else:
         if group:
             bridge = group.content_bridge

@@ -21,6 +21,6 @@ urlpatterns = patterns("pinax.apps.tribes.views",
 )
 
 
-urlpatterns += bridge.include_urls("pinax.apps.topics.urls", r"^tribe/(?P<tribe_slug>[-\w]+)/topics/")
-urlpatterns += bridge.include_urls("pinax.apps.wiki.urls", r"^tribe/(?P<tribe_slug>[-\w]+)/wiki/")
-urlpatterns += bridge.include_urls("pinax.apps.photos.urls", r"^tribe/(?P<tribe_slug>[-\w]+)/photos/")
+urlpatterns += bridge.include_urls("pinax.apps.topics.urls", ur"^tribe/(?P<tribe_slug>[-\w]+)/topics/")
+urlpatterns += bridge.include_urls("pinax.apps.wiki.urls", ur"^tribe/(?P<tribe_slug>[-\w]+)/wiki/")
+urlpatterns += bridge.include_urls("pinax.apps.photos.urls", ur"^tribe/(?P<tribe_slug>[-\w]+)/photos/")

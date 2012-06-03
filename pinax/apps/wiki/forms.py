@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import sys
 
 from django import forms
 from django.forms import widgets
@@ -12,12 +13,27 @@ from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from markup_form.forms import make_maprkup_form
 from pinax.apps.wiki.models import Article
 
-#DEFAULT_WIKI_WORD_RE = r"(?:[A-Z]+[a-z0-9']+){2,}"
-DEFAULT_WIKI_WORD_RE = r"((([A-Z]+[a-z0-9']+){2,})(/([A-Z]+[a-z0-9']+){2,})*)"
+#DEFAULT_WIKI_WORD_RE = ur"(?:[A-Z]+[a-z0-9']+){2,}"
+#DEFAULT_WIKI_WORD_RE = ur"((([A-Z]+[a-z0-9']+){2,})(/([A-Z]+[a-z0-9']+){2,})*)"
+
+uppers = []
+lowers = []
+
+for i in range(sys.maxunicode):
+  c = unichr(i)
+  if c.isupper():
+    uppers.append(c)
+  elif c.islower():
+    lowers.append(c)
+
+uppers = ur"".join(uppers)
+lowers = ur"".join(lowers)
+
+DEFAULT_WIKI_WORD_RE = ur"((([" + uppers + ur"]+[" + lowers + ur"0-9']+){2,})(/([" + uppers + ur"]+[" + lowers + ur"0-9']+){2,})*)"
 
 WIKI_WORD_RE = getattr(settings, 'WIKI_WORD_RE', DEFAULT_WIKI_WORD_RE)
 
-wikiword_pattern = re.compile('^' + WIKI_WORD_RE + '$')
+wikiword_pattern = re.compile(ur'^' + WIKI_WORD_RE + ur'$', re.U)
 
 try:
     WIKI_BANNED_TITLES = settings.WIKI_BANNED_TITLES
