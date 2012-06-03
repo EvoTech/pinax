@@ -54,7 +54,9 @@ def wiki_links(text, group=None):
         url.replaceWith(new_str)
 
     for a in soup.findAll('a'):
-        url = a['href']
+        url = a.get('href')
+        if not url:
+            continue
         new_str = wikiword_link.sub(curry(_re_callback, inside=True, group=group), unicode(url))
         if unicode(new_str) != url:
             a['href'] = new_str
