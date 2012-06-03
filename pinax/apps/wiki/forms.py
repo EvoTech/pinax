@@ -12,8 +12,8 @@ from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from markup_form.forms import make_maprkup_form
 from pinax.apps.wiki.models import Article
 
-#DEFAULT_WIKI_WORD_RE = r"(?:[A-Z]+[a-z']+){2,}"
-DEFAULT_WIKI_WORD_RE = r"((([A-Z]+[a-z']+){2,})(/([A-Z]+[a-z']+){2,})*)"
+#DEFAULT_WIKI_WORD_RE = r"(?:[A-Z]+[a-z0-9']+){2,}"
+DEFAULT_WIKI_WORD_RE = r"((([A-Z]+[a-z0-9']+){2,})(/([A-Z]+[a-z0-9']+){2,})*)"
 
 WIKI_WORD_RE = getattr(settings, 'WIKI_WORD_RE', DEFAULT_WIKI_WORD_RE)
 
