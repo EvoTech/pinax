@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
@@ -32,7 +32,7 @@ class Profile(models.Model):
         return self.user.username
     
     def get_absolute_url(self):
-        return reverse("profile_detail", kwargs={
+        return urlresolvers.reverse("profile_detail", kwargs={
             "username": self.user.username
         })
 
