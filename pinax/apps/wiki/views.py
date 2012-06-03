@@ -14,7 +14,6 @@ from django.core.exceptions import PermissionDenied
 from django.http import (Http404, HttpResponseRedirect,
                          HttpResponseNotAllowed, HttpResponse, HttpResponseForbidden)
 from django.shortcuts import get_object_or_404, render_to_response
-from django.views.generic.simple import redirect_to
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.syndication.views import FeedDoesNotExist
@@ -322,7 +321,7 @@ def edit_article(request, title,
                 'title': new_article.title,
             }, bridge=bridge)
 
-            return redirect_to(request, url)
+            return HttpResponseRedirect(url)
 
     elif request.method == 'GET':
         user_ip = get_real_ip(request)
@@ -395,7 +394,7 @@ def remove_article(request, title,
             raise PermissionDenied()
         article.mark_removed()
 
-        return redirect_to(request, reverse('wiki_index'))
+        return HttpResponseRedirect(reverse('wiki_index'))
 
     return HttpResponseNotAllowed(['GET', 'POST'])
 
@@ -541,7 +540,7 @@ def revert_to_revision(request, title,
             'title': title,
         }, bridge=bridge)
 
-        return redirect_to(request, url)
+        return HttpResponseRedirect(url)
 
     return HttpResponseNotAllowed(['POST'])
 
@@ -605,7 +604,7 @@ def search_article(request,
                         url = articles_by_content.get().get_absolute_url()
 
                 if url is not None:
-                    return redirect_to(request, url)
+                    return HttpResponseRedirect(url)
 
         template_params = {
             'search_form': search_form,
@@ -693,7 +692,7 @@ def observe_article(request, title,
             'title': article.title,
         }, bridge=bridge)
 
-        return redirect_to(request, url)
+        return HttpResponseRedirect(url)
 
     return HttpResponseNotAllowed(['POST'])
 
@@ -732,7 +731,7 @@ def stop_observing_article(request, title,
             'title': article.title,
         }, bridge=bridge)
 
-        return redirect_to(request, url)
+        return HttpResponseRedirect(url)
     return HttpResponseNotAllowed(['POST'])
 
 
