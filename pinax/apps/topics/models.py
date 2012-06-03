@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.contrib.sites.models import Site
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
@@ -135,14 +136,30 @@ def topic_comment(sender, instance, **kwargs):
     if isinstance(instance.content_object, Topic):
         topic = instance.content_object
         Topic.objects.filter(pk=topic.pk).update(modified=datetime.now())  # Don't send a signal
-        if notification:
+
+        if notification and kwargs.get('created'):
+            current_site = Site.objects.get_current()
+            group = topic.group
+            notice_uid = 'topic_comment_{0}_{1}'.format(
+                current_site.pk,
+                instance.pk
+            )
+
+            notification.send_observation_notices_for(
+                topic, 'topic_comment', extra_context={
+                    "context_object": instance,
+                    "user": instance.user,
+                    "topic": topic,
+                    "comment": instance,
+                    "group": group,
+                    "notice_uid": notice_uid,
+                }
+            )
+
             # @@@ how do I know which notification type to send?
             # @@@ notification.send([topic.creator], "tribes_topic_response", {"user": instance.user, "topic": topic})
             #pass
-            group = topic.group
             notify_list = [topic.creator.pk, ]
-            from django.contrib.sites.models import Site
-            current_site = Site.objects.get_current()
             notify_list += ThreadedComment.objects.for_model(topic).filter(
                 is_public=True,
                 is_removed=False,
@@ -152,11 +169,13 @@ def topic_comment(sender, instance, **kwargs):
             notify_list = list(set(notify_list))
             if instance.user.pk in notify_list:
                 notify_list.remove(instance.user.pk)
+
             notification.send(notify_list, "topic_comment", {
                 "user": instance.user,
                 "topic": topic,
                 "comment": instance,
                 "group": group,
+                "notice_uid": notice_uid,
             })
 
 models.signals.post_save.connect(topic_comment, sender=ThreadedComment)

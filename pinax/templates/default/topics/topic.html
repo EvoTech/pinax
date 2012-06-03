@@ -10,11 +10,13 @@
 {% load comments_tag %}
 {% load avatar_tags %}
 {% load group_tags %}
+{% load notification_observe_tags %}
 
 {% block head_title %}{% trans "Topic" %} : {{ topic.title }}{% endblock %}
 
 {% block extra_head %}
     {% mapkup_form_init %}
+    {% include "notification/observe_init.html" %}
 {% endblock %}
 
 {% block body %}
@@ -31,7 +33,7 @@
                 <h1>{{ topic.title }}</h1>
                 <div class="body">{{ topic.body|apply_markup:topic.markup }}</div>
                 <p>{% show_tags_for topic %}</p>
-                {% ifequal user topic.creator %}
+                {% if user == topic.creator %}
                 <form class="uniForm" method="POST" action="{{ request.path }}delete/">
                     {% csrf_token %}
                     <fieldset class="inlineLabels">
@@ -42,7 +44,8 @@
                     </fieldset>
                 </form>
                 {% if not edit %}<p><a href="{{ request.path }}edit/">Edit Topic</a></p>{% endif %}
-                {% endifequal %}
+                {% endif %}
+                {% observe_link topic 'topic_comment' 'topic_comment' %}
             </div>
         </li>
     </ul>
