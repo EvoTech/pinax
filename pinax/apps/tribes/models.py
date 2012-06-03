@@ -1,5 +1,5 @@
 from django.contrib.auth.models import  User
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -28,7 +28,7 @@ class Tribe(Group):
         return u"{0} ({1})".format(self.name, self.slug)
 
     def get_absolute_url(self):
-        return reverse("tribe_detail", kwargs={"group_slug": self.slug})
+        return urlresolvers.reverse("tribe_detail", kwargs={"group_slug": self.slug})
 
     def member_queryset(self):
         return User.objects.filter(

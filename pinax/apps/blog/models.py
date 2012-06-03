@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -68,7 +68,7 @@ class Post(models.Model):
         super(Post, self).save(**kwargs)
     
     def get_absolute_url(self):
-        return reverse("blog_post", kwargs={
+        return urlresolvers.reverse("blog_post", kwargs={
             "username": self.author.username,
             "year": self.publish.year,
             "month": "%02d" % self.publish.month,

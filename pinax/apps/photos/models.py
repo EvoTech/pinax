@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 
 from django.contrib.auth.models import User
@@ -88,7 +88,7 @@ class Image(ImageModel):
                 'photo_details', group,
                 kwargs={'id': self.pk, }
             )
-        return reverse("photo_details", args=[self.pk])
+        return urlresolvers.reverse("photo_details", args=[self.pk])
 
     @property
     def group(self):

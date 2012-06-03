@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -59,7 +59,7 @@ class Topic(models.Model):
         if self.group:
             return self.group.content_bridge.reverse("topic_detail", self.group, kwargs=kwargs)
         else:
-            return reverse("topic_detail", kwargs=kwargs)
+            return urlresolvers.reverse("topic_detail", kwargs=kwargs)
 
     def is_allowed(self, user, perm=None):
         """Checks permissions."""

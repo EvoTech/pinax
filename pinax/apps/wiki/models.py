@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 
 # Google Diff Match Patch library
 # http://code.google.com/p/google-diff-match-patch
@@ -97,7 +97,7 @@ class Article(models.Model):
 
     def get_absolute_url(self):
         if self.group is None:
-            return reverse('wiki_article', kwargs={'title': self.title, })
+            return urlresolvers.reverse('wiki_article', kwargs={'title': self.title, })
         #return self.group.get_absolute_url() + 'wiki/' + self.title
         return self.group.content_bridge.reverse(
             'wiki_article', self.group,
