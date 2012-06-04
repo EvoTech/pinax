@@ -1,12 +1,11 @@
+from django.contrib.auth.models import User
 from django.core import urlresolvers
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import User
-
 from timezones.fields import TimeZoneField
-
+from notification import models as notification
 
 
 class Profile(models.Model):
@@ -42,5 +41,14 @@ def create_profile(sender, instance=None, **kwargs):
         return
     profile, created = Profile.objects.get_or_create(user=instance)
 
-
 post_save.connect(create_profile, sender=User)
+
+
+def should_deliver_callback(sender, **kwargs):
+    """Prevents sending notification to inactive and deleted users"""
+    user = kwargs.get("recipient")
+    result = kwargs.get("result", {})
+    if not user.is_active or user.username.startswith("__"):
+        result['pass'] = False
+
+notification.should_deliver.connect(should_deliver_callback, notification.Notice)
