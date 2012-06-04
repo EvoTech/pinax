@@ -147,6 +147,9 @@ class SignupFormBase(GroupForm):
             self.fields["email"].required = False
     
     def clean_username(self):
+        if self.cleaned_data["username"].startswith("__"):
+            # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
+            raise forms.ValidationError(_("Usernames can't starts with double underscore."))
         if not alnum_re.search(self.cleaned_data["username"]):
             raise forms.ValidationError(_("Usernames can only contain letters, numbers and underscores."))
         try:
@@ -157,6 +160,9 @@ class SignupFormBase(GroupForm):
     
     def clean_email(self):
         value = self.cleaned_data["email"]
+        if value.startswith("__"):
+            # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
+            raise forms.ValidationError(_("Email can't starts with double underscore."))
         if UNIQUE_EMAIL or EMAIL_AUTHENTICATION:
             try:
                 User.objects.get(email__iexact=value)
