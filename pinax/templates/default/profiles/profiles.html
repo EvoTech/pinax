@@ -5,6 +5,7 @@
 {% load avatar_tags %}
 {% load humanize %}
 {% load profile_tags %}
+{% load sorting_tags %}
 
 {% block head_title %}{% blocktrans %}All Profiles{% endblocktrans %}{% endblock %}
 
@@ -21,31 +22,20 @@
     </form>
     
     {% if users %}
+        {% autosort users %}
+        {% autopaginate users %}
+
         <p>{% trans "Order by:" %}
-            {% ifequal order 'date' %}
-                <a href="{% url profile_list %}?order=name">{% trans "Name" %} &uarr;</a>
-            {% else %}
-                <a href="{% url profile_list %}?order=date">{% trans "Date" %} &darr;</a>
-            {% endifequal %}
+            {% anchor date_joined "Date" %}
+            {% anchor username "Name" %}
         </p>
-        
-        {% autopaginate users%}
-        
-        {% ifequal order 'date'  %}
-            {% regroup users by date_joined.date as users_by_date_joined %}
-            
-            {% for date in users_by_date_joined %}
-                <h2 class="join_date">{{ date.grouper|naturalday:_("MONTH_DAY_FORMAT")|capfirst }}</h2>
-                
-                {% for user in date.list %}
-                    {% show_profile user %}
-                {% endfor %}
-            {% endfor %}
-        {% else %}
-            {% for user in users %}
-                {% show_profile user %}
-            {% endfor %}
-        {% endifequal %}
+
+        {% for user in users %}
+            {% if request.GET.sort == 'date_joined' %}
+                {% ifchanged user.date_joined|date:"Y-M-d" %}<h2 class="join_date">{{ user.date_joined|naturalday:_("DATE_FORMAT")|capfirst }}</h2>{% endifchanged %}
+            {% endif %}
+            {% show_profile user %}
+        {% endfor %}
         
         {% paginate %}
         

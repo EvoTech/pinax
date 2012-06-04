@@ -25,24 +25,15 @@ from pinax.apps.profiles.forms import ProfileForm
 from pinax.apps.profiles.models import Profile
 
 
-
 def profiles(request, template_name="profiles/profiles.html", extra_context=None):
     if extra_context is None:
         extra_context = {}
-    users = User.objects.all().order_by("-date_joined")
+    users = User.objects.all().filter(is_active=True).order_by("-date_joined")
     search_terms = request.GET.get("search", "")
-    order = request.GET.get("order")
-    if not order:
-        order = "date"
     if search_terms:
         users = users.filter(username__icontains=search_terms)
-    if order == "date":
-        users = users.order_by("-date_joined")
-    elif order == "name":
-        users = users.order_by("username")
     return render_to_response(template_name, dict({
         "users": users,
-        "order": order,
         "search_terms": search_terms,
     }, **extra_context), context_instance=RequestContext(request))
 
@@ -52,7 +43,7 @@ def profile(request, username, template_name="profiles/profile.html", extra_cont
     if extra_context is None:
         extra_context = {}
     
-    other_user = get_object_or_404(User, username=username)
+    other_user = get_object_or_404(User, username=username, is_active=True)
     
     if request.user.is_authenticated():
         is_friend = Friendship.objects.are_friends(request.user, other_user)
