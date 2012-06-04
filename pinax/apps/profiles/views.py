@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import (HttpResponse, HttpResponseForbidden,
+                         HttpResponseRedirect, Http404)
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
@@ -38,12 +39,16 @@ def profiles(request, template_name="profiles/profiles.html", extra_context=None
     }, **extra_context), context_instance=RequestContext(request))
 
 
-def profile(request, username, template_name="profiles/profile.html", extra_context=None):
+def profile(request, username,
+            template_name="profiles/profile.html", extra_context=None):
     
     if extra_context is None:
         extra_context = {}
     
-    other_user = get_object_or_404(User, username=username, is_active=True)
+    other_user = get_object_or_404(User, username=username)
+    if not other_user.is_active and\
+           not request.user.has_perm('auth.view_removed_user', other_user):
+        raise Http404
     
     if request.user.is_authenticated():
         is_friend = Friendship.objects.are_friends(request.user, other_user)
