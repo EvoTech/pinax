@@ -2,6 +2,8 @@ from django.core import urlresolvers
 from django.contrib.sites.models import Site
 from django.conf import settings
 
+# TODO: Fix me. Signal? Settings?
+
 
 def reverse_full(viewname, urlconf=None, args=None, kwargs=None, prefix=None,
                  current_app=None, firm=None, group=None, subdomain=None,
