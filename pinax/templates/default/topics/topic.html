@@ -45,9 +45,7 @@
                 </form>
                 {% if not edit %}<p><a href="{{ request.path }}edit/">Edit Topic</a></p>{% endif %}
                 {% endif %}
-                {% trans "Observe for new comments" as observe_new_comments %}
-                {% trans "Stop observing for new comments" as stop_observing_new_comments %}
-                {% observe_link topic 'topic_comment' 'topic_comment' text_observe=observe_new_comments text_stop_observing=stop_observing_new_comments %}
+                {% observe_link topic 'topic_comment' 'topic_comment' text_observe=_("Observe for new comments") text_stop_observing=_("Stop observing for new comments") %}
             </div>
         </li>
     </ul>
