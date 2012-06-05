@@ -8,6 +8,7 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ["publish", "status"]
     search_fields = ["title", "body", "tease"]
     prepopulated_fields = {"slug": ["title"]}
+    raw_id_fields = ["author", ]
 
 
 
