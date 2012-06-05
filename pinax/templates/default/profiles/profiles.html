@@ -31,7 +31,7 @@
         </p>
 
         {% for user in users %}
-            {% if request.GET.sort == 'date_joined' %}
+            {% if not request.GET.sort or request.GET.sort == 'date_joined' %}
                 {% ifchanged user.date_joined|date:"Y-M-d" %}<h2 class="join_date">{{ user.date_joined|naturalday:_("DATE_FORMAT")|capfirst }}</h2>{% endifchanged %}
             {% endif %}
             {% show_profile user %}
