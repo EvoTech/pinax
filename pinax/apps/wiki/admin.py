@@ -11,9 +11,12 @@ class InlineChangeSet(admin.TabularInline):
     raw_id_fields = ('editor',)
 
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ('title', 'markup', 'created_at')
-    list_filter = ('title',)
-    ordering = ('last_update',)
+    list_display = ('title', 'markup', 'created_at', 'last_update', 'removed', 'content_type', 'object_id', 'group', )
+    list_filter = ('content_type', 'removed', )
+    list_editable = ('removed', )
+    search_fields = ('title', 'summary', 'content', )
+    ordering = ('last_update', )
+    raw_id_fields = ('creator', )
     fieldsets = (
         (None, {'fields': ('title', 'content', 'markup')}),
         ('Creator', {'fields': ('creator', 'creator_ip'),
@@ -21,7 +24,6 @@ class ArticleAdmin(admin.ModelAdmin):
         ('Group', {'fields': ('object_id', 'content_type'),
                      'classes': ('collapse', 'wide')}),
     )
-    raw_id_fields = ('creator',)
     inlines = [InlineChangeSet]
 
 admin.site.register(Article, ArticleAdmin)
@@ -42,6 +44,6 @@ class ChangeSetAdmin(admin.ModelAdmin):
         ('Editor', {'fields': ('editor', 'editor_ip'),
                     'classes': ('collapse', 'wide')}),
     )
-    raw_id_fields = ('editor',)
+    raw_id_fields = ('editor', )
 
 admin.site.register(ChangeSet, ChangeSetAdmin)
