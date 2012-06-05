@@ -20,6 +20,11 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
+try:
+    from friends.models import Friendship
+except ImportError:
+    Friendship = None
+
 
 def group_and_bridge(request):
     """
@@ -81,7 +86,7 @@ def upload(request, form_class=PhotoUploadForm, template_name="photos/upload.htm
                     if group:
                         notify_list = group.member_queryset().exclude(id__exact=photo.member.id)
                     else:
-                        notify_list = User.objects.all().exclude(id__exact=photo.member.id)
+                        notify_list = [x['friend'] for x in Friendship.objects.friends_for_user(photo.member)]
 
                     notification.send(notify_list, "photos_image_new", {
                         "creator": photo.member,
