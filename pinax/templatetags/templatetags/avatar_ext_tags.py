@@ -10,7 +10,7 @@ register = template.Library()
 
 @register.simple_tag
 def avatar_url(user, size=40):
-
+    """Returns avatar UPL only for active users."""
     if not isinstance(user, User):
         try:
             user = User.objects.get(username=user, is_active=True)
@@ -21,6 +21,7 @@ def avatar_url(user, size=40):
 
 @register.simple_tag
 def avatar(user, size=40):
+    """Returns avatar HTML only for active users."""
     if not isinstance(user, User):
         try:
             user = User.objects.get(username=user, is_active=True)
@@ -32,5 +33,6 @@ def avatar(user, size=40):
     else:
         alt = unicode(user)
         url = avatar_url(user, size)
-    return """<img src="%s" alt="%s" width="%s" height="%s" />""" % (url, alt,
-        size, size)
+    return """<img src="{0}" alt="{1}" width="{2}" height="{3}" />""".format(
+        url, alt, size, size
+    )
