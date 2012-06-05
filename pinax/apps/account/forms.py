@@ -162,6 +162,7 @@ class SignupFormBase(GroupForm):
         value = self.cleaned_data["email"]
         if value.startswith("__"):
             # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
+            # TODO: Add ability to restore account what was marked as deleted.
             raise forms.ValidationError(_("Email can't starts with double underscore."))
         if UNIQUE_EMAIL or EMAIL_AUTHENTICATION:
             try:
