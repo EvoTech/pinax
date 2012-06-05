@@ -93,10 +93,6 @@ class Post(models.Model):
                     'comments.delete_comment', ):
             return False
 
-        if perm in ('blog.observe_blog_friend_post_post',
-                    'blog.observe_blog_post_comment_post', ):
-            return user.is_authenticated()
-
         return False
 
 

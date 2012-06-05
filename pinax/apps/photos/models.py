@@ -122,10 +122,6 @@ class Image(ImageModel):
                         'comments.delete_comment', ):
                 return user.has_perm(perm, self.group)
 
-            if perm in ('photos.observe_photos_image_new_image',
-                        'photos.observe_photos_image_comment_image', ):
-                return self.group.user_is_member(user)
-
         else:
             if perm in ('photos.view_image',
                         'photos.browse_image', ):
@@ -142,10 +138,6 @@ class Image(ImageModel):
                         'comments.change_comment', 
                         'comments.delete_comment', ):
                 return False
-
-            if perm in ('photos.observe_photos_image_new_image',
-                        'photos.observe_photos_image_comment_image', ):
-                return user.is_authenticated()
 
         return False
 

@@ -181,12 +181,6 @@ class Article(models.Model):
                         'comments.delete_comment', ):
                 return user.has_perm(perm, self.group)
 
-            if perm in ('wiki.observe_wiki_observed_article_changed_article',
-                        'wiki.observe_wiki_article_edited_article',
-                        'wiki.observe_wiki_revision_reverted_article',
-                        'wiki.observe_wiki_article_comment_article', ):
-                return self.group.user_is_member(user)
-
         else:
             if perm in ('wiki.view_article',
                         'wiki.browse_article', ):
@@ -202,12 +196,6 @@ class Article(models.Model):
                         'comments.change_comment', 
                         'comments.delete_comment', ):
                 return False
-
-            if perm in ('wiki.observe_wiki_observed_article_changed_article',
-                        'wiki.observe_wiki_article_edited_article',
-                        'wiki.observe_wiki_revision_reverted_article',
-                        'wiki.observe_wiki_article_comment_article', ):
-                return user.is_authenticated()
 
         return False
 

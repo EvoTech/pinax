@@ -66,13 +66,6 @@ class Tribe(Group):
         if perm in ('comments.add_comment', ):
             return self.user_is_member(user)
 
-        if perm in ('tribes.observe_tribes_created_new_member_tribe',
-                    'tribes.observe_tribes_new_member_tribe', ):
-            return self.user_is_member(user)
-
-        if perm in ('tribes.observe_tribes_new_tribe_tribe', ):
-            return user.is_authenticated()
-
         return False
 
 

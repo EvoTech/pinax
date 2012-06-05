@@ -84,10 +84,6 @@ class Topic(models.Model):
                         'comments.delete_comment', ):
                 return user.has_perm(perm, self.group)
 
-            if perm in ('topics.observe_topic_new_topic',
-                        'topics.observe_topic_comment_topic', ):
-                return self.group.user_is_member(user)
-
         else:
             if perm in ('topics.view_topic',
                         'topics.browse_topic', ):
@@ -104,10 +100,6 @@ class Topic(models.Model):
                         'comments.change_comment', 
                         'comments.delete_comment', ):
                 return False
-
-            if perm in ('topics.observe_topic_new_topic',
-                        'topics.observe_topic_comment_topic', ):
-                return user.is_authenticated()
 
         return False
 

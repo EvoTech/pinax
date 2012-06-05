@@ -19,10 +19,6 @@ def is_allowed(self, user, perm=None):
     if perm in ('comments.delete_comment', ):
         return False
 
-    if base_perm.startswith('observe_'):
-        return user.has_perm(perm, self.content_object) or\
-            user.has_perm(base_perm, self.content_object)
-
     return False
 
 ThreadedComment.is_allowed = is_allowed
