@@ -5,6 +5,7 @@
 {% load i18n %}
 {% load wiki_tags %}
 {% load group_tags %}
+{% load url_full_tags %}
 
 {% block head_title %}Wiki for {{ group.name }} - {{ article.title }} {% endblock %}
 
@@ -34,7 +35,7 @@
                             {% if change.is_anonymous_change %}
                                 {{ change.editor_ip }}
                             {% else %}
-                                <a href="{% url profile_detail change.editor.username %}">{% user_display change.editor %}</a>
+                                <a href="{% url_full profile_detail change.editor.username %}">{% user_display change.editor %}</a>
                             {% endif %}
                         </td>
                         <td>
