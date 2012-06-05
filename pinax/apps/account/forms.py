@@ -93,7 +93,7 @@ class LoginForm(GroupForm):
         if self._errors:
             return
         user = authenticate(**self.user_credentials())
-        if user:
+        if user and not user.username.startswith("__"):
             if user.is_active:
                 self.user = user
             else:

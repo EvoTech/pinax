@@ -34,6 +34,7 @@ class Tribe(Group):
         return User.objects.filter(
             tribes__status='active',
             tribes__tribe=self,
+            is_active=True
         )
 
     def user_is_member(self, user):
