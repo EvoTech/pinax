@@ -13,7 +13,8 @@
     {% if user.is_authenticated %}
         <ul>
             <li><a href="{% url notification_notices %}">{% trans "Notices" %}</a></li>
-            <li><a href="{% url notification_notice_settings %}">{% trans "Settings" %}</a></li>
+            <li><a href="{% url notification_notice_settings %}">{% trans "Notice settings" %}</a></li>
+            <li><a href="{% url notification_observed_list %}">{% trans "Observed objects" %}</a></li>
         </ul>
     {% else %}
         &nbsp;
