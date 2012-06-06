@@ -368,10 +368,10 @@ def remove_article(request, title,
                    *args, **kw):
     """ Show a confirmation page on GET, delete the article on POST.
     """
+    group, bridge = group_and_bridge(request)
+
     if request.method == 'GET':
-        
-        group, bridge = group_and_bridge(request)
-        
+
         article = article_qs.get_by(title, group)
         if not request.user.has_perm('wiki.delete_article', article):
             raise PermissionDenied()
@@ -394,7 +394,7 @@ def remove_article(request, title,
             raise PermissionDenied()
         article.mark_removed()
 
-        return HttpResponseRedirect(reverse('wiki_index'))
+        return HttpResponseRedirect(get_url('wiki_index', group, bridge=bridge))
 
     return HttpResponseNotAllowed(['GET', 'POST'])
 
