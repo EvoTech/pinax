@@ -1,7 +1,12 @@
 from django import forms
+from django.conf import settings
 
 from pinax.apps.account.forms import GroupForm, SignupForm as BaseSignupForm
 from pinax.apps.signup_codes.models import SignupCode, check_signup_code
+
+DEFAULT_SIGNUP_CODE_EXPIRY = 7 * 24  # hours
+SIGNUP_CODE_EXPIRY = getattr(settings, 'SIGNUP_CODE_EXPIRY',
+                             DEFAULT_SIGNUP_CODE_EXPIRY)
 
 
 class SignupForm(BaseSignupForm):
@@ -23,7 +28,8 @@ class InviteUserForm(GroupForm):
     
     def create_signup_code(self, commit=True):
         email = self.cleaned_data["email"]
-        signup_code = SignupCode.create(email, 24, group=self.group)
+        signup_code = SignupCode.create(email, SIGNUP_CODE_EXPIRY,
+                                        group=self.group)
         if commit:
             signup_code.save()
         return signup_code
