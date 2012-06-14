@@ -15,6 +15,7 @@ register = template.Library()
 
 # wikiword_link = re.compile(r'(?<!!)\b((?:\.?\./)*{0})\b'.format(WIKI_WORD_RE), re.U)
 wikiword_link = re.compile(ur'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U|re.S)
+wikiword_link_href = re.compile(ur'^(\!?(?:\.?\./)*{0})$'.format(WIKI_WORD_RE), re.U|re.S)
 
 
 def _re_callback(match, inside=False, group=None):
@@ -58,7 +59,7 @@ def wiki_links(text, group=None):
         url = a.get('href')
         if not url:
             continue
-        new_str = wikiword_link.sub(curry(_re_callback, inside=True, group=group), unicode(url))
+        new_str = wikiword_link_href.sub(curry(_re_callback, inside=True, group=group), unicode(url))
         if unicode(new_str) != url:
             a['href'] = new_str
 
