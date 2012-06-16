@@ -1,4 +1,4 @@
-{% extends "tribes/base.html" %}
+{% extends "tribes/content_base.html" %}
 {% load i18n %}
 {% load account_tags %}
 {% load uni_form_tags %}
@@ -27,7 +27,7 @@
             <div class="members">
                 <h2>{% trans "Members" %}</h2>
                 <table width="100%">
-                    {% for member in tribe.member_queryset.all %}
+                    {% for member in tribe.member_queryset.all|slice:":12" %}
                         {% if forloop.counter0|divisibleby:"3" %}<tr>{% endif %}
                         <td>
                             <div class="avatar">{% avatar member 40 %}</div>
@@ -37,6 +37,7 @@
                     {% endfor %}
                     {% if tribe.member_queryset.all|length|divisibleby:"3" %}{% else %}</tr>{% endif %}
                 </table>
+                <a href="{% url tribe_members tribe.slug %}">{% trans "All members" %}&nbsp;»</a>
             </div>
         </div>
     {% endif %}

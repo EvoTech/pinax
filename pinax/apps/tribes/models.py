@@ -35,7 +35,7 @@ class Tribe(Group):
             tribes__status='active',
             tribes__tribe=self,
             is_active=True
-        )
+        ).order_by("-date_joined")
 
     def user_is_member(self, user):
         if not user.is_authenticated():
