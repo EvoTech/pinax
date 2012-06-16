@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from ajax_select import LookupChannel
 
 
