@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from django.conf import settings
@@ -38,7 +39,7 @@ class Topic(models.Model):
     created = models.DateTimeField(_("created"), default=datetime.now, db_index=True)
     modified = models.DateTimeField(_("modified"), default=datetime.now, db_index=True) # topic modified when commented on
     body = models.TextField(_("body"), blank=True)
-    markup = models.CharField(_(u"Content Markup"),
+    markup = models.CharField(_("Content Markup"),
         max_length=50,
         choices=MARKUP_CHOICES,
         null=True,
