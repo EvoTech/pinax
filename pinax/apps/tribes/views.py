@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
@@ -178,7 +179,7 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
             TribeMemberHistory.objects.create(
                 member=member,
                 status=status,
-                message=u"",
+                message="",
                 actor=request.user
             )
 

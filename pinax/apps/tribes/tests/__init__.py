@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.contrib.auth.models import User
 from django.core import urlresolvers
 from django.test import TestCase
@@ -23,7 +24,7 @@ class TribesTest(TestCase):
 
         response = self.client.get(urlresolvers.reverse("tribe_create"))
         self.assertEqual(response.status_code, 302)
-        #self.assertEqual(response["location"], "http://testserver/account/login/?next=%s" % urlresolvers.reverse("tribe_create"))
+        #self.assertEqual(response["location"], "http://testserver/account/login/?next={0}".format(urlresolvers.reverse("tribe_create")))
 
     def test_auth_create_get(self):
         """
@@ -42,7 +43,7 @@ class TribesTest(TestCase):
 
         response = self.client.post(urlresolvers.reverse("tribe_create"))
         self.assertEqual(response.status_code, 302)
-        #self.assertEqual(response["location"], "http://testserver/account/login/?next=%s" % urlresolvers.reverse("tribe_create"))
+        #self.assertEqual(response["location"], "http://testserver/account/login/?next={0}".format(urlresolvers.reverse("tribe_create")))
 
     def test_auth_create_post(self):
         """

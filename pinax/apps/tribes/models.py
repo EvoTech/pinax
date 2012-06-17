@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.contrib.auth.models import  User
 from django.core import urlresolvers
 from django.db import models
@@ -6,11 +7,11 @@ from django.utils.translation import ugettext_lazy as _
 from groups.base import Group
 
 MEMBER_STATUSES = [
-    ('inactive', _(u"inactive")),
-    ('requested', _(u"requested")),
-    ('invited', _(u"invited")),
-    ('active', _(u"active")),
-    ('blocked', _(u"blocked")),
+    ('inactive', _("inactive")),
+    ('requested', _("requested")),
+    ('invited', _("invited")),
+    ('active', _("active")),
+    ('blocked', _("blocked")),
 ]
 
 
@@ -25,7 +26,7 @@ class Tribe(Group):
     private = models.BooleanField(_("private"), default=False)
 
     def __unicode__(self):
-        return u"{0} ({1})".format(self.name, self.slug)
+        return "{0} ({1})".format(self.name, self.slug)
 
     def get_absolute_url(self):
         return urlresolvers.reverse("tribe_detail", kwargs={"group_slug": self.slug})
@@ -94,7 +95,7 @@ class TribeMember(models.Model):
         unique_together = [("user", "tribe")]
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.tribe, self.user)
+        return "{0} - {1}".format(self.tribe, self.user)
 
 
 class TribeRole(models.Model):
@@ -123,7 +124,7 @@ class TribeMemberRole(models.Model):
     date = models.DateTimeField(_("date"), auto_now_add=True)
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.member, self.role)
+        return "{0} - {1}".format(self.member, self.role)
 
 
 class TribeMemberHistory(models.Model):
@@ -145,4 +146,4 @@ class TribeMemberHistory(models.Model):
     actor = models.ForeignKey(User)
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.member, self.status)
+        return "{0} - {1}".format(self.member, self.status)
