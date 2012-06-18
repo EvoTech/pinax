@@ -1,13 +1,12 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django import template
+from django.utils.encoding import force_unicode
 
 from pinax.apps.photos.models import Image, Pool
 
-
-
 register = template.Library()
-
 
 
 class PrintExifNode(template.Node):
@@ -17,19 +16,19 @@ class PrintExifNode(template.Node):
     
     def render(self, context):
         try:
-            exif = unicode(self.exif.resolve(context, True))
+            exif = force_unicode(self.exif.resolve(context, True))
         except template.VariableDoesNotExist:
-            exif = u""
+            exif = ""
         
         EXPR = "'(?P<key>[^:]*)'\:(?P<value>[^,]*),"
         expr = re.compile(EXPR)
         msg = "<table>"
         for i in expr.findall(exif):
-            msg += "<tr><td>%s</td><td>%s</td></tr>" % (i[0],i[1])
+            msg += "<tr><td>{0}</td><td>{1}</td></tr>".format(i[0],i[1])
         
         msg += "</table>"
         
-        return u'<div id="exif">%s</div>' % msg
+        return '<div id="exif">{0}</div>'.format(msg)
 
 
 @register.tag(name="print_exif")
@@ -37,7 +36,7 @@ def do_print_exif(parser, token):
     try:
         tag_name, exif = token.contents.split()
     except ValueError:
-        msg = "%r tag requires a single argument" % token.contents[0]
+        msg = "{0} tag requires a single argument".format(token.contents[0])
         raise template.TemplateSyntaxError(msg)
     
     exif = parser.compile_filter(exif)
@@ -82,24 +81,24 @@ def public_photos(parser, token, use_pool=False):
     bits = token.split_contents()
     
     if len(bits) != 3 and len(bits) != 5:
-        message = "'%s' tag requires three or five arguments" % bits[0]
+        message = "'{0}' tag requires three or five arguments".format(bits[0])
         raise template.TemplateSyntaxError(message)
     else:
         if len(bits) == 3:
             if bits[1] != "as":
-                message = "'%s' second argument must be 'as'" % bits[0]
+                message = "'{0}' second argument must be 'as'".format(bits[0])
                 raise template.TemplateSyntaxError(message)
             
             return PublicPhotosNode(bits[2], use_pool=use_pool)
             
         elif len(bits) == 5:
             if bits[1] != "for":
-                message = "'%s' second argument must be 'for'" % bits[0]
+                message = "'{0}' second argument must be 'for'".format(bits[0])
                 raise template.TemplateSyntaxError(message)
             if bits[3] != "as":
-                message = "'%s' forth argument must be 'as'" % bits[0]
+                message = "'{0}' forth argument must be 'as'".format(bits[0])
                 raise template.TemplateSyntaxError(message)
-            
+            2
             return PublicPhotosNode(bits[4], bits[2], use_pool=use_pool)
 
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from django.core import urlresolvers
@@ -95,7 +96,7 @@ class Image(ImageModel):
         """Returns group"""
         for pool in self.pool_set.all():
             group = pool.content_object
-            if isinstance(group, (Group, )):
+            if isinstance(group, Group):
                 return group
         return None
 
@@ -145,7 +146,7 @@ class Image(ImageModel):
 def reduce_patched(self, *a, **kw):
     """Excludes curry"""
     r = list(super(ImageModel, self).__reduce__(*a, **kw))
-    for k, v in r[2].copy().iteritems():
+    for k, v in r[2].copy().items():
         if getattr(v, '__name__', None) == '_curried':
             del r[2][k]
     return tuple(r)

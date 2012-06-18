@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -188,7 +189,7 @@ def details(request, id, template_name="photos/details.html"):
     photo_url = photo.get_display_url()
     
     title = photo.title
-    host = "http://%s" % get_host(request)
+    host = "http://{0}".format(get_host(request))
     
     if photo.member == request.user:
         is_me = True
