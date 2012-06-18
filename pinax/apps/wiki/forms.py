@@ -48,7 +48,7 @@ class ArticleFormBase(forms.ModelForm):
         widget=forms.Textarea(attrs={'rows': '20'}))
 
     summary = forms.CharField(
-        required=False, max_length=150,
+        required=False, max_length=255,
         widget=forms.Textarea(attrs={'rows': '5'}))
 
     tags = TagField(label="Tags", required=False,
