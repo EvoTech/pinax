@@ -3,6 +3,7 @@ dev*.db
 local_settings.py
 Pinax.egg-info/*
 *.egg
+.ropeproject
 docs/.build
 docs/_build
 docs/external/ajax-validation

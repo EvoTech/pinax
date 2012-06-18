@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """ Provides util tags to work with markup and other wiki stuff.
 """
+from __future__ import absolute_import, unicode_literals
 from django import template
 from django.conf import settings
 
@@ -10,7 +10,7 @@ from template_utils.markup import formatter
 from template_utils.templatetags.generic_markup import *
 
 try:
-    from creole import Parser as CreoleParser
+    from .creole import Parser as CreoleParser
     from creole2html import HtmlEmitter
 except ImportError:
     CreoleParser = None

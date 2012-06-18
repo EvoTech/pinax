@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django import template
@@ -14,8 +16,8 @@ from pinax.apps.wiki.forms import WIKI_WORD_RE
 register = template.Library()
 
 # wikiword_link = re.compile(r'(?<!!)\b((?:\.?\./)*{0})\b'.format(WIKI_WORD_RE), re.U)
-wikiword_link = re.compile(ur'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U|re.S)
-wikiword_link_href = re.compile(ur'^(\!?(?:\.?\./)*{0})$'.format(WIKI_WORD_RE), re.U|re.S)
+wikiword_link = re.compile(r'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U|re.S)
+wikiword_link_href = re.compile(r'^(\!?(?:\.?\./)*{0})$'.format(WIKI_WORD_RE), re.U|re.S)
 
 
 def _re_callback(match, inside=False, group=None):
@@ -35,13 +37,13 @@ def _re_callback(match, inside=False, group=None):
             url = reverse('wiki_article', kwargs={'title': title, })
     if inside:
         return url
-    return u"""<a href="{0}">{1}</a>""".format(url, title)
+    return """<a href="{0}">{1}</a>""".format(url, title)
 
 
 @register.filter
 @stringfilter
 def wiki_links(text, group=None):
-    """More intelligent oembed replacer, bsaed on BeautifulSoup."""
+    """Replaces CamelCase words to wiki-links."""
     from BeautifulSoup import BeautifulSoup
 
     autoescape=False
@@ -52,15 +54,15 @@ def wiki_links(text, group=None):
     for url in soup.findAll(text=wikiword_link):
         if url.parent.name == 'a':
             continue
-        new_str = wikiword_link.sub(curry(_re_callback, inside=False, group=group), unicode(url))
+        new_str = wikiword_link.sub(curry(_re_callback, inside=False, group=group), url)
         url.replaceWith(new_str)
 
     for a in soup.findAll('a'):
         url = a.get('href')
         if not url:
             continue
-        new_str = wikiword_link_href.sub(curry(_re_callback, inside=True, group=group), unicode(url))
-        if unicode(new_str) != url:
+        new_str = wikiword_link_href.sub(curry(_re_callback, inside=True, group=group), url)
+        if new_str != url:
             a['href'] = new_str
 
     result = unicode(soup)

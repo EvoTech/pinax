@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 from django.conf import settings
 
@@ -14,7 +15,7 @@ def restructuredparts(value, **overrides):
         from docutils.core import publish_parts
     except ImportError:
         if settings.DEBUG:
-            raise template.TemplateSyntaxError, "Error in {% restructuredtext %} filter: The Python docutils library isn't installed."
+            raise template.TemplateSyntaxError("Error in {% restructuredtext %} filter: The Python docutils library isn't installed.")
         return value
     else:
         docutils_settings = dict(getattr(settings, "RESTRUCTUREDTEXT_FILTER_SETTINGS", {}))

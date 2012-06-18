@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 import re
 import sys
 
@@ -26,14 +27,14 @@ for i in range(sys.maxunicode):
   elif c.islower():
     lowers.append(c)
 
-uppers = ur"".join(uppers)
-lowers = ur"".join(lowers)
+uppers = r"".join(uppers)
+lowers = r"".join(lowers)
 
-DEFAULT_WIKI_WORD_RE = ur"((([" + uppers + ur"]+[" + lowers + ur"0-9']+){2,})(/([" + uppers + ur"]+[" + lowers + ur"0-9']+){2,})*)"
+DEFAULT_WIKI_WORD_RE = r"((([" + uppers + r"]+[" + lowers + r"0-9']+){2,})(/([" + uppers + r"]+[" + lowers + r"0-9']+){2,})*)"
 
 WIKI_WORD_RE = getattr(settings, 'WIKI_WORD_RE', DEFAULT_WIKI_WORD_RE)
 
-wikiword_pattern = re.compile(ur'^' + WIKI_WORD_RE + ur'$', re.U)
+wikiword_pattern = re.compile(r'^' + WIKI_WORD_RE + r'$', re.U)
 
 try:
     WIKI_BANNED_TITLES = settings.WIKI_BANNED_TITLES

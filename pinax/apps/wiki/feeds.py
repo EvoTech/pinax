@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from old_compatible.contrib.syndication.feeds import Feed, FeedDoesNotExist
 from django.utils.feedgenerator import Atom1Feed
 from django.contrib.contenttypes.models import ContentType
@@ -15,6 +16,7 @@ import atomformat as atom
 ALL_ARTICLES = Article.objects.all()
 ALL_CHANGES = ChangeSet.objects.all()
 
+
 class RssHistoryFeed(Feed):
 
     title = 'History for all articles'
@@ -23,10 +25,10 @@ class RssHistoryFeed(Feed):
 
     def __init__(self, request,
                  group_slug=None, bridge=None,
-                 article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES, 
-                 extra_context=None, 
-                 title_template = u'feeds/history_title.html', 
-                 description_template = u'feeds/history_description.html', 
+                 article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
+                 extra_context=None,
+                 title_template='feeds/history_title.html',
+                 description_template='feeds/history_description.html',
                  *args, **kw):
 
         if  group_slug is not None:
@@ -34,8 +36,10 @@ class RssHistoryFeed(Feed):
                 group = bridge.get_group(group_slug)
             except ObjectDoesNotExist:
                 raise Http404
-            self.changes_qs = changes_qs.filter(article__content_type=get_ct(group), 
-                                                article__object_id=group.id)
+            self.changes_qs = changes_qs.filter(
+                article__content_type=get_ct(group),
+                article__object_id=group.id
+            )
         else:
             self.changes_qs = changes_qs.filter(article__object_id=None)
 
@@ -45,7 +49,7 @@ class RssHistoryFeed(Feed):
 
     def items(self):
         return self.changes_qs.order_by('-modified')[:30]
-        
+
     def item_pubdate(self, item):
         """
         Return the item's pubdate. It's this modified date
@@ -59,11 +63,11 @@ class AtomHistoryFeed(atom.Feed):
     feed_subtitle = 'Recent changes in wiki'
 
     def __init__(self, request,
-                 group_slug=None, bridge=None, 
-                 article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES, 
-                 extra_context=None, 
-                 title_template = u'feeds/history_title.html', 
-                 description_template = u'feeds/history_description.html', 
+                 group_slug=None, bridge=None,
+                 article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
+                 extra_context=None,
+                 title_template='feeds/history_title.html',
+                 description_template='feeds/history_description.html',
                  *args, **kw):
 
         if  group_slug is not None:
@@ -71,8 +75,10 @@ class AtomHistoryFeed(atom.Feed):
                 group = bridge.get_group(group_slug)
             except ObjectDoesNotExist:
                 raise Http404
-            self.changes_qs = changes_qs.filter(article__content_type=get_ct(group), 
-                                                article__object_id=group.id)
+            self.changes_qs = changes_qs.filter(
+                article__content_type=get_ct(group),
+                article__object_id=group.id
+            )
         else:
             self.changes_qs = changes_qs.filter(article__object_id=None)
 
@@ -87,10 +93,10 @@ class AtomHistoryFeed(atom.Feed):
         return self.changes_qs.order_by('-modified')[:30]
 
     def item_id(self, item):
-        return "%s" % item.id
+        return "{0}".format(item.id)
 
     def item_title(self, item):
-        c = Context({'obj' : item})
+        c = Context({'obj': item})
         return self.title_template.render(c)
 
     def item_updated(self, item):
@@ -98,25 +104,26 @@ class AtomHistoryFeed(atom.Feed):
 
     def item_authors(self, item):
         if item.is_anonymous_change():
-            return [{'name' : _('Anonimous')},]
-        return [{'name' : item.editor.username},]
+            return [{'name': _('Anonimous')}, ]
+        return [{'name': item.editor.username}, ]
 
     def item_links(self, item):
         return [{'href': item.get_absolute_url()}, ]
 
     def item_content(self, item):
-        c = Context({'obj' : item,})
+        c = Context({'obj': item, })
         return ({'type': 'html'}, self.description_template.render(c))
 
 
 class RssArticleHistoryFeed(Feed):
 
-    def __init__(self, title, request, 
+    def __init__(self, title, request,
                 group_slug=None, bridge=None,
-                article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
+                article_qs=ALL_ARTICLES,
+                changes_qs=ALL_CHANGES,
                 extra_context=None,
-                title_template = u'feeds/history_title.html',
-                description_template = u'feeds/history_description.html',
+                title_template='feeds/history_title.html',
+                description_template='feeds/history_description.html',
                 *args, **kw):
 
         if  group_slug is not None:
@@ -134,10 +141,10 @@ class RssArticleHistoryFeed(Feed):
         super(RssArticleHistoryFeed, self).__init__(title, request)
 
     def get_object(self, bits):
-        return self.article_qs.get(title = bits[0])
+        return self.article_qs.get(title=bits[0])
 
     def title(self, obj):
-        return "History for: %s " % obj.title
+        return "History for: {0}".format(obj.title)
 
     def link(self, obj):
         if not obj:
@@ -145,10 +152,12 @@ class RssArticleHistoryFeed(Feed):
         return obj.get_absolute_url()
 
     def description(self, obj):
-        return "Recent changes in %s" % obj.title
+        return "Recent changes in {0}".format(obj.title)
 
     def items(self, obj):
-        return ChangeSet.objects.filter(article__id__exact=obj.id).order_by('-modified')[:30]
+        return ChangeSet.objects.filter(
+            article__id__exact=obj.id
+        ).order_by('-modified')[:30]
 
     def item_pubdate(self, item):
         """
@@ -158,13 +167,13 @@ class RssArticleHistoryFeed(Feed):
 
 
 class AtomArticleHistoryFeed(atom.Feed):
-    
-    def __init__(self, title, request, 
+
+    def __init__(self, title, request,
                 group_slug=None, bridge=None,
                 article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
                 extra_context=None,
-                title_template = u'feeds/history_title.html',
-                description_template = u'feeds/history_description.html',
+                title_template='feeds/history_title.html',
+                description_template='feeds/history_description.html',
                 *args, **kw):
 
         if  group_slug is not None:
@@ -182,25 +191,27 @@ class AtomArticleHistoryFeed(atom.Feed):
         super(AtomArticleHistoryFeed, self).__init__('', request)
 
     def get_object(self, bits):
-        return self.article_qs.get(title = bits[0])
+        return self.article_qs.get(title=bits[0])
 
     def feed_title(self, obj):
-        return "History for: %s " % obj.title
+        return "History for: {0}".format(obj.title)
 
     def feed_subtitle(self, obj):
-        return "Recent changes in %s" % obj.title
+        return "Recent changes in {0}".format(obj.title)
 
     def feed_id(self):
         return "feed_id"
 
     def items(self, obj):
-        return ChangeSet.objects.filter(article__id__exact=obj.id).order_by('-modified')[:30]
+        return ChangeSet.objects.filter(
+            article__id__exact=obj.id
+        ).order_by('-modified')[:30]
 
     def item_id(self, item):
-        return "%s" % item.id
+        return "{0}".format(item.id)
 
     def item_title(self, item):
-        c = Context({'obj' : item})
+        c = Context({'obj': item})
         return self.title_template.render(c)
 
     def item_updated(self, item):
@@ -208,12 +219,12 @@ class AtomArticleHistoryFeed(atom.Feed):
 
     def item_authors(self, item):
         if item.is_anonymous_change():
-            return [{'name' : _('Anonimous')},]
-        return [{'name' : item.editor.username},]
+            return [{'name': _('Anonimous')}, ]
+        return [{'name': item.editor.username}, ]
 
     def item_links(self, item):
-        return [{'href': item.get_absolute_url()},]
+        return [{'href': item.get_absolute_url()}, ]
 
     def item_content(self, item):
-        c = Context({'obj' : item, })
+        c = Context({'obj': item, })
         return ({'type': 'html'}, self.description_template.render(c))

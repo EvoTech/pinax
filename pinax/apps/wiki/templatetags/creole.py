@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 """ Provides the `creole` template filter, to render
 texts using the markup used by the MoinMoin wiki.
 """
-
+from __future__ import absolute_import, unicode_literals
 from django import template
 from django.conf import settings
 
 try:
-    from creole import Parser as CreoleParser
+    from .creole import Parser as CreoleParser
     from creole2html import HtmlEmitter
 except ImportError:
     CreoleParser = None

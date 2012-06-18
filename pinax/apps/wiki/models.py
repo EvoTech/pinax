@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 from django.core import urlresolvers
 
@@ -37,10 +38,10 @@ try:
     markup_choices = settings.WIKI_MARKUP_CHOICES
 except AttributeError:
     markup_choices = (
-        ('creole', _(u'Creole')),
-        ('restructuredtext', _(u'reStructuredText')),
-        ('textile', _(u'Textile')),
-        ('markdown', _(u'Markdown')),
+        ('creole', _('Creole')),
+        ('restructuredtext', _('reStructuredText')),
+        ('textile', _('Textile')),
+        ('markdown', _('Markdown')),
     )
 
 
@@ -59,11 +60,11 @@ class NonRemovedArticleManager(QuerySetManager):
 class Article(models.Model):
     """ A wiki page.
     """
-    title = models.CharField(_(u"Title"), max_length=255, db_index=True)
-    content = models.TextField(_(u"Content"))
-    summary = models.CharField(_(u"Summary"), max_length=255,
+    title = models.CharField(_("Title"), max_length=255, db_index=True)
+    content = models.TextField(_("Content"))
+    summary = models.CharField(_("Summary"), max_length=255,
                                null=True, blank=True, db_index=True)
-    markup = models.CharField(_(u"Content Markup"), max_length=100,
+    markup = models.CharField(_("Content Markup"), max_length=100,
                               choices=markup_choices,
                               null=True, blank=True)
     creator = models.ForeignKey(User, verbose_name=_('Article Creator'),
@@ -92,8 +93,8 @@ class Article(models.Model):
             return group.content_objects(self.filter(title=title)).get()
             
     class Meta:
-        verbose_name = _(u'Article')
-        verbose_name_plural = _(u'Articles')
+        verbose_name = _('Article')
+        verbose_name_plural = _('Articles')
 
     def get_absolute_url(self):
         if self.group is None:
@@ -210,26 +211,26 @@ class NonRevertedChangeSetManager(QuerySetManager):
 class ChangeSet(models.Model):
     """A report of an older version of some Article."""
 
-    article = models.ForeignKey(Article, verbose_name=_(u"Article"))
+    article = models.ForeignKey(Article, verbose_name=_("Article"))
 
     # Editor identification -- logged or anonymous
-    editor = models.ForeignKey(User, verbose_name=_(u'Editor'),
+    editor = models.ForeignKey(User, verbose_name=_('Editor'),
                                null=True)
-    editor_ip = models.IPAddressField(_(u"IP Address of the Editor"))
+    editor_ip = models.IPAddressField(_("IP Address of the Editor"))
 
     # Revision number, starting from 1
-    revision = models.IntegerField(_(u"Revision Number"))
+    revision = models.IntegerField(_("Revision Number"))
 
     # How to recreate this version
-    old_title = models.CharField(_(u"Old Title"), max_length=50, blank=True)
-    old_markup = models.CharField(_(u"Article Content Markup"), max_length=100,
+    old_title = models.CharField(_("Old Title"), max_length=50, blank=True)
+    old_markup = models.CharField(_("Article Content Markup"), max_length=100,
                                   choices=markup_choices,
                                   null=True, blank=True)
-    content_diff = models.TextField(_(u"Content Patch"), blank=True)
+    content_diff = models.TextField(_("Content Patch"), blank=True)
 
-    comment = models.CharField(_(u"Editor comment"), max_length=50, blank=True)
-    modified = models.DateTimeField(_(u"Modified at"), default=datetime.now)
-    reverted = models.BooleanField(_(u"Reverted Revision"), default=False)
+    comment = models.CharField(_("Editor comment"), max_length=50, blank=True)
+    modified = models.DateTimeField(_("Modified at"), default=datetime.now)
+    reverted = models.BooleanField(_("Reverted Revision"), default=False)
 
     objects = QuerySetManager()
     non_reverted_objects = NonRevertedChangeSetManager()
@@ -243,13 +244,13 @@ class ChangeSet(models.Model):
 
 
     class Meta:
-        verbose_name = _(u'Change set')
-        verbose_name_plural = _(u'Change sets')
+        verbose_name = _('Change set')
+        verbose_name_plural = _('Change sets')
         get_latest_by  = 'modified'
         ordering = ('-revision',)
 
     def __unicode__(self):
-        return u'#%s' % self.revision
+        return '#{0}'.format(self.revision)
 
     @models.permalink
     def get_absolute_url(self):
@@ -299,7 +300,7 @@ class ChangeSet(models.Model):
         article.new_revision(
             old_content=old_content, old_title=old_title,
             old_markup=old_markup,
-            comment="Reverted to revision #%s" % self.revision,
+            comment="Reverted to revision #{0}".format(self.revision),
             editor_ip=editor_ip, editor=editor)
 
         self.save()

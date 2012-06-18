@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+from __future__ import absolute_import, unicode_literals
 import os
 import hashlib
 from datetime import datetime
@@ -134,7 +133,7 @@ class ArticleEditLock(object):
 
     @classmethod
     def get_cache_name(cls, name):
-        name_hash = hashlib.md5(unicode(name).encode('utf-8')).hexdigest()
+        name_hash = hashlib.md5(str(name).encode('utf-8')).hexdigest()
         return 'wiki_article_lock_{0}'.format(name_hash)
 
     def create_message(self, request):
@@ -306,9 +305,9 @@ def edit_article(request, title,
             if request.user.is_authenticated():
                 form.editor = request.user
                 if article is None:
-                    user_message = u"Your article was created successfully."
+                    user_message = "Your article was created successfully."
                 else:
-                    user_message = u"Your article was edited successfully."
+                    user_message = "Your article was edited successfully."
                 request.user.message_set.create(message=user_message)
 
             if ((article is None) and group):
@@ -534,7 +533,7 @@ def revert_to_revision(request, title,
 
         if request.user.is_authenticated():
             request.user.message_set.create(
-                message=u"The article was reverted successfully.")
+                message="The article was reverted successfully.")
 
         url = get_url('wiki_article_history', group, kw={
             'title': title,

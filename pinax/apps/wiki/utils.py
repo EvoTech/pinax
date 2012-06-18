@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """ Some util functions.
 """
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required as _login_required

@@ -1,5 +1,5 @@
+from __future__ import absolute_import, unicode_literals
 from django.db.models import signals
-
 from django.utils.translation import ugettext_noop as _
 
 try:
@@ -24,4 +24,4 @@ try:
     signals.post_syncdb.connect(create_notice_types,
                                 sender=notification)
 except ImportError:
-    print "Skipping creation of NoticeTypes as notification app not found"
+    print("Skipping creation of NoticeTypes as notification app not found")
