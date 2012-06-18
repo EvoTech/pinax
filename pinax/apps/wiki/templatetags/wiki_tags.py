@@ -5,6 +5,7 @@ import re
 from django import template
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import stringfilter
+from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
 from django.utils.http import urlquote
 from django.utils.functional import curry
@@ -65,7 +66,7 @@ def wiki_links(text, group=None):
         if new_str != url:
             a['href'] = new_str
 
-    result = unicode(soup)
+    result = force_unicode(soup)
     if safe_input:
         result = mark_safe(result)
     elif autoescape:
