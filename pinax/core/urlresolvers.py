@@ -53,15 +53,20 @@ def reverse_full(viewname, urlconf=None, args=None, kwargs=None, prefix=None,
         urlconf = settings.ROOT_URLCONF_FIRM
 
     else:
-        subdomain = 'www'
+        subdomain = getattr(settings, 'DEFAULT_SUBDOMAIN', 'www')
         urlconf = settings.ROOT_URLCONF
 
     if host is None:
         current_site = Site.objects.get_current()
-        host = '{0}.{1}'.format(subdomain, current_site)
+        host = '{0}.{1}'.format(subdomain, current_site) if subdomain else current_site
 
     if url is None:
         url = urlresolvers.reverse(viewname, urlconf, args, kwargs, prefix, current_app)
 
-    full_url = 'http://{0}{1}'.format(host, url)
+    protocol = getattr(settings, 'DEFAULT_PROTOCOL', 'http')
+    full_url = '{protocol}://{host}{path}'.format(
+        protocol=protocol,
+        host=host,
+        path=url
+    )
     return full_url
