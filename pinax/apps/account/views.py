@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -78,7 +79,7 @@ def login(request, **kwargs):
         if form.is_valid():
             form.login(request)
             messages.add_message(request, messages.SUCCESS,
-                ugettext(u"Successfully logged in as %(user)s.") % {
+                ugettext("Successfully logged in as %(user)s.") % {
                     "user": user_display(form.user)
                 }
             )
@@ -163,7 +164,7 @@ def email(request, **kwargs):
             if add_email_form.is_valid():
                 add_email_form.save()
                 messages.add_message(request, messages.INFO,
-                    ugettext(u"Confirmation email sent to %(email)s") % {
+                    ugettext("Confirmation email sent to %(email)s") % {
                             "email": add_email_form.cleaned_data["email"]
                         }
                     )
@@ -234,7 +235,7 @@ def password_change(request, **kwargs):
         if password_change_form.is_valid():
             password_change_form.save()
             messages.add_message(request, messages.SUCCESS,
-                ugettext(u"Password successfully changed.")
+                ugettext("Password successfully changed.")
             )
             password_change_form = form_class(request.user)
     else:
@@ -264,7 +265,7 @@ def password_set(request, **kwargs):
         if password_set_form.is_valid():
             password_set_form.save()
             messages.add_message(request, messages.SUCCESS,
-                ugettext(u"Password successfully set.")
+                ugettext("Password successfully set.")
             )
             return HttpResponseRedirect(reverse("acct_passwd"))
     else:
@@ -292,7 +293,7 @@ def password_delete(request, **kwargs):
     group, bridge = group_and_bridge(kwargs)
     
     if request.method == "POST":
-        request.user.password = u""
+        request.user.password = ""
         request.user.save()
         return HttpResponseRedirect(reverse("acct_passwd_delete_done"))
     
@@ -362,7 +363,7 @@ def password_reset_from_key(request, uidb36, key, **kwargs):
             if password_reset_key_form.is_valid():
                 password_reset_key_form.save()
                 messages.add_message(request, messages.SUCCESS,
-                    ugettext(u"Password successfully changed.")
+                    ugettext("Password successfully changed.")
                 )
                 password_reset_key_form = None
         else:
@@ -391,7 +392,7 @@ def timezone_change(request, **kwargs):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS,
-                ugettext(u"Timezone successfully updated.")
+                ugettext("Timezone successfully updated.")
             )
     else:
         form = form_class(request.user)
@@ -417,7 +418,7 @@ def language_change(request, **kwargs):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS,
-                ugettext(u"Language successfully updated.")
+                ugettext("Language successfully updated.")
             )
             next = request.META.get("HTTP_REFERER", None)
             return HttpResponseRedirect(next)
@@ -460,7 +461,7 @@ def other_services(request, **kwargs):
                 else:
                     twitter_form.save()
                     messages.add_message(request, messages.SUCCESS,
-                        ugettext(u"Successfully authenticated.")
+                        ugettext("Successfully authenticated.")
                     )
     else:
         from microblogging.utils import twitter_account_for_user

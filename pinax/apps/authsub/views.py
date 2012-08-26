@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 ## based on http://www.djangosnippets.org/snippets/706/
 import gdata.contacts.service
 
@@ -5,10 +6,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, get_host
 from django.utils.html import escape
 
-
-
 GOOGLE_CONTACTS_URI = "http://www.google.com/m8/feeds/"
-
 
 
 def get_url_host(request):
@@ -17,7 +15,7 @@ def get_url_host(request):
     else:
         protocol = "http"
     host = escape(get_host(request))
-    return "%s://%s" % (protocol, host)
+    return "{0}://{1}".format(protocol, host)
 
 
 def get_full_url(request):

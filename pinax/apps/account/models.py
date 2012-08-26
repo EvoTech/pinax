@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import sys
 
 from datetime import datetime
@@ -42,7 +43,7 @@ class OtherServiceInfo(models.Model):
         unique_together = [("user", "key")]
     
     def __unicode__(self):
-        return u"%s for %s" % (self.key, self.user)
+        return "{0} for {1}".format(self.key, self.user)
 
 
 def other_service(user, key, default_value=""):
@@ -64,7 +65,7 @@ def update_other_services(user, **kwargs):
     
     e.g. update_other_services(user, twitter_user=..., twitter_password=...)
     """
-    for key, value in kwargs.items():
+    for key, value in list(kwargs.items()):
         info, created = OtherServiceInfo.objects.get_or_create(user=user, key=key)
         info.value = value
         info.save()
@@ -120,7 +121,7 @@ class PasswordReset(models.Model):
     reset = models.BooleanField(_("reset yet?"), default=False)
     
     def __unicode__(self):
-        return "%s (key=%s, reset=%r)" % (
+        return "{0} (key={1}, reset={2})".format(
             self.user.username,
             self.temp_key,
             self.reset

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django import forms
@@ -223,7 +224,7 @@ class SignupFormBase(GroupForm):
                 join_invitation.accept(new_user) # should go before creation of EmailAddress below
                 if request:
                     messages.add_message(request, messages.INFO,
-                        ugettext(u"Your e-mail address has already been verified")
+                        ugettext("Your e-mail address has already been verified")
                     )
                 # already verified so can just create
                 EmailAddress(user=new_user, email=email, verified=True, primary=True).save()
@@ -233,7 +234,7 @@ class SignupFormBase(GroupForm):
                 if email:
                     if request:
                         messages.add_message(request, messages.INFO,
-                            ugettext(u"Confirmation e-mail sent to %(email)s") % {
+                            ugettext("Confirmation e-mail sent to %(email)s") % {
                                 "email": email,
                             }
                         )
@@ -243,7 +244,7 @@ class SignupFormBase(GroupForm):
             if email:
                 if request and not EMAIL_VERIFICATION:
                     messages.add_message(request, messages.INFO,
-                        ugettext(u"Confirmation e-mail sent to %(email)s") % {
+                        ugettext("Confirmation e-mail sent to %(email)s") % {
                             "email": email,
                         }
                     )
@@ -398,7 +399,7 @@ class ResetPasswordForm(forms.Form):
             password_reset.save()
             
             current_site = Site.objects.get_current()
-            domain = unicode(current_site.domain)
+            domain = str(current_site.domain)
             
             # send the password reset email
             subject = _("Password reset e-mail sent")
