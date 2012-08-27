@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from pinax.apps.blog.models import Post
 from django.contrib import admin
 

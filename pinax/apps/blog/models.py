@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from django.conf import settings
@@ -46,7 +47,7 @@ class Post(models.Model):
     publish = models.DateTimeField(_("publish"), default=datetime.now)
     created_at = models.DateTimeField(_("created at"), default=datetime.now)
     updated_at = models.DateTimeField(_("updated at"))
-    markup = models.CharField(_(u"Post Content Markup"),
+    markup = models.CharField(_("Post Content Markup"),
         max_length=50,
         choices=MARKUP_CHOICES,
         null=True,
@@ -71,7 +72,7 @@ class Post(models.Model):
         return urlresolvers.reverse("blog_post", kwargs={
             "username": self.author.username,
             "year": self.publish.year,
-            "month": "%02d" % self.publish.month,
+            "month": "{0:02d}".format(self.publish.month),
             "slug": self.slug
         })
 

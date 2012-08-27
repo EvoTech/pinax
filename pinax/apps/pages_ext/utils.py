@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.utils import translation
 from pages.templatetags.pages_tags import get_page_from_string_or_id
 

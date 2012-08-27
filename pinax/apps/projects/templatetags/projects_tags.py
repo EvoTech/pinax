@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 from pinax.apps.projects.forms import ProjectForm
 
@@ -20,8 +21,8 @@ def clear_search_url(request):
     getvars = request.GET.copy()
     if "search" in getvars:
         del getvars["search"]
-    if len(getvars.keys()) > 0:
-        return "%s?%s" % (request.path, getvars.urlencode())
+    if len(list(getvars.keys())) > 0:
+        return "{0}?{1}".format(request.path, getvars.urlencode())
     else:
         return request.path
 
@@ -29,6 +30,6 @@ def clear_search_url(request):
 @register.simple_tag
 def persist_getvars(request):
     getvars = request.GET.copy()
-    if len(getvars.keys()) > 0:
-        return "?%s" % getvars.urlencode()
+    if len(list(getvars.keys())) > 0:
+        return "?{0}".format(getvars.urlencode())
     return ""

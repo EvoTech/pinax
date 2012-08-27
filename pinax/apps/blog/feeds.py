@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from atomformat import Feed
@@ -23,7 +24,7 @@ ITEMS_PER_FEED = getattr(settings, "PINAX_ITEMS_PER_FEED", 20)
 class BasePostFeed(Feed):
     
     def item_id(self, post):
-        return "http://%s%s" % (
+        return "http://{0}{1}".format(
             Site.objects.get_current().domain,
             post.get_absolute_url(),
         )
@@ -50,7 +51,7 @@ class BasePostFeed(Feed):
 class BlogFeedAll(BasePostFeed):
     
     def feed_id(self):
-        return "http://%s/feeds/posts/all/" % Site.objects.get_current().domain
+        return "http://{0}/feeds/posts/all/".format(Site.objects.get_current().domain)
     
     def feed_title(self):
         return "Blog post feed for all users"
@@ -66,7 +67,7 @@ class BlogFeedAll(BasePostFeed):
     
     def feed_links(self):
         absolute_url = reverse("blog_list_all")
-        complete_url = "http://%s%s" % (
+        complete_url = "http://{0}{1}".format(
             Site.objects.get_current().domain,
             absolute_url,
         )
@@ -82,13 +83,13 @@ class BlogFeedUser(BasePostFeed):
         return get_object_or_404(User, username=params[0].lower())
     
     def feed_id(self, user):
-        return "http://%s/feeds/posts/only/%s/" % (
+        return "http://{0}/feeds/posts/only/{1}/".format(
             Site.objects.get_current().domain,
             user.username,
         )
     
     def feed_title(self, user):
-        return "Blog post feed for user %s" % user.username
+        return "Blog post feed for user {0}".format(user.username)
     
     def feed_updated(self, user):
         qs = Post.objects.filter(author=user)
@@ -103,7 +104,7 @@ class BlogFeedUser(BasePostFeed):
         absolute_url = reverse("blog_list_user", kwargs={
             "username": user.username
         })
-        complete_url = "http://%s%s" % (
+        complete_url = "http://{0}{1}".format(
             Site.objects.get_current().domain,
             absolute_url,
         )

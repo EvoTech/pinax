@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf.urls.defaults import *
 
 from pinax.apps.projects.models import Project
@@ -19,6 +20,6 @@ urlpatterns = patterns("pinax.apps.projects.views",
     url(r"^project/(?P<group_slug>[-\w]+)/delete/$", "delete", name="project_delete"),
 )
 
-urlpatterns += bridge.include_urls("pinax.apps.topics.urls", ur"^project/(?P<project_slug>[-\w]+)/topics/")
-urlpatterns += bridge.include_urls("pinax.apps.tasks.urls", ur"^project/(?P<project_slug>[-\w]+)/tasks/")
-urlpatterns += bridge.include_urls("wiki.urls", ur"^project/(?P<project_slug>[-\w]+)/wiki/")
+urlpatterns += bridge.include_urls("pinax.apps.topics.urls", r"^project/(?P<project_slug>[-\w]+)/topics/")
+urlpatterns += bridge.include_urls("pinax.apps.tasks.urls", r"^project/(?P<project_slug>[-\w]+)/tasks/")
+urlpatterns += bridge.include_urls("wiki.urls", r"^project/(?P<project_slug>[-\w]+)/wiki/")
