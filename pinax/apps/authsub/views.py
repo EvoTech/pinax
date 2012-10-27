@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import gdata.contacts.service
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, get_host
+from django.http import HttpResponseRedirect
 from django.utils.html import escape
 
 GOOGLE_CONTACTS_URI = "http://www.google.com/m8/feeds/"
@@ -14,7 +14,7 @@ def get_url_host(request):
         protocol = "https"
     else:
         protocol = "http"
-    host = escape(get_host(request))
+    host = escape(request.get_host())
     return "{0}://{1}".format(protocol, host)
 
 
