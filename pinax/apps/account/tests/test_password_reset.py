@@ -21,7 +21,8 @@ class PasswordResetTest(TestCase):
     # urls = "pinax.apps.account.tests.account_urls"
     
     def setUp(self):
-        self.old_installed_apps = settings.INSTALLED_APPS
+        settings.INSTALLED_APPS = list(settings.INSTALLED_APPS)
+        self.OLD_INSTALLED_APPS = list(settings.INSTALLED_APPS)
         # remove django-mailer to properly test for outbound e-mail
         self.old_language_code = translation.get_language()
         translation.activate('en')
@@ -29,7 +30,7 @@ class PasswordResetTest(TestCase):
             settings.INSTALLED_APPS.remove("mailer")
     
     def tearDown(self):
-        settings.INSTALLED_APPS = self.old_installed_apps
+        settings.INSTALLED_APPS = self.OLD_INSTALLED_APPS
         translation.activate(self.old_language_code)
     
     def context_lookup(self, response, key):
@@ -67,10 +68,10 @@ class PasswordResetTest(TestCase):
         Error is raised if the provided e-mail address isn't verified to an
         existing user account
         """
-        bob = User.objects.create_user("bob", "bob@example.com", "abc123")
+        bob = User.objects.create_user("pinax_bob", "pinax_bob@example.com", "abc123")
         EmailAddress.objects.create(
             user = bob,
-            email = "bob@example.com",
+            email = "pinax_bob@example.com",
             verified = False,
             primary = True,
         )
@@ -89,16 +90,16 @@ class PasswordResetTest(TestCase):
         """
         E-mail is sent if a valid e-mail address is provided for password reset
         """
-        bob = User.objects.create_user("bob", "bob@example.com", "abc123")
+        bob = User.objects.create_user("pinax_bob", "pinax_bob@example.com", "abc123")
         EmailAddress.objects.create(
             user = bob,
-            email = "bob@example.com",
+            email = "pinax_bob@example.com",
             verified = True,
             primary = True,
         )
         
         data = {
-            "email": "bob@example.com",
+            "email": "pinax_bob@example.com",
         }
         response = self.client.post(reverse("acct_passwd_reset"), data)
         self.assertEquals(response.status_code, 302)
@@ -110,16 +111,16 @@ class PasswordResetTest(TestCase):
         return match.group(), match.groups()[0]
     
     def _test_confirm_start(self):
-        bob = User.objects.create_user("bob", "bob@example.com", "abc123")
+        bob = User.objects.create_user("pinax_bob", "pinax_bob@example.com", "abc123")
         EmailAddress.objects.create(
             user = bob,
-            email = "bob@example.com",
+            email = "pinax_bob@example.com",
             verified = True,
             primary = True,
         )
         
         data = {
-            "email": "bob@example.com",
+            "email": "pinax_bob@example.com",
         }
         response = self.client.post(reverse("acct_passwd_reset"), data)
         self.assertEquals(response.status_code, 302)
@@ -155,7 +156,7 @@ class PasswordResetTest(TestCase):
             "password2": "newpassword",
         }
         response = self.client.post(path, data)
-        user = User.objects.get(email="bob@example.com")
+        user = User.objects.get(email="pinax_bob@example.com")
         self.assert_(not user.check_password("newpassword"))
     
     def test_confirm_complete(self):
@@ -168,7 +169,7 @@ class PasswordResetTest(TestCase):
         response = self.client.post(path, data)
         self.assertEquals(response.status_code, 200)
         # check the password has been changed
-        user = User.objects.get(email="bob@example.com")
+        user = User.objects.get(email="pinax_bob@example.com")
         self.assert_(user.check_password("newpassword"))
         
         # check we can't GET with same path
@@ -183,7 +184,7 @@ class PasswordResetTest(TestCase):
         }
         response = self.client.post(path)
         self.assertEquals(response.status_code, 200)
-        user = User.objects.get(email="bob@example.com")
+        user = User.objects.get(email="pinax_bob@example.com")
         self.assert_(not user.check_password("anothernewpassword"))
     
     def test_confirm_different_passwords(self):
