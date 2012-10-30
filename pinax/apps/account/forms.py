@@ -383,6 +383,8 @@ class ResetPasswordForm(forms.Form):
     def clean_email(self):
         if EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"], verified=True).count() == 0:
             raise forms.ValidationError(_("Email address not verified for any user account"))
+        if EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"]).count() == 0:
+            raise forms.ValidationError(_("Email address not verified for any user account"))
         return self.cleaned_data["email"]
     
     def save(self, **kwargs):
