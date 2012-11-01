@@ -8,6 +8,11 @@ from django.utils.translation import ugettext_lazy as _
 from timezones.fields import TimeZoneField
 from notification import models as notification
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 
 class Profile(models.Model):
     
@@ -28,7 +33,7 @@ class Profile(models.Model):
         verbose_name = _("profile")
         verbose_name_plural = _("profiles")
     
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
     
     def get_absolute_url(self):
@@ -53,3 +58,13 @@ def should_deliver_callback(sender, **kwargs):
         result['pass'] = False
 
 notification.should_deliver.connect(should_deliver_callback, notification.Notice)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Profile, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

@@ -6,6 +6,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from groups.base import Group
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 MEMBER_STATUSES = [
     ('inactive', _("inactive")),
     ('requested', _("requested")),
@@ -25,7 +30,7 @@ class Tribe(Group):
     # private means only members can see the tribe
     private = models.BooleanField(_("private"), default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0} ({1})".format(self.name, self.slug)
 
     def get_absolute_url(self):
@@ -94,7 +99,7 @@ class TribeMember(models.Model):
     class Meta:
         unique_together = [("user", "tribe")]
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0} - {1}".format(self.tribe, self.user)
 
 
@@ -104,7 +109,7 @@ class TribeRole(models.Model):
     title = models.CharField(_("title"), max_length=150, default="")
     description = models.TextField(_("description"), default="")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -123,7 +128,7 @@ class TribeMemberRole(models.Model):
     actor = models.ForeignKey(User)
     date = models.DateTimeField(_("date"), auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0} - {1}".format(self.member, self.role)
 
 
@@ -145,5 +150,16 @@ class TribeMemberHistory(models.Model):
     date = models.DateTimeField(_("date"), auto_now_add=True)
     actor = models.ForeignKey(User)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0} - {1}".format(self.member, self.status)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Tribe, TribeMember, TribeRole, TribeMemberRole,
+                TribeMemberHistory, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

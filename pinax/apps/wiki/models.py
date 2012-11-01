@@ -26,6 +26,11 @@ try:
 except ImportError:
     notification = None
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 # We dont need to create a new one everytime
 dmp = diff_match_patch()
 
@@ -157,7 +162,7 @@ class Article(models.Model):
         changeset.reapply(editor_ip, editor)
 
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
     def is_allowed(self, user, perm=None):
@@ -249,7 +254,7 @@ class ChangeSet(models.Model):
         get_latest_by  = 'modified'
         ordering = ('-revision',)
 
-    def __unicode__(self):
+    def __str__(self):
         return '#{0}'.format(self.revision)
 
     @models.permalink
@@ -374,3 +379,13 @@ def wiki_article_comment(sender, instance, **kwargs):
             })
 
 models.signals.post_save.connect(wiki_article_comment, sender=ThreadedComment)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Article, ChangeSet, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

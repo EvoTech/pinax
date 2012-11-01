@@ -19,6 +19,11 @@ else:
 from tagging.fields import TagField
 from threadedcomments.models import ThreadedComment
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 MARKUP_CHOICES = getattr(settings, "MARKUP_CHOICES", [])
 
 
@@ -51,7 +56,7 @@ class Topic(models.Model):
     class Meta:
         ordering = ["-modified"]
     
-    def __unicode__(self):
+    def __str__(self):
         return self.title
     
     def get_absolute_url(self):
@@ -172,3 +177,13 @@ def topic_comment(sender, instance, **kwargs):
             })
 
 models.signals.post_save.connect(topic_comment, sender=ThreadedComment)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Topic, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

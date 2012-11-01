@@ -17,10 +17,12 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
-
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 MARKUP_CHOICES = getattr(settings, "MARKUP_CHOICES", [])
-
 
 
 class Post(models.Model):
@@ -61,7 +63,7 @@ class Post(models.Model):
         ordering = ["-publish"]
         get_latest_by = "publish"
     
-    def __unicode__(self):
+    def __str__(self):
         return self.title
     
     def save(self, **kwargs):
@@ -110,3 +112,13 @@ def new_comment(sender, instance, **kwargs):
 
 
 models.signals.post_save.connect(new_comment, sender=ThreadedComment)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Post, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

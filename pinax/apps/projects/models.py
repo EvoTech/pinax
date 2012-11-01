@@ -9,6 +9,11 @@ from django.contrib.auth.models import User
 
 from groups.base import Group
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 
 
 class Project(Group):
@@ -49,3 +54,13 @@ class ProjectMember(models.Model):
     
     class Meta:
         unique_together = [("user", "project")]
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Project, ProjectMember, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

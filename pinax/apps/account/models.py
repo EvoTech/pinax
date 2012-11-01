@@ -14,6 +14,11 @@ from emailconfirmation.models import EmailAddress, EmailConfirmation
 from emailconfirmation.signals import email_confirmed
 from timezones.fields import TimeZoneField
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 
 
 class Account(models.Model):
@@ -27,7 +32,7 @@ class Account(models.Model):
         default = settings.LANGUAGE_CODE
     )
     
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
 
@@ -42,7 +47,7 @@ class OtherServiceInfo(models.Model):
     class Meta:
         unique_together = [("user", "key")]
     
-    def __unicode__(self):
+    def __str__(self):
         return "{0} for {1}".format(self.key, self.user)
 
 
@@ -108,7 +113,7 @@ class AnonymousAccount(object):
         else:
             self.language = settings.LANGUAGE_CODE
     
-    def __unicode__(self):
+    def __str__(self):
         return "AnonymousAccount"
 
 
@@ -120,7 +125,7 @@ class PasswordReset(models.Model):
     timestamp = models.DateTimeField(_("timestamp"), default=datetime.now)
     reset = models.BooleanField(_("reset yet?"), default=False)
     
-    def __unicode__(self):
+    def __str__(self):
         return "{0} (key={1}, reset={2})".format(
             self.user.username,
             self.temp_key,
@@ -135,3 +140,13 @@ def mark_user_active(sender, instance=None, **kwargs):
 
 
 email_confirmed.connect(mark_user_active, sender=EmailConfirmation)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Account, OtherServiceInfo, AnonymousAccount, PasswordReset, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

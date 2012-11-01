@@ -20,6 +20,11 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 PUBLISH_CHOICES = (
     (1, _("Public")),
     (2, _("Private")),
@@ -79,7 +84,7 @@ class Image(ImageModel):
     )
     tags = TagField()
     
-    def __unicode__(self):
+    def __str__(self):
         return self.title
     
     def get_absolute_url(self):
@@ -197,3 +202,13 @@ def photos_image_comment(sender, instance, **kwargs):
             })
 
 models.signals.post_save.connect(photos_image_comment, sender=ThreadedComment)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (PhotoSet, Image, Pool, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')
