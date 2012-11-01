@@ -103,6 +103,11 @@ class ArticleFormBase(forms.ModelForm):
         return self.cleaned_data
 
     def save(self):
+        self.instance.revision_info = {
+            'comment': self.cleaned_data['comment'],
+            'editor_ip': self.cleaned_data['user_ip'],
+            'editor': getattr(self, 'editor', None),
+        }
         # 0 - Extra data
         editor_ip = self.cleaned_data['user_ip']
         comment = self.cleaned_data['comment']

@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db.models.query import QuerySet
 
+import versioning
 from tagging.fields import TagField
 from tagging.models import Tag
 from threadedcomments.models import ThreadedComment
@@ -173,7 +174,9 @@ class Article(models.Model):
                 return user.has_perm('view', self.group)
 
             if perm in ('wiki.add_article',  # hierarchical?
-                        'wiki.change_article', ):
+                        'wiki.change_article',
+                        'wiki.browse_revision_article',
+                        'wiki.reapply_revision_article', ):
                 return self.group.user_is_member(user)
 
             if perm in ('comments.add_comment', ):
@@ -194,6 +197,8 @@ class Article(models.Model):
 
             if perm in ('wiki.add_article',
                         'wiki.change_article',
+                        'wiki.browse_revision_article',
+                        'wiki.reapply_revision_article',
                         'comments.add_comment', ):
                 return user.is_authenticated()
 
@@ -379,6 +384,8 @@ def wiki_article_comment(sender, instance, **kwargs):
             })
 
 models.signals.post_save.connect(wiki_article_comment, sender=ThreadedComment)
+
+versioning.register(Article, ['title', 'content', 'summary', 'markup', ])
 
 # Python 2.* compatible
 try:
