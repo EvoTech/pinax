@@ -6,6 +6,7 @@
 {% load comments_tag %}
 {% load markup_tags %}
 {% load extra_tagging_tags %}
+{% load contenttypes_tags %}
 {% load is_allowed_tags %}
 
 {% block head_title %}Wiki for {{ group.name }} - {{ article.title }} {% endblock %}
@@ -18,9 +19,14 @@
             <h2>{% trans "Actions" %}</h2>
             {% if article.id %}
 
-            {% if allow_write %}<li><a href="{% groupurl wiki_edit group title=article.title %}">{% trans "Edit this article" %}</a> </li>
+            {% if allow_write %}
+                <li><a href="{% groupurl wiki_edit group title=article.title %}">{% trans "Edit this article" %}</a> </li>
             {% endif %}
-            <li><a href="{% groupurl wiki_article_history group title=article.title %}">{% trans "Editing history" %}</a> </li>
+
+            {% ifallowed perm="wiki.browse_revision_article" obj=article %}
+                <li><a href="{% url versioning_revision_list content_type=article|contenttype_id object_id=article.pk %}">{% trans "Editing history" %}</a> </li>
+            {% endifallowed %}
+
             {% ifallowed perm="wiki.mark_removed_article" obj=article %}
                 <li><a href="{% groupurl wiki_remove_article group title=article.title %}">{% trans "Remove this article" %}</a></li>
             {% endifallowed %}
