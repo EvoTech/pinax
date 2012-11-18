@@ -15,12 +15,9 @@ from django.http import (Http404, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.syndication.views import FeedDoesNotExist
 
 from pinax.apps.wiki.forms import ArticleForm, SearchForm
 from pinax.apps.wiki.models import Article, ChangeSet
-from pinax.apps.wiki.feeds import (RssArticleHistoryFeed, AtomArticleHistoryFeed,
-                        RssHistoryFeed, AtomHistoryFeed)
 from pinax.apps.wiki.utils import get_ct, login_required
 
 
@@ -732,55 +729,3 @@ def stop_observing_article(request, title,
 
         return HttpResponseRedirect(url)
     return HttpResponseNotAllowed(['POST'])
-
-
-def article_history_feed(request, feedtype, title,
-                         group_slug=None, bridge=None,
-                         article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
-                         extra_context=None,
-                         is_member=None,
-                         is_private=None,
-                         *args, **kw):
-    group, bridge = group_and_bridge(request)
-    feeds = {'rss' : RssArticleHistoryFeed,
-             'atom' : AtomArticleHistoryFeed}
-    ArticleHistoryFeed = feeds.get(feedtype, RssArticleHistoryFeed)
-
-    try:
-        feedgen = ArticleHistoryFeed(title, request,
-                                     group.slug, bridge,
-                                     article_qs, changes_qs,
-                                     extra_context,
-                                     *args, **kw).get_feed(title)
-    except FeedDoesNotExist:
-        raise Http404
-
-    response = HttpResponse(mimetype=feedgen.mime_type)
-    feedgen.write(response, 'utf-8')
-    return response
-
-
-def history_feed(request, feedtype,
-                 group_slug=None, bridge=None,
-                 article_qs=ALL_ARTICLES, changes_qs=ALL_CHANGES,
-                 extra_context=None,
-                 is_member=None,
-                 is_private=None,
-                 *args, **kw):
-    group, bridge = group_and_bridge(request)
-    feeds = {'rss' : RssHistoryFeed,
-             'atom' : AtomHistoryFeed}
-    HistoryFeed = feeds.get(feedtype, RssHistoryFeed)
-
-    try:
-        feedgen = HistoryFeed(request,
-                              group.slug, bridge,
-                              article_qs, changes_qs,
-                              extra_context,
-                              *args, **kw).get_feed()
-    except FeedDoesNotExist:
-        raise Http404
-
-    response = HttpResponse(mimetype=feedgen.mime_type)
-    feedgen.write(response, 'utf-8')
-    return response
