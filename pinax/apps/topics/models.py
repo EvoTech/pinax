@@ -145,7 +145,7 @@ def topic_comment(sender, instance, **kwargs):
 
             notification.send_observation_notices_for(
                 topic, 'topic_comment', extra_context={
-                    "context_object": topic,
+                    "context_object": instance,
                     "user": instance.user,
                     "topic": topic,
                     "comment": instance,
