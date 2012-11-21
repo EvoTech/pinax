@@ -11,12 +11,16 @@
 {% if allowed_for_browse %}
 <tr class="{% cycle odd,even %}">
     <td class="meta">
-        <div class="avatar">{% avatar article.latest_changeset.editor 40 %}</div>
-        <div class="details">
-            <a href="{% url_full profile_detail article.latest_changeset.editor.username %}">
-                {% user_display article.latest_changeset.editor %}
-            </a>
-        </div>
+        {% with editor=article.latest_changeset.editor %}
+            {% if editor.username %}
+                <div class="avatar">{% avatar editor 40 %}</div>
+                <div class="details">
+                    <a href="{% url_full profile_detail editor.username %}">
+                        {% user_display editor %}
+                    </a>
+                </div>
+            {% endif %}
+        {% endwith %}
         {{ article.last_update|date }}
     </td>
     <td>
