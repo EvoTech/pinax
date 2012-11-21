@@ -214,7 +214,7 @@ def wiki_article_comment(sender, instance, **kwargs):
                     "article": article,
                     "comment": instance,
                     "group": group,
-                    "context_object": instance,
+                    "context_object": article,
                     "notice_uid": notice_uid,
                 }
             )
