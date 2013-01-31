@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import get_model
 from django.http import HttpResponse, Http404
@@ -12,7 +13,7 @@ def autocomplete(request, app_label, model):
     except:
         raise Http404
 
-    if not request.GET.has_key("term"):
+    if "term" not in request.GET:
         raise Http404
     else:
         q = request.GET["term"]

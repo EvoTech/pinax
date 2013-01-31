@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import datetime
 
 from django.conf import settings
@@ -9,6 +10,11 @@ from django.utils.hashcompat import sha_constructor
 
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 
 class SignupCode(models.Model):
@@ -26,8 +32,8 @@ class SignupCode(models.Model):
     # calculated
     use_count = models.PositiveIntegerField(editable=False, default=0)
     
-    def __unicode__(self):
-        return "%s [%s]" % (self.email, self.code)
+    def __str__(self):
+        return "{0} [{1}]".format(self.email, self.code)
     
     @classmethod
     def create(cls, email, expiry, group=None):
@@ -38,7 +44,7 @@ class SignupCode(models.Model):
             str(expiry),
         ]
         if group:
-            bits.append("%s%s" % (group._meta, group.pk))
+            bits.append("{0}{1}".format(group._meta, group.pk))
         code = sha_constructor("".join(bits)).hexdigest()
         return cls(code=code, email=email, max_uses=1, expiry=expiry)
     
@@ -57,7 +63,7 @@ class SignupCode(models.Model):
     
     def send(self, group=None):
         current_site = Site.objects.get_current()
-        domain = unicode(current_site.domain)
+        domain = str(current_site.domain)
         ctx = {
             "group": group,
             "signup_code": self,
@@ -103,3 +109,13 @@ def check_signup_code(code):
                     return signup_code
     else:
         return False
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (SignupCode, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')
