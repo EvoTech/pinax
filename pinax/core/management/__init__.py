@@ -26,7 +26,7 @@ class CommandLoader(object):
         for f in os.listdir(self.command_dir):
             if not f.startswith("_") and f.endswith(".py"):
                 name = f[:-3]
-                mod = "pinax.core.management.commands.%s" % name
+                mod = "pinax.core.management.commands.{0}".format(name)
                 try:
                     __import__(mod)
                 except:
@@ -39,12 +39,12 @@ class CommandLoader(object):
         try:
             command = self.commands[name]
         except KeyError:
-            raise CommandNotFound("Unable to find command '%s'" % name)
+            raise CommandNotFound("Unable to find command '{0}'".format(name))
         else:
             if isinstance(command, tuple):
                 # an exception occurred when importing the command so let's
                 # re-raise it here
-                raise command[0], command[1], command[2]
+                raise command[0](command[1]).with_traceback(command[2])
             return command
 
 
@@ -63,15 +63,15 @@ class CommandRunner(object):
         from pinax.core.management.base import BaseCommand
         class HelpCommand(BaseCommand):
             def handle(self, *args, **options):
-                print "Usage: %s" % usage
-                print
-                print "Options:"
-                print "  --version   show program's version number and exit"
-                print "  -h, --help  show this help message and exit"
-                print
-                print "Available commands:"
-                for command in loader.commands.keys():
-                    print "  %s" % command
+                print("Usage: {0}".format(usage))
+                print()
+                print("Options:")
+                print("  --version   show program's version number and exit")
+                print("  -h, --help  show this help message and exit")
+                print()
+                print("Available commands:")
+                for command in list(loader.commands.keys()):
+                    print("  {0}".format(command))
         return HelpCommand()
     
     def execute(self):
@@ -94,8 +94,8 @@ class CommandRunner(object):
         # load command and run it!
         try:
             self.loader.load(command).run_from_argv(argv)
-        except CommandNotFound, e:
-            sys.stderr.write("%s\n" % e.args[0])
+        except CommandNotFound as e:
+            sys.stderr.write("{0}\n".format(e.args[0]))
             sys.exit(1)
 
 

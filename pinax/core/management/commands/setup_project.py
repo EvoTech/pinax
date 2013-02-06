@@ -9,6 +9,14 @@ import sys
 import pip
 
 try:
+    str = unicode  # Python 2.* compatible
+    string_types = (basestring,)
+    integer_types = (int, long)
+except NameError:
+    string_types = (str,)
+    integer_types = (int,)
+
+try:
     from pip.exceptions import InstallationError
 except ImportError:
     print ("You are using an older version of pip. Please upgrade pip to "
@@ -72,11 +80,11 @@ class Command(BaseCommand):
         sys.path.append(PROJECTS_DIR)
         
         for project in self.project_list():
-            print project.replace("_project", "")
+            print(project.replace("_project", ""))
             __about__ = getattr(__import__(project), "__about__", "")
             for line in __about__.strip().splitlines():
-                print "    %s" % line
-            print
+                print("    {0}".format(line))
+            print()
         
         sys.path.pop()
     
@@ -95,7 +103,7 @@ class Command(BaseCommand):
         user_project_name = os.path.basename(destination)
         
         if os.path.exists(destination):
-            raise CommandError("Destination path already exists [%s]" % destination)
+            raise CommandError("Destination path already exists [{0}]".format(destination))
         
         try:
             # check to see if the project_name copies an existing module name
@@ -106,21 +114,21 @@ class Command(BaseCommand):
         else:
             # The module exists so we raise a CommandError and exit
             raise CommandError(
-                "'%s' conflicts with the name of an existing Python "
-                "package/module and cannot be used as a project name. Please "
-                "try another name." % user_project_name
+                ("'{0}' conflicts with the name of an existing Python " +
+                 "package/module and cannot be used as a project name. Please " +
+                 "try another name.").format(user_project_name)
             )
         
         # check the base value (we could later be much smarter about it and
         # allow repos and such)
         if base in [p.replace("_project", "") for p in self.project_list()]:
-            project_name = "%s_project" % base
+            project_name = "{0}_project".format(base)
             source = os.path.join(PROJECTS_DIR, project_name)
         else:
             if not os.path.exists(base):
                 raise CommandError(
                     "Project template does not exist the given "
-                    "path: %s" % base
+                    "path: {0}".format(base)
                 )
             else:
                 project_name = os.path.basename(base)
@@ -129,16 +137,16 @@ class Command(BaseCommand):
         installer.copy()
         installer.fix_settings()
         installer.fix_deploy(project_name, user_project_name)
-        print "Created project %s" % user_project_name
+        print("Created project {0}".format(user_project_name))
         if not options["no_reqs"]:
-            print "Installing project requirements..."
+            print("Installing project requirements...")
             try:
                 installer.install_reqs(not options["allow_no_virtualenv"])
             except InstallationError:
-                print ("Installation of requirements failed. The project %s "
-                    "has been created though.") % user_project_name
+                print(("Installation of requirements failed. The project {0} " +
+                       "has been created though.").format(user_project_name))
         else:
-            print
+            print()
             print ("Skipping requirement installation. Run pip install --no-deps "
                 "-r requirements/project.txt inside the project directory.")
 
@@ -156,7 +164,7 @@ class ProjectInstaller(object):
     
     def generate_secret_key(self):
         chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
-        return "".join([random.choice(chars) for i in xrange(50)])
+        return "".join([random.choice(chars) for i in range(50)])
     
     def copy(self):
         copytree(self.source_dir, self.project_dir,
@@ -172,10 +180,10 @@ class ProjectInstaller(object):
         data = open(settings_filename, "rb").read()
         
         data = re.compile(r"SECRET_KEY\s*=.*$", re.M).sub(
-            'SECRET_KEY = "%s"' % self.generate_secret_key(), data
+            'SECRET_KEY = "{0}"'.format(self.generate_secret_key()), data
         )
         data = re.compile(r"ROOT_URLCONF\s*=.*$", re.M).sub(
-            'ROOT_URLCONF = "%s"' % "%s.urls" % self.user_project_name, data,
+            'ROOT_URLCONF = "{0}"'.format("{0}.urls".format(self.user_project_name)), data,
         )
         data = data.replace(self.project_name, self.user_project_name)
         
@@ -248,19 +256,19 @@ def copytree(src, dst, symlinks=False, excluded_patterns=None):
                 copytree(srcname, dstname, symlinks)
             else:
                 shutil.copy2(srcname, dstname)
-        except (IOError, os.error), why:
+        except (IOError, os.error) as why:
             errors.append((srcname, dstname, str(why)))
-        except shutil.Error, err:
+        except shutil.Error as err:
             errors.extend(err.args[0])
     try:
         shutil.copystat(src, dst)
-    except OSError, why:
+    except OSError as why:
         if not WindowsError is None and isinstance(why, WindowsError):
             pass
         else:
             errors.extend((src, dst, str(why)))
     if errors:
-        raise shutil.Error, errors
+        raise shutil.Error(errors)
 
 
 # needed for ProjectInstaller.install_reqs
@@ -272,7 +280,7 @@ def resolve_command(cmd, path=None, pathext=None):
     searched_for_path = path
     if path is None:
         path = os.environ.get("PATH", []).split(os.pathsep)
-    if isinstance(path, basestring):
+    if isinstance(path, string_types):
         path = [path]
     # check if there are funny path extensions for executables, e.g. Windows
     if pathext is None:
@@ -297,7 +305,7 @@ def resolve_command(cmd, path=None, pathext=None):
     if searched_for_path:
         cmd = os.path.join(os.path.realpath(searched_for_path), cmd)
     if not os.path.exists(cmd):
-        print "ERROR: this script requires %s." % cmd
-        print "Please verify it exists because it couldn't be found."
+        print("ERROR: this script requires {0}.".format(cmd))
+        print("Please verify it exists because it couldn't be found.")
         sys.exit(3)
     return os.path.realpath(cmd)
