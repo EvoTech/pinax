@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import sys
 import re
 from itertools import groupby, cycle as itertools_cycle
@@ -27,7 +28,7 @@ class URLFullNode(Node):
         from pinax.core.urlresolvers import reverse_full
         args = [arg.resolve(context) for arg in self.args]
         kwargs = dict([(smart_str(k,'ascii'), v.resolve(context))
-                       for k, v in self.kwargs.items()])
+                       for k, v in list(self.kwargs.items())])
 
         # Try to look up the URL twice: once given the view name, and again
         # relative to what we guess is the "main" app. If they both fail,
@@ -36,7 +37,7 @@ class URLFullNode(Node):
         url = ''
         try:
             url = reverse_full(self.view_name, args=args, kwargs=kwargs, current_app=context.current_app)
-        except NoReverseMatch, e:
+        except NoReverseMatch as e:
             if settings.SETTINGS_MODULE:
                 project_name = settings.SETTINGS_MODULE.split('.')[0]
                 try:
@@ -96,8 +97,8 @@ def url_full(parser, token):
     """
     bits = token.split_contents()
     if len(bits) < 2:
-        raise TemplateSyntaxError("'%s' takes at least one argument"
-                                  " (path to a view)" % bits[0])
+        raise TemplateSyntaxError(("'{0}' takes at least one argument" +
+                                  " (path to a view)").format(bits[0]))
     viewname = bits[1]
     args = []
     kwargs = {}

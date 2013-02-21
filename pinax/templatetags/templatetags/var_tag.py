@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 
 
@@ -39,7 +40,7 @@ def var(parser, token):
     args = token.split_contents()
     if len(args) != 4 or args[2] != "=":
         raise template.TemplateSyntaxError(
-            "'%s' statement requires the form {% %s foo = bar %}." % (
+            "'{0}' statement requires the form {{% {1} foo = bar %}}.".format(
                 args[0], args[0])
             )
     return VarNode(args[1], args[3])

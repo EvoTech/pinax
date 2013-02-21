@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 from django.template.defaultfilters import stringfilter
 
@@ -12,7 +13,7 @@ def oembed_ext(text, args=None):
     """More intelligent oembed filter"""
     if args:
         try:
-            width, height = map(int, args.lower().split('x'))
+            width, height = list(map(int, args.lower().split('x')))
         except ValueError:
             raise template.TemplateSyntaxError("Oembed's optional " \
                 "WIDTHxHEIGHT argument requires WIDTH and HEIGHT to be " \

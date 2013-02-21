@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 
 
@@ -16,7 +17,7 @@ class OrderByNode(template.Node):
         qs = self.queryset_var.resolve(context)
         
         context[key] = qs.order_by(self.order_field)
-        return u""
+        return ""
 
 
 @register.tag(name="order")
@@ -26,6 +27,6 @@ def do_order_by(parser, token):
         if split[2] == "by":
             return OrderByNode(split[1], split[3])
         else:
-            raise template.TemplateSyntaxError("usage is {%% %r x by y %%}" % split[0])
+            raise template.TemplateSyntaxError("usage is {{% {0!r} x by y %}}".format(split[0]))
     else:
-        raise template.TemplateSyntaxError("usage is {%% %r x by y %%}" % split[0])
+        raise template.TemplateSyntaxError("usage is {{% {0!r} x by y %}}".format(split[0]))
