@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 """
 This is pulled from
 Eric Holscher's sandbox code at http://github.com/ericholscher/sandbox/blob/d32da8c36f257bb973a5c0b0fd8f9bca79062f11/serializers/yamlfk.py#L88

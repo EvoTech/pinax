@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.core import urlresolvers
 from django.contrib.sites.models import Site
 from django.conf import settings

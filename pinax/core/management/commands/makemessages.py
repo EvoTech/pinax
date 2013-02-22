@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 """
 Management command that allows to translate specific apps and projects
 isolated from each other to prevent "monolithic" translation catalogues.
