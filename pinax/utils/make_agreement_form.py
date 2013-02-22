@@ -1,7 +1,9 @@
+from __future__ import absolute_import, unicode_literals
 from django import forms
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+import collections
 
 
 def default_form_agreement_text():
@@ -23,7 +25,7 @@ def make_agreement_form(Form, agreement_text=FORM_AGREEMENT_TEXT):
         def __init__(self, *args, **kwargs):
             """Instance constructor."""
             r = super(AgreeForm, self).__init__(*args, **kwargs)
-            if callable(agreement_text):
+            if isinstance(agreement_text, collections.Callable):
                 text = agreement_text()
             else:
                 text = agreement_text

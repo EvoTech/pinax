@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django.conf import settings
@@ -50,7 +51,7 @@ class HideSensistiveFieldsMiddleware(object):
             request.POST._mutable = True
         for name in request.POST:
             if mask_re.search(name):
-                request.POST[name] = u"xxHIDDENxx"
+                request.POST[name] = "xxHIDDENxx"
                 masked = True
         if hasattr(request.POST, "_mutable"):
             request.POST._mutable = mutable
