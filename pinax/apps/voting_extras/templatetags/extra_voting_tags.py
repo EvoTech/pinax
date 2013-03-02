@@ -51,7 +51,7 @@ def do_order_by_votes(parser, token):
     if len(split) in (2, 3):
         return OrderByVotesNode(*split[1:])
     else:
-        raise template.TemplateSyntaxError("{0!r} tag takes one or two arguments."format(split[0]))
+        raise template.TemplateSyntaxError("{0!r} tag takes one or two arguments.".format(split[0]))
 
 
 class OrderByRedditNode(template.Node):
