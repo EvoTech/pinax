@@ -56,8 +56,9 @@ def wiki_links(text, group=None):
         if url.parent.name == 'a':
             continue
         new_str = wikiword_link.sub(curry(_re_callback, inside=False, group=group), url)
-        url.replaceWith(new_str)
+        url.replaceWith(BeautifulSoup(new_str))
 
+    soup = BeautifulSoup(str(soup))  # Fixed for bug in some versions of BS
     for a in soup.findAll('a'):
         url = a.get('href')
         if not url:
