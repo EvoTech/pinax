@@ -8,6 +8,7 @@
 {% load tagging_tags %}
 {% load blog_tags %}
 {% load theme_tags %}
+{% load cache_tagging_tags %}
 
 {% block head_title %}{% blocktrans %}Blog Post{% endblocktrans %} : {{ post.title }}{% endblock %}
 
@@ -17,7 +18,7 @@
 {% endblock %}
 
 {% block body %}
-    
+    {% cache_tagging 'view.blog.post.pk:'|concat:post.pk|concat:'.lang:'|concat:LANGUAGE_CODE 'blog.post.pk:'|concat:post.pk timeout=18000 nocache=1 %}
     <div class="blog-post">
         <h2>{{ post.title }}</h2>
         <div class="blog-meta"><p>Posted by: <a href="{% url profile_detail post.author.username %}">{% user_display post.author %}</a> on {{ post.publish|date }}</p></div>
@@ -27,15 +28,17 @@
             {% for tag in tags %}
                 <a href="/tags/{{ tag }}">{{ tag }}</a>
             {% endfor %}</p>
-            {% ifequal post.author request.user %}
-                <a href="{% url blog_edit post.id %}">Edit Post</a>
-            {% endifequal %}
+
+            {% nocache %}
+            if post.author == request.user:
+                echo('<a href="', reverse('blog_edit', args=(post.id, )), '">Edit Post</a>\n')
+            {% endnocache %}
         </div>
         
         <div>{{ post.body|apply_markup:post.markup }}</div>
         
     </div>
-    
+    {% end_cache_tagging %}
     <h3>{% trans "Comments on This Post" %}:</h3>
     {% comments post %}
 {% endblock %}
