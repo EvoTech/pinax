@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import re
+import copy
 
 from django import template
 from django.core.urlresolvers import reverse
@@ -79,6 +80,7 @@ def wiki_links(text, group=None):
 def show_teaser(context, article):
     """ Show a teaser box for the summary of the article.
     """
+    context = copy.copy(context)
     context.update({'article': article})
     return context
 
