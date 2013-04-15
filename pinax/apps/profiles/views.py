@@ -27,6 +27,7 @@ from pinax.apps.profiles.forms import ProfileForm
 from pinax.apps.profiles.models import Profile
 
 
+@login_required
 def profiles(request, template_name="profiles/profiles.html", extra_context=None):
     if extra_context is None:
         extra_context = {}
@@ -40,6 +41,7 @@ def profiles(request, template_name="profiles/profiles.html", extra_context=None
     }, **extra_context), context_instance=RequestContext(request))
 
 
+@login_required
 def profile(request, username,
             template_name="profiles/profile.html", extra_context=None):
     
