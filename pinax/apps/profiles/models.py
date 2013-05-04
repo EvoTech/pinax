@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core import urlresolvers
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 
 from timezones.fields import TimeZoneField
 from notification import models as notification
@@ -17,7 +17,7 @@ except NameError:
 class Profile(models.Model):
     
     user = models.ForeignKey(User, unique=True, verbose_name=_("user"))
-    name = models.CharField(_("name"), max_length=50, null=True, blank=True)
+    name = models.CharField(pgettext_lazy("profiles", "name"), max_length=50, null=True, blank=True)
     about = models.TextField(_("about"), null=True, blank=True)
     location = models.CharField(_("location"),
         max_length = 40,

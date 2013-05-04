@@ -34,10 +34,10 @@
     {% autopaginate tribes 10 %}
     {% if tribes %}
         <p>{% trans "Order by:" %}
-            {% anchor topic_count Topics %}
-            {% anchor member_count Members %}
-            {% anchor name Name %}
-            {% anchor created Date %}
+            {% anchor "topic_count" _("Topics") %}
+            {% anchor "member_count" _("Members") %}
+            {% anchor "name" _("Name") %}
+            {% anchor "created" _("Date") %}
         </p>
         <dl class="tribes">
         {% for tribe in tribes %}

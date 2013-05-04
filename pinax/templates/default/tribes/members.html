@@ -26,8 +26,8 @@
         {% autopaginate users %}
 
         <p>{% trans "Order by:" %}
-            {% anchor date_joined "Date" %}
-            {% anchor username "Name" %}
+            {% anchor "date_joined" _("Date")%}
+            {% anchor "username" _("Name") %}
         </p>
 
         {% for user in users %}

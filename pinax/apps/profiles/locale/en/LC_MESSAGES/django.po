@@ -3,15 +3,14 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: profiles\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-07-28 23:50+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: English <LL@li.org>\n"
+"PO-Revision-Date: 2013-05-04 22:18+0300\n"
+"Last-Translator: Ivan <ivzak@yandex.ru>\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,8 +20,9 @@ msgid "user"
 msgstr ""
 
 #: models.py:15
+msgctxt "profiles"
 msgid "name"
-msgstr ""
+msgstr "name"
 
 #: models.py:16
 msgid "about"
@@ -49,7 +49,9 @@ msgstr ""
 msgid "You have removed %(from_user)s from friends"
 msgstr ""
 
-#: views.py:86 views.py:98 views.py:131
+#: views.py:86
+#: views.py:98
+#: views.py:131
 msgid "Let's be friends!"
 msgstr ""
 
@@ -68,8 +70,9 @@ msgid "Your profile has been updated."
 msgstr ""
 
 #: templates/profile_item.html:11
+msgctxt "profiles"
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: templates/profile_item.html:12
 msgid "About"
@@ -82,3 +85,4 @@ msgstr ""
 #: templates/profile_item.html:14
 msgid "Website"
 msgstr ""
+
