@@ -1,14 +1,15 @@
 from __future__ import absolute_import, unicode_literals
 from django.conf import settings
+from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
-from django.db import models
+from django.core import urlresolvers
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.http import base36_to_int
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.views.decorators.http import require_POST
 
 from django.contrib import messages
 from django.contrib.auth import authenticate
@@ -27,15 +28,14 @@ from pinax.apps.account.forms import ResetPasswordForm, SetPasswordForm, SignupF
 from pinax.apps.account.forms import TwitterForm
 
 
-
 def group_and_bridge(kwargs):
     """
     Given kwargs from the view (with view specific keys popped) pull out the
     bridge and fetch group from database.
     """
-    
+
     bridge = kwargs.pop("bridge", None)
-    
+
     if bridge:
         try:
             group = bridge.get_group(**kwargs)
@@ -43,7 +43,7 @@ def group_and_bridge(kwargs):
             raise Http404
     else:
         group = None
-    
+
     return group, bridge
 
 
@@ -55,25 +55,25 @@ def group_context(group, bridge):
 
 
 def login(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", LoginForm)
     template_name = kwargs.pop("template_name", "account/login.html")
     success_url = kwargs.pop("success_url", None)
     url_required = kwargs.pop("url_required", False)
     extra_context = kwargs.pop("extra_context", {})
     redirect_field_name = kwargs.pop("redirect_field_name", "next")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if extra_context is None:
         extra_context = {}
     if success_url is None:
         if hasattr(settings, "LOGIN_REDIRECT_URLNAME"):
-            fallback_url = reverse(settings.LOGIN_REDIRECT_URLNAME)
+            fallback_url = urlresolvers.reverse(settings.LOGIN_REDIRECT_URLNAME)
         else:
             fallback_url = settings.LOGIN_REDIRECT_URL
         success_url = get_default_redirect(request, fallback_url, redirect_field_name)
-    
+
     if request.method == "POST" and not url_required:
         form = form_class(request.POST, group=group)
         if form.is_valid():
@@ -86,7 +86,7 @@ def login(request, **kwargs):
             return HttpResponseRedirect(success_url)
     else:
         form = form_class(group=group)
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "form": form,
@@ -95,30 +95,30 @@ def login(request, **kwargs):
         "redirect_field_value": request.REQUEST.get(redirect_field_name),
     })
     ctx.update(extra_context)
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 def signup(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", SignupForm)
     template_name = kwargs.pop("template_name", "account/signup.html")
     redirect_field_name = kwargs.pop("redirect_field_name", "next")
     success_url = kwargs.pop("success_url", None)
-    
+
     group, bridge = group_and_bridge(kwargs)
     ctx = group_context(group, bridge)
-    
+
     if success_url is None:
         if hasattr(settings, "SIGNUP_REDIRECT_URLNAME"):
-            fallback_url = reverse(settings.SIGNUP_REDIRECT_URLNAME)
+            fallback_url = urlresolvers.reverse(settings.SIGNUP_REDIRECT_URLNAME)
         else:
             if hasattr(settings, "LOGIN_REDIRECT_URLNAME"):
-                fallback_url = reverse(settings.LOGIN_REDIRECT_URLNAME)
+                fallback_url = urlresolvers.reverse(settings.LOGIN_REDIRECT_URLNAME)
             else:
                 fallback_url = settings.LOGIN_REDIRECT_URL
         success_url = get_default_redirect(request, fallback_url, redirect_field_name)
-    
+
     if request.method == "POST":
         form = form_class(request.POST, group=group)
         if form.is_valid():
@@ -140,24 +140,24 @@ def signup(request, **kwargs):
                 return HttpResponseRedirect(success_url)
     else:
         form = form_class(group=group)
-    
+
     ctx.update({
         "form": form,
         "redirect_field_name": redirect_field_name,
         "redirect_field_value": request.REQUEST.get(redirect_field_name),
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def email(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", AddEmailForm)
     template_name = kwargs.pop("template_name", "account/email.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if request.method == "POST" and request.user.is_authenticated():
         if request.POST["action"] == "add":
             add_email_form = form_class(request.user, request.POST)
@@ -168,7 +168,7 @@ def email(request, **kwargs):
                             "email": add_email_form.cleaned_data["email"]
                         }
                     )
-                add_email_form = form_class() # @@@
+                add_email_form = form_class()  # @@@
         else:
             add_email_form = form_class()
             if request.POST["action"] == "send":
@@ -210,26 +210,26 @@ def email(request, **kwargs):
                 email_address.set_as_primary()
     else:
         add_email_form = form_class()
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "add_email_form": add_email_form,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def password_change(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", ChangePasswordForm)
     template_name = kwargs.pop("template_name", "account/password_change.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if not request.user.password:
-        return HttpResponseRedirect(reverse("acct_passwd_set"))
-    
+        return HttpResponseRedirect(urlresolvers.reverse("acct_passwd_set"))
+
     if request.method == "POST":
         password_change_form = form_class(request.user, request.POST)
         if password_change_form.is_valid():
@@ -240,26 +240,26 @@ def password_change(request, **kwargs):
             password_change_form = form_class(request.user)
     else:
         password_change_form = form_class(request.user)
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "password_change_form": password_change_form,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def password_set(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", SetPasswordForm)
     template_name = kwargs.pop("template_name", "account/password_set.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if request.user.password:
-        return HttpResponseRedirect(reverse("acct_passwd"))
-    
+        return HttpResponseRedirect(urlresolvers.reverse("acct_passwd"))
+
     if request.method == "POST":
         password_set_form = form_class(request.user, request.POST)
         if password_set_form.is_valid():
@@ -267,96 +267,96 @@ def password_set(request, **kwargs):
             messages.add_message(request, messages.SUCCESS,
                 ugettext("Password successfully set.")
             )
-            return HttpResponseRedirect(reverse("acct_passwd"))
+            return HttpResponseRedirect(urlresolvers.reverse("acct_passwd"))
     else:
         password_set_form = form_class(request.user)
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "password_set_form": password_set_form,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def password_delete(request, **kwargs):
-    
+
     template_name = kwargs.pop("template_name", "account/password_delete.html")
-    
+
     # prevent this view when social-auth is not present or it is empty.
     # Don't allowed to delete password currently.
     # Even social auth integrated - we will to generate random password
     if not request.user.password or True:
         return HttpResponseForbidden()
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if request.method == "POST":
         request.user.password = ""
         request.user.save()
-        return HttpResponseRedirect(reverse("acct_passwd_delete_done"))
-    
+        return HttpResponseRedirect(urlresolvers.reverse("acct_passwd_delete_done"))
+
     ctx = group_context(group, bridge)
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 def password_reset(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", ResetPasswordForm)
     template_name = kwargs.pop("template_name", "account/password_reset.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
     ctx = group_context(group, bridge)
-    
+
     if request.method == "POST":
         password_reset_form = form_class(request.POST)
         if password_reset_form.is_valid():
             email = password_reset_form.save()
-            
+
             if group:
-                redirect_to = bridge.reverse("acct_passwd_reset_done", group)
+                redirect_to = bridge.urlresolvers.reverse("acct_passwd_reset_done", group)
             else:
-                redirect_to = reverse("acct_passwd_reset_done")
+                redirect_to = urlresolvers.reverse("acct_passwd_reset_done")
             return HttpResponseRedirect(redirect_to)
     else:
         password_reset_form = form_class()
-    
+
     ctx.update({
         "password_reset_form": password_reset_form,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 def password_reset_done(request, **kwargs):
-    
+
     template_name = kwargs.pop("template_name", "account/password_reset_done.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
     ctx = group_context(group, bridge)
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 def password_reset_from_key(request, uidb36, key, **kwargs):
-    
+
     form_class = kwargs.get("form_class", ResetPasswordKeyForm)
     template_name = kwargs.get("template_name", "account/password_reset_from_key.html")
     token_generator = kwargs.get("token_generator", default_token_generator)
-    
+
     group, bridge = group_and_bridge(kwargs)
     ctx = group_context(group, bridge)
-    
+
     # pull out user
     try:
         uid_int = base36_to_int(uidb36)
     except ValueError:
         raise Http404
-    
+
     user = get_object_or_404(User, id=uid_int)
-    
+
     if token_generator.check_token(user, key):
         if request.method == "POST":
             password_reset_key_form = form_class(request.POST, user=user, temp_key=key)
@@ -375,18 +375,18 @@ def password_reset_from_key(request, uidb36, key, **kwargs):
         ctx.update({
             "token_fail": True,
         })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def timezone_change(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", ChangeTimezoneForm)
     template_name = kwargs.pop("template_name", "account/timezone_change.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if request.method == "POST":
         form = form_class(request.user, request.POST)
         if form.is_valid():
@@ -396,23 +396,23 @@ def timezone_change(request, **kwargs):
             )
     else:
         form = form_class(request.user)
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "form": form,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def language_change(request, **kwargs):
-    
+
     form_class = kwargs.pop("form_class", ChangeLanguageForm)
     template_name = kwargs.pop("template_name", "account/language_change.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     if request.method == "POST":
         form = form_class(request.user, request.POST)
         if form.is_valid():
@@ -424,29 +424,29 @@ def language_change(request, **kwargs):
             return HttpResponseRedirect(next)
     else:
         form = form_class(request.user)
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "form": form,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
 def other_services(request, **kwargs):
-    
+
     from microblogging.utils import twitter_verify_credentials
-    
+
     template_name = kwargs.pop("template_name", "account/other_services.html")
-    
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     twitter_form = TwitterForm(request.user)
     twitter_authorized = False
     if request.method == "POST":
         twitter_form = TwitterForm(request.user, request.POST)
-        
+
         if request.POST["actionType"] == "saveTwitter":
             if twitter_form.is_valid():
                 from microblogging.utils import twitter_account_raw
@@ -468,28 +468,69 @@ def other_services(request, **kwargs):
         twitter_account = twitter_account_for_user(request.user)
         twitter_authorized = twitter_verify_credentials(twitter_account)
         twitter_form = TwitterForm(request.user)
-    
+
     ctx = group_context(group, bridge)
     ctx.update({
         "twitter_form": twitter_form,
         "twitter_authorized": twitter_authorized,
     })
-    
+
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
 @login_required
-def other_services_remove(request):
-    
+def other_services_remove(request, **kwargs):
+
     group, bridge = group_and_bridge(kwargs)
-    
+
     # @@@ this is a bit coupled
     OtherServiceInfo.objects.filter(user=request.user).filter(
         Q(key="twitter_user") | Q(key="twitter_password")
     ).delete()
-    
+
     messages.add_message(request, messages.SUCCESS,
         ugettext("Removed twitter account information successfully.")
     )
-    
-    return HttpResponseRedirect(reverse("acct_other_services"))
+
+    return HttpResponseRedirect(urlresolvers.reverse("acct_other_services"))
+
+
+@login_required
+@require_POST
+def mark_delete(request):
+    """Mark user deleted"""
+    obj = get_object_or_404(User, pk=request.user.pk)
+    username = obj.username
+    email = obj.email
+    user_displayed = user_display(obj)
+
+    if request.method == "POST" and request.POST["action"] == "delete":
+
+        logout(request)
+
+        count = 0
+        while True:
+            username_prefixed = '__{0}_{1}'.format(count, username)
+            if not User.objects.filter(username=username_prefixed).exists():
+                break
+            count += 1
+
+        count = 0
+        while True:
+            email_prefixed = '__{0}_{1}'.format(count, email)
+            if not User.objects.filter(email=email_prefixed).exists():
+                break
+            count += 1
+
+        User.objects.filter(pk=obj.pk).update(
+            is_active=False,
+            username=username_prefixed,
+            email=email_prefixed
+        )
+
+        messages.add_message(request, messages.SUCCESS,
+            _("Successfully deleted user '%s'") % user_displayed
+        )
+        return HttpResponseRedirect(urlresolvers.reverse("home"))
+
+    return HttpResponseRedirect(obj.get_absolute_url())
