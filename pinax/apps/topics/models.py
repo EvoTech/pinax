@@ -2,22 +2,22 @@ from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from django.conf import settings
-from django.core import urlresolvers
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.contrib.sites.models import Site
+from django.core import urlresolvers
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
+
+from django_markup.markup import formatter
+from tagging.fields import TagField
+from threadedcomments.models import ThreadedComment
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
     notification = None
-
-from tagging.fields import TagField
-from threadedcomments.models import ThreadedComment
 
 try:
     str = unicode  # Python 2.* compatible
@@ -46,7 +46,7 @@ class Topic(models.Model):
     body = models.TextField(_("body"), blank=True)
     markup = models.CharField(_("Content Markup"),
         max_length=50,
-        choices=MARKUP_CHOICES,
+        choices=formatter.choices(MARKUP_CHOICES),
         null=True,
         blank=True
     )

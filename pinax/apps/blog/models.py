@@ -2,12 +2,12 @@ from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import User
-
+from django_markup.markup import formatter
 from tagging.fields import TagField
 from tagging.models import Tag
 from threadedcomments.models import ThreadedComment
@@ -51,7 +51,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(_("updated at"))
     markup = models.CharField(_("Post Content Markup"),
         max_length=50,
-        choices=MARKUP_CHOICES,
+        choices=formatter.choices(MARKUP_CHOICES),
         null=True,
         blank=True
     )

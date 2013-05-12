@@ -11,6 +11,7 @@ from django.contrib.contenttypes import generic
 from django.db.models.query import QuerySet
 
 import versioning
+from django_markup.markup import formatter
 from versioning.utils import revisions_for_object
 from tagging.fields import TagField
 from tagging.models import Tag
@@ -28,9 +29,9 @@ except NameError:
     pass
 
 try:
-    markup_choices = settings.WIKI_MARKUP_CHOICES
+    MARKUP_CHOICES = settings.WIKI_MARKUP_CHOICES
 except AttributeError:
-    markup_choices = (
+    MARKUP_CHOICES = (
         ('creole', _('Creole')),
         ('restructuredtext', _('reStructuredText')),
         ('textile', _('Textile')),
@@ -71,7 +72,7 @@ class Article(models.Model):
     markup = models.CharField(
         _("Content Markup"),
         max_length=100,
-        choices=markup_choices,
+        choices=formatter.choices(MARKUP_CHOICES),
         null=True,
         blank=True
     )
