@@ -8,13 +8,13 @@ from pinax.apps.blog.forms import *
 
 urlpatterns = patterns("",
     # blog post
-    url(r"^post/(?P<username>[-\w]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<slug>[-\w]+)/$", "pinax.apps.blog.views.post", name="blog_post"),
+    url(r"^post/(?P<username>[\w.+_-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<slug>[\w.+_-]+)/$", "pinax.apps.blog.views.post", name="blog_post"),
     
     # all blog posts
     url(r"^$", "pinax.apps.blog.views.blogs", name="blog_list_all"),
     
     # blog post for user
-    url(r"^posts/(?P<username>\w+)/$", "pinax.apps.blog.views.blogs", name="blog_list_user"),
+    url(r"^posts/(?P<username>[\w.+_-]+)/$", "pinax.apps.blog.views.blogs", name="blog_list_user"),
     
     # your posts
     url(r"^your_posts/$", "pinax.apps.blog.views.your_posts", name="blog_list_yours"),
