@@ -5,7 +5,6 @@
 {% load avatar_ext_tags %}
 {% load uni_form_tags %}
 {% load group_tags %}
-{% load microblogging_tags %}
 {% load blog_tags %}
 {% load wiki_tags %}
 {% load tagging_tags %}
@@ -72,24 +71,12 @@
             </div>
             
             {% if user.is_authenticated %}
-                <p>
-                    <a href="{% url tweet_followers other_user %}">{% trans "Followers" %}</a>: {% follower_count other_user %}
-                    <a href="{% url tweet_following other_user %}">{% trans "Following" %}</a>: {% following_count other_user %}
-                </p>
                 
                 {% if is_me %}
                 {% else %}
                     {# @@@ this could be done with ajax, or at the very least turned into an inclusion tag #}
                     <div>
-                        <form method="POST" action="{% url toggle_follow other_user %}">
-                            {% csrf_token %}
-                            {% if is_following %}
-                                <input type="hidden" name="action" value="unfollow" /><input type="submit" value="{% trans "unfollow" %}"/>
-                            {% else %}
-                                <input type="hidden" name="action" value="follow" /><input type="submit" value="{% trans "follow tweets" %}"/>
-                            {% endif %}
-                            <a href="{% url messages_compose_to other_user.username %}">{% trans "Send private message." as priv_msg %}{% silk 'email_go' alt=priv_msg title=priv_msg %}</a>
-                        </form>
+                        <a href="{% url messages_compose_to other_user.username %}">{% trans "Send private message." as priv_msg %}{% silk 'email_go' alt=priv_msg title=priv_msg %}</a>
                     </div>
                     
                     {# @@@ this should be an inclusion tag #}
@@ -156,9 +143,35 @@
                 {% else %}
                     <p>{% trans "No wiki articles yet." %}</p>
                 {% endif %}
-                
+
+
+                {% if other_user.added_posts.all %}
+                    <h2><a href="{% url blog_list_user username=other_user.username %}">{% trans "Blog Posts" %}</a></h2>
+                    {% for blog_post in other_user.added_posts.all|slice:":5" %}
+                        {% show_blog_post blog_post %}
+                    {% endfor %}
+                {% else %}
+                    <h2>{% trans "Blog Posts" %}</h2>
+                    {% trans "No blog posts yet." %}
+                {% endif %}
+
+
+
+                {% public_photos for other_user as photos %}
+                {% if photos %}
+                    <h2><a href="{% url photos_member username=other_user.username %}">{% trans "Photos" %}</a></h2>
+                    <div class="thumb-row clearfix">
+                    {% for photo in photos|slice:":10" %}
+                        {% include "photos/list_item.html" with photo=photo %}
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <h2>{% trans "Photos" %}</h2>
+                   {% trans "No photos uploaded yet." %}
+                {% endif %}
+
+
                 <h2>{% trans "Bookmarks" %}</h2>
-                
                 {% if other_user.saved_bookmarks.all %}
                     <table class="bookmarks narrow">
                         {% for bookmark_instance in other_user.saved_bookmarks.all.select_related|slice:":5" %}
@@ -177,51 +190,16 @@
                     </table>
                 {% else %}
                     {% url add_bookmark as add_bookmark_url %}
-                    <p>{% blocktrans %}You haven't added any <a href="{{ add_bookmark_url }}">bookmarks</a> yet.{% endblocktrans %}</p>
+                    <p>{% blocktrans %}User haven't added any <a href="{{ add_bookmark_url }}">bookmarks</a> yet.{% endblocktrans %}</p>
                 {% endif %}
                 
-                
-                <h2>{% trans "Blog Posts" %}</h2>
-                
-                {% if other_user.added_posts.all %}
-                    {% for blog_post in other_user.added_posts.all|slice:":5" %}
-                        {% show_blog_post blog_post %}
-                    {% endfor %}
-                {% else %}
-                    {% trans "No blog posts yet." %}
-                {% endif %}
-                
-                
-                <h2>{% trans "Tweets" %}</h2>
-                
-                {% if user.is_authenticated and is_me %}
-                    {% sent_tweet_listing user 0 is_me %}
-                {% else %}
-                    {% sent_tweet_listing other_user 0 is_me %}
-                {% endif %}
-                
-                
-                <h2>{% trans "Photos" %}</h2>
-                
-                {% public_photos for other_user as photos %}
-                
-                {% if photos %}
-                    <div class="clearfix">
-                    {% for photo in photos|slice:":10" %}
-                        <div class="gallery-photo-thumb">
-                            <a href="/photos/details/{{ photo.id }}/"><img src="{{ photo.get_thumbnail_url }}" alt="{{ photo.title }}"/></a>
-                        </div>
-                    {% endfor %}
-                    </div>
-                {% else %}
-                   {% trans "No photos uploaded yet." %}
-                {% endif %}
-                
-            {% else %} {# not user.is_authenticated #}
+            {% else %}
+                {# not user.is_authenticated #}
                 {% url acct_signup as signup_url %}
                 {% url acct_login as login_url %}
-                <p>{% blocktrans %}<a href="{{ signup_url }}">Sign up</a> and <a href="{{ login_url }}">log in </a> to add this person as a friend and see their tweets and blog posts.{% endblocktrans %}</p>
+                <p>{% blocktrans %}<a href="{{ signup_url }}">Sign up</a> and <a href="{{ login_url }}">log in </a> to add this person as a friend and see their blog posts.{% endblocktrans %}</p>
             {% endif %}
+
         </div><!--/vcard-->
     </div>
 {% endblock %}

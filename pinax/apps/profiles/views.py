@@ -15,7 +15,6 @@ from django.contrib.auth.models import User
 from avatar.templatetags.avatar_tags import avatar
 from friends.forms import InviteFriendForm
 from friends.models import FriendshipInvitation, Friendship
-from microblogging.models import Following
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
@@ -55,7 +54,7 @@ def profile(request, username,
     
     if request.user.is_authenticated():
         is_friend = Friendship.objects.are_friends(request.user, other_user)
-        is_following = Following.objects.is_following(request.user, other_user)
+        is_following = False
         other_friends = Friendship.objects.friends_for_user(other_user)
         if request.user == other_user:
             is_me = True

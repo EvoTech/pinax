@@ -6,8 +6,6 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _, ugettext
-from django.utils.encoding import smart_unicode
-from django.utils.hashcompat import sha_constructor
 from django.utils.http import int_to_base36
 
 from django.contrib import messages
@@ -21,8 +19,7 @@ from emailconfirmation.models import EmailAddress
 from timezones.forms import TimeZoneField
 
 from pinax.apps.account.models import Account, PasswordReset
-from pinax.apps.account.models import OtherServiceInfo, other_service, update_other_services
-from pinax.apps.account.utils import user_display, perform_login
+from pinax.apps.account.utils import perform_login
 from pinax.utils.make_agreement_form import make_agreement_form
 
 
@@ -40,14 +37,14 @@ UNIQUE_EMAIL = getattr(settings, "ACCOUNT_UNIQUE_EMAIL", False)
 
 
 class GroupForm(forms.Form):
-    
+
     def __init__(self, *args, **kwargs):
         self.group = kwargs.pop("group", None)
         super(GroupForm, self).__init__(*args, **kwargs)
 
 
 class LoginForm(GroupForm):
-    
+
     password = forms.CharField(
         label = _("Password"),
         widget = forms.PasswordInput(render_value=False)
@@ -474,23 +471,3 @@ class ChangeLanguageForm(AccountForm):
     def save(self):
         self.account.language = self.cleaned_data["language"]
         self.account.save()
-
-
-class TwitterForm(UserForm):
-    username = forms.CharField(label=_("Username"), required=True)
-    password = forms.CharField(
-        label = _("Password"),
-        required = True,
-        widget = forms.PasswordInput(render_value=False)
-    )
-    
-    def __init__(self, *args, **kwargs):
-        super(TwitterForm, self).__init__(*args, **kwargs)
-        self.initial.update({"username": other_service(self.user, "twitter_user")})
-    
-    def save(self):
-        from microblogging.utils import get_twitter_password
-        update_other_services(self.user,
-            twitter_user = self.cleaned_data["username"],
-            twitter_password = get_twitter_password(settings.SECRET_KEY, self.cleaned_data["password"]),
-        )

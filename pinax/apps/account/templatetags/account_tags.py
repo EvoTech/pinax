@@ -34,7 +34,7 @@ def do_user_display(parser, token):
     
     or if you need to use in a {% blocktrans %}::
     
-        {% user_display user as user_display}
+        {% user_display user as user_display %}
         {% blocktrans %}{{ user_display }} has sent you a gift.{% endblocktrans %}
     
     """

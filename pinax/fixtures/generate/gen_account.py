@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.template.defaultfilters import capfirst
 from django.conf import settings
 
-from pinax.apps.account.models import Account, update_other_services
+from pinax.apps.account.models import Account
 from timezones.forms import COMMON_TIMEZONE_CHOICES
 
 RSS_FEEDS = (
@@ -25,9 +25,6 @@ def generate():
                 language = random.choice(settings.LANGUAGES)[0],
             ),
         )
-        update_other_services(user, **dict(
-            blogrss=random.choice(RSS_FEEDS),
-        ))
         print "Created User Account: %s" % (account,)
 
 if __name__ == "__main__":

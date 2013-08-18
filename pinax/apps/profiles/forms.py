@@ -14,8 +14,6 @@ class ProfileFormBase(forms.ModelForm):
             "blogrss",
             "timezone",
             "language",
-            "twitter_user",
-            "twitter_password",
         ]
 
 ProfileForm = make_agreement_form(ProfileFormBase)

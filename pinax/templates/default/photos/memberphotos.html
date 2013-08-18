@@ -9,12 +9,12 @@
 {% load comments %}
 {% load theme_tags %}
 
-{% block head_title %}{% blocktrans %}Your Photos{% endblocktrans %}{% endblock %}
+{% block head_title %}{% user_display member as user_display %}{% blocktrans %}Photos from {{ user_display }}{% endblocktrans %}{% endblock %}
 
 {% block body %}
     
-    <h1>{% trans "Photos from " %}{{ user.username }}</h1>
-    
+    <h1>{% user_display member as user_display %}{% blocktrans %}Photos from {{ user_display }}{% endblocktrans %}</h1>
+
     {% if photos %}
     {% autopaginate photos %}
         <div class="thumb-row clearfix">

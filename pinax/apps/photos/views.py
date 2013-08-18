@@ -222,9 +222,9 @@ def memberphotos(request, username, template_name="photos/memberphotos.html"):
             raise Http404
     else:
         group = None
-    
+
     user = get_object_or_404(User, username=username)
-    
+
     photos = Image.objects.filter(
         member__username = username,
         is_public = True,
@@ -240,9 +240,10 @@ def memberphotos(request, username, template_name="photos/memberphotos.html"):
     ctx = group_context(group, bridge)
     ctx.update({
         "photos": photos,
+        "member": user,
     })
-    
-    return render_to_response(template_name, RequestContext(request, ctx))
+    ctx = RequestContext(request, ctx)
+    return render_to_response(template_name, ctx)
 
 
 @login_required

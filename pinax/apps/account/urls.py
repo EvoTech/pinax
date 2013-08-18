@@ -23,8 +23,6 @@ urlpatterns = patterns("",
         "template": "account/password_delete_done.html",
     }, name="acct_passwd_delete_done"),
     url(r"^timezone/$", "pinax.apps.account.views.timezone_change", name="acct_timezone_change"),
-    url(r"^other_services/$", "pinax.apps.account.views.other_services", name="acct_other_services"),
-    url(r"^other_services/remove/$", "pinax.apps.account.views.other_services_remove", name="acct_other_services_remove"),
     
     url(r"^language/$", "pinax.apps.account.views.language_change", name="acct_language_change"),
     url(r"^logout/$", "django.contrib.auth.views.logout", {"template_name": "account/logout.html"}, name="acct_logout"),
