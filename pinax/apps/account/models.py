@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import sys
 
 from datetime import datetime
@@ -5,13 +6,18 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.translation import get_language_from_request, ugettext_lazy as _
+from django.utils.translation import get_language_from_request, get_language, ugettext_lazy as _
 
 from django.contrib.auth.models import User, AnonymousUser
 
 from emailconfirmation.models import EmailAddress, EmailConfirmation
 from emailconfirmation.signals import email_confirmed
 from timezones.fields import TimeZoneField
+
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 
 
@@ -26,7 +32,7 @@ class Account(models.Model):
         default = settings.LANGUAGE_CODE
     )
     
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
 
@@ -41,8 +47,8 @@ class OtherServiceInfo(models.Model):
     class Meta:
         unique_together = [("user", "key")]
     
-    def __unicode__(self):
-        return u"%s for %s" % (self.key, self.user)
+    def __str__(self):
+        return "{0} for {1}".format(self.key, self.user)
 
 
 def other_service(user, key, default_value=""):
@@ -64,7 +70,7 @@ def update_other_services(user, **kwargs):
     
     e.g. update_other_services(user, twitter_user=..., twitter_password=...)
     """
-    for key, value in kwargs.items():
+    for key, value in list(kwargs.items()):
         info, created = OtherServiceInfo.objects.get_or_create(user=user, key=key)
         info.value = value
         info.save()
@@ -73,7 +79,10 @@ def update_other_services(user, **kwargs):
 def create_account(sender, instance=None, **kwargs):
     if instance is None:
         return
-    account, created = Account.objects.get_or_create(user=instance)
+    account, created = Account.objects.get_or_create(
+        user=instance,
+        defaults={'language': get_language(), }
+    )
 
 
 post_save.connect(create_account, sender=User)
@@ -107,7 +116,7 @@ class AnonymousAccount(object):
         else:
             self.language = settings.LANGUAGE_CODE
     
-    def __unicode__(self):
+    def __str__(self):
         return "AnonymousAccount"
 
 
@@ -119,8 +128,8 @@ class PasswordReset(models.Model):
     timestamp = models.DateTimeField(_("timestamp"), default=datetime.now)
     reset = models.BooleanField(_("reset yet?"), default=False)
     
-    def __unicode__(self):
-        return "%s (key=%s, reset=%r)" % (
+    def __str__(self):
+        return "{0} (key={1}, reset={2})".format(
             self.user.username,
             self.temp_key,
             self.reset
@@ -134,3 +143,13 @@ def mark_user_active(sender, instance=None, **kwargs):
 
 
 email_confirmed.connect(mark_user_active, sender=EmailConfirmation)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Account, OtherServiceInfo, AnonymousAccount, PasswordReset, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import forms
 from django.utils.encoding import force_unicode
 from django.utils.html import escape, conditional_escape
@@ -25,7 +26,7 @@ class ReadOnlyWidget(forms.TextInput):
                         output = conditional_escape(force_unicode(choice[1]))
             else:
                     output = escape(value)
-        except Exception,e:
+        except Exception as e:
             output = e
         
-        return mark_safe("<span>%s</span>\n%s" % (output, field_value))
+        return mark_safe("<span>{0}</span>\n{1}".format(output, field_value))

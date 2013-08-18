@@ -1,0 +1,6 @@
+{% load i18n %}{% url profile_detail username=creator.username as creator_url %}
+{% if group %}
+{% blocktrans with image.get_absolute_url as image_url and group.get_absolute_url as group_url %}<a href="{{ creator_url }}">{{ creator }}</a> has added an image '<a href="{{ image_url }}">{{ image }}</a>' in '<a href="{{ group_url }}">{{ group }}</a>'.{% endblocktrans %}
+{% else %}
+{% blocktrans with image.get_absolute_url as image_url %}<a href="{{ creator_url }}">{{ creator }}</a> has added an image '<a href="{{ image_url }}">{{ image }}</a>'.{% endblocktrans %}
+{% endif %}

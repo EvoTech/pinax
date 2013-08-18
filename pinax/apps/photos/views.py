@@ -1,7 +1,8 @@
+from __future__ import absolute_import, unicode_literals
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.http import Http404, HttpResponseRedirect, get_host
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -15,6 +16,15 @@ from photologue.models import *
 from pinax.apps.photos.models import Image, Pool
 from pinax.apps.photos.forms import PhotoUploadForm, PhotoEditForm
 
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
+
+try:
+    from friends.models import Friendship
+except ImportError:
+    Friendship = None
 
 
 def group_and_bridge(request):
@@ -70,7 +80,22 @@ def upload(request, form_class=PhotoUploadForm, template_name="photos/upload.htm
                 messages.add_message(request, messages.SUCCESS,
                     ugettext("Successfully uploaded photo '%s'") % photo.title
                 )
-                
+
+                if notification:
+                    # Fixed TypeError: can't pickle function objects
+                    # photo = Image.objects.get(pk=photo.pk)
+                    if group:
+                        notify_list = group.member_queryset().exclude(id__exact=photo.member.id)
+                    else:
+                        notify_list = [x['friend'] for x in Friendship.objects.friends_for_user(photo.member)]
+
+                    notification.send(notify_list, "photos_image_new", {
+                        "creator": photo.member,
+                        "image": photo,
+                        "group": photo.group,
+                        "context_object": photo,
+                    })
+
                 include_kwargs = {"id": photo.id}
                 if group:
                     redirect_to = bridge.reverse("photo_details", group, kwargs=include_kwargs)
@@ -164,7 +189,7 @@ def details(request, id, template_name="photos/details.html"):
     photo_url = photo.get_display_url()
     
     title = photo.title
-    host = "http://%s" % get_host(request)
+    host = "http://{0}".format(request.get_host())
     
     if photo.member == request.user:
         is_me = True

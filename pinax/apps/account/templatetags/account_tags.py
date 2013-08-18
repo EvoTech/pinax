@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 from django.conf import settings
 from django.utils.html import conditional_escape
@@ -46,6 +47,6 @@ def do_user_display(parser, token):
         user = bits[1]
         as_var = bits[3]
     else:
-        raise template.TemplateSyntaxError("'%s' takes either two or four arguments" % bits[0])
+        raise template.TemplateSyntaxError("'{0}' takes either two or four arguments".format(bits[0]))
     
     return UserDisplayNode(user, as_var)

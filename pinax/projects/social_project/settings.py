@@ -171,7 +171,7 @@ INSTALLED_APPS = [
     "oembed",
     "groups",
     "threadedcomments",
-    "wakawaka",
+    "pinax.apps.wiki",
     "swaps",
     "voting",
     "tagging",

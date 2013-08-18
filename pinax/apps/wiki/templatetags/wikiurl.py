@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+from __future__ import absolute_import, unicode_literals
 from django.template import Node, Library, TemplateSyntaxError
 from django.core.urlresolvers import reverse, NoReverseMatch
 
@@ -46,7 +45,7 @@ class WikiURLNode(Node):
             try:
                 url_bits = ['/', app, reverse(self.url_name, urlconf, kwargs=kw)]
                 url = ''.join(url_bits) # @@@ hardcoding /app_name/wiki_url/
-            except NoReverseMatch, err:
+            except NoReverseMatch as err:
                 if self.asvar is None:
                     raise
         else:
@@ -110,7 +109,7 @@ def wikiurl(parser, token):
             kwargs['revision'] = parser.compile_filter(bits[4])
     elif len(bits) == 6: # {% wikiurl url_name group article as var %}
         if bits[4] == "as":
-            raise TemplateSyntaxError("4th argument to %s should be 'as'" % bits[0])
+            raise TemplateSyntaxError("4th argument to {0} should be 'as'".format(bits[0]))
         url_name = bits[1]
         group = parser.compile_filter(bits[2])
         kwargs['article'] = parser.compile_filter(bits[3])
@@ -122,7 +121,7 @@ def wikiurl(parser, token):
         kwargs['revision'] = parser.compile_filter(bits[4])
         kwargs['asvar'] = parser.compile_filter(bits[6])
     else:
-        raise TemplateSyntaxError("wrong number of arguments to %s" % bits[0])
+        raise TemplateSyntaxError("wrong number of arguments to {0}".format(bits[0]))
     return WikiURLNode(url_name, group, **kwargs)
 
 wikiurl = register.tag(wikiurl)

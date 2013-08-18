@@ -1,20 +1,41 @@
+{% load i18n %}
 {% load account_tags %}
 {% load wiki_tags %}
-{% load avatar_tags %}
+{% load avatar_ext_tags %}
 {% load markup_tags %}
+{% load is_allowed_tags %}
+{% load theme_tags %}
+{% load url_full_tags %}
 
+{% is_allowed perm="wiki.browse_article" obj=article as allowed_for_browse %}
+{% if allowed_for_browse %}
 <tr class="{% cycle odd,even %}">
     <td class="meta">
-        <div class="avatar">{% avatar article.latest_changeset.editor 40 %}</div>
-        <div class="details">
-            <a href="{% url profile_detail article.latest_changeset.editor.username %}">
-                {% user_display article.latest_changeset.editor %}
-            </a>
-        </div>
+        {% with editor=article.latest_changeset.editor %}
+            {% if editor.username %}
+                <div class="avatar">{% avatar editor 40 %}</div>
+                <div class="details">
+                    <a href="{% url_full profile_detail editor.username %}">
+                        {% user_display editor %}
+                    </a>
+                </div>
+            {% endif %}
+        {% endwith %}
         {{ article.last_update|date }}
     </td>
     <td>
         <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
-        <div class="body">{{ article.summary|apply_markup:article.markup }}</div>
+        <div class="body">{{ article.summary|apply_markup:article.markup|wiki_links:article.group }}</div>
     </td>
 </tr>
+{% else %}
+<tr class="{% cycle odd,even %}">
+    <td class="meta">
+        &nbsp;
+    </td>
+    <td>
+        {% trans "Private content" as private_msg %}
+        &nbsp; {% silk "lock" alt=private_msg title=private_msg %} {{ private_msg }}
+    </td>
+</tr>
+{% endif %}

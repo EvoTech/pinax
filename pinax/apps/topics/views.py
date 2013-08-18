@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import os
 
 from django.conf import settings
@@ -99,7 +100,7 @@ def topics(request, form_class=TopicForm, template_name="topics/topics.html"):
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
-def topic(request, topic_id, edit=False, template_name="topics/topic.html"):
+def topic(request, topic_id, edit=False, form_class=TopicForm, template_name="topics/topic.html"):
     
     group, bridge = group_and_bridge(request)
     if group:
@@ -110,15 +111,16 @@ def topic(request, topic_id, edit=False, template_name="topics/topic.html"):
         topics = Topic.objects.filter(object_id=None)
     
     topic = get_object_or_404(topics, id=topic_id)
-    
+    topic_form = form_class(request.POST or None, instance=topic)
     if (request.method == "POST" and edit == True and (request.user == topic.creator or request.user == topic.group.creator)):
-        topic.body = request.POST["body"]
-        topic.save()
-        return HttpResponseRedirect(topic.get_absolute_url())
+        if topic_form.is_valid():
+            topic_form.save()
+            return HttpResponseRedirect(topic.get_absolute_url())
     
     ctx = group_context(group, bridge)
     ctx.update({
         "topic": topic,
+        "topic_form": topic_form,
         "edit": edit,
     })
     
@@ -138,7 +140,6 @@ def topic_delete(request, topic_id, group_slug=None, bridge=None):
     topic = get_object_or_404(topics, id=topic_id)
     
     if (request.method == "POST" and (request.user == topic.creator or request.user == topic.group.creator)):
-        ThreadedComment.objects.all_for_object(topic).delete()
         topic.delete()
     
     return HttpResponseRedirect(request.POST["next"])

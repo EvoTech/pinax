@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf.urls.defaults import *
 
 from pinax.apps.tribes.models import Tribe
@@ -17,6 +18,7 @@ urlpatterns = patterns("pinax.apps.tribes.views",
     
     # tribe-specific
     url(r"^tribe/(?P<group_slug>[-\w]+)/$", "tribe", name="tribe_detail"),
+    url(r"^tribe/(?P<group_slug>[-\w]+)/members/$", "members", name="tribe_members"),
     url(r"^tribe/(?P<group_slug>[-\w]+)/delete/$", "delete", name="tribe_delete"),
 )
 

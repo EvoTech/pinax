@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
@@ -7,7 +8,7 @@ from django.utils.translation import ugettext
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 
 from pinax.apps.account.utils import get_default_redirect, user_display
 from pinax.apps.signup_codes.models import check_signup_code
@@ -106,7 +107,7 @@ def signup(request, **kwargs):
     return render_to_response(template_name, RequestContext(request, ctx))
 
 
-@staff_member_required
+@permission_required('signup_codes.add_signupcode')
 def admin_invite_user(request, **kwargs):
     """
     This view, by default, works inside the Django admin.

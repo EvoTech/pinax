@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import optparse
 
 import pinax
@@ -22,9 +23,9 @@ class BaseCommand(object):
         return pinax.__version__
     
     def usage(self, command):
-        usage = "%%prog %s [options] %s" % (command, self.args)
+        usage = "%%prog {0} [options] {1}".format(command, self.args)
         if self.help:
-            return "%s\n\n%s" % (usage, self.help)
+            return "{0}\n\n{1}".format(usage, self.help)
         else:
             return usage
     

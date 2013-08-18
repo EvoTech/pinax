@@ -1,16 +1,22 @@
+from __future__ import absolute_import, unicode_literals
 from django.contrib.auth.models import  User
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from groups.base import Group
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
+
 MEMBER_STATUSES = [
-    ('inactive', _(u"inactive")),
-    ('requested', _(u"requested")),
-    ('invited', _(u"invited")),
-    ('active', _(u"active")),
-    ('blocked', _(u"blocked")),
+    ('inactive', _("inactive")),
+    ('requested', _("requested")),
+    ('invited', _("invited")),
+    ('active', _("active")),
+    ('blocked', _("blocked")),
 ]
 
 
@@ -24,17 +30,18 @@ class Tribe(Group):
     # private means only members can see the tribe
     private = models.BooleanField(_("private"), default=False)
 
-    def __unicode__(self):
-        return u"{0} ({1})".format(self.name, self.slug)
+    def __str__(self):
+        return "{0} ({1})".format(self.name, self.slug)
 
     def get_absolute_url(self):
-        return reverse("tribe_detail", kwargs={"group_slug": self.slug})
+        return urlresolvers.reverse("tribe_detail", kwargs={"group_slug": self.slug})
 
     def member_queryset(self):
         return User.objects.filter(
             tribes__status='active',
             tribes__tribe=self,
-        )
+            is_active=True
+        ).order_by("-date_joined")
 
     def user_is_member(self, user):
         if not user.is_authenticated():
@@ -47,12 +54,24 @@ class Tribe(Group):
 
     def is_allowed(self, user, perm=None):
         """Checks permissions."""
-        if perm == 'tribes.view_tribe':
+        if perm in ('tribes.view_tribe', ):
             return not self.private or self.user_is_member(user)
-        if perm == 'tribes.browse_tribe':
+
+        if perm  in ('tribes.browse_tribe', ):
             return True
-        if perm in ('tribes.add_tribe', 'tribes.change_tribe', ):
-            return user == self.creator
+
+        if perm in ('tribes.add_tribe', ):
+            return user.is_authenticated()
+
+        if perm in ('tribes.change_tribe', ):
+            return self.creator == user
+
+        if perm in ('tribes.delete_tribe', ):
+            return False
+
+        if perm in ('comments.add_comment', ):
+            return self.user_is_member(user)
+
         return False
 
 
@@ -80,8 +99,8 @@ class TribeMember(models.Model):
     class Meta:
         unique_together = [("user", "tribe")]
 
-    def __unicode__(self):
-        return u"{0} - {1}".format(self.tribe, self.user)
+    def __str__(self):
+        return "{0} - {1}".format(self.tribe, self.user)
 
 
 class TribeRole(models.Model):
@@ -90,7 +109,7 @@ class TribeRole(models.Model):
     title = models.CharField(_("title"), max_length=150, default="")
     description = models.TextField(_("description"), default="")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -109,8 +128,8 @@ class TribeMemberRole(models.Model):
     actor = models.ForeignKey(User)
     date = models.DateTimeField(_("date"), auto_now_add=True)
 
-    def __unicode__(self):
-        return u"{0} - {1}".format(self.member, self.role)
+    def __str__(self):
+        return "{0} - {1}".format(self.member, self.role)
 
 
 class TribeMemberHistory(models.Model):
@@ -131,5 +150,16 @@ class TribeMemberHistory(models.Model):
     date = models.DateTimeField(_("date"), auto_now_add=True)
     actor = models.ForeignKey(User)
 
-    def __unicode__(self):
-        return u"{0} - {1}".format(self.member, self.status)
+    def __str__(self):
+        return "{0} - {1}".format(self.member, self.status)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Tribe, TribeMember, TribeRole, TribeMemberRole,
+                TribeMemberHistory, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

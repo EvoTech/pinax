@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -58,7 +59,7 @@ class ProjectUpdateForm(forms.ModelForm):
 
 class AddUserForm(forms.Form):
     
-    recipient = forms.CharField(label=_(u"User"))
+    recipient = forms.CharField(label=_("User"))
     
     def __init__(self, *args, **kwargs):
         self.project = kwargs.pop("project")

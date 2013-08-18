@@ -1,0 +1,17 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load markup_tags %}
+
+{% block head_title %}{{ flatpage.title }}{% endblock %}
+
+{% block body_class %}flatpages-detail{% endblock %}
+
+{% block body %}
+
+    <h1>{{ flatpage.title }}</h1>
+
+    <div class="flatpages-detail-content">
+        {{ flatpage.content|apply_markup:"filtered_html" }}
+    </div>
+
+{% endblock %}

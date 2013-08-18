@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 """
 Simplistic switch/case tag for Django.
 
@@ -33,7 +34,7 @@ def switch(parser, token):
     # Parse out the arguments.
     args = token.split_contents()
     if len(args) != 2:
-        raise template.TemplateSyntaxError("%s tag tags exactly 2 arguments." % args[0])
+        raise template.TemplateSyntaxError("{0} tag tags exactly 2 arguments.".format(args[0]))
     
     # Pull out all the children of the switch tag (until {% endswitch %}).
     childnodes = parser.parse(("endswitch",))

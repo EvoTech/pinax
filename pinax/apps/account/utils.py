@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 
 from django.contrib.auth import login
@@ -29,6 +30,13 @@ def get_default_redirect(request, fallback_url, redirect_field_name="next", sess
 def user_display(user):
     func = getattr(settings, "ACCOUNT_USER_DISPLAY", lambda user: user.username)
     try:
+        if user is None:
+            return _("deleted user")
+        if user.username.startswith("__"):
+            # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
+            return _("deleted user")
+        if not user.is_active:
+            return _("inactive user")
         return func(user)
     except AttributeError:
         return _("deleted user")

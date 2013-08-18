@@ -161,7 +161,7 @@ INSTALLED_APPS = [
     "avatar",
     "tagging",
     "threadedcomments",
-    "wakawaka",
+    "pinax.apps.wiki",
     "django_markup",
     "attachments",
     "django_filters",

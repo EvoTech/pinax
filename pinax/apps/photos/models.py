@@ -1,25 +1,34 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
-from django.core.urlresolvers import reverse
+from django.core import urlresolvers
 from django.db import models
 
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.utils.translation import ugettext_lazy as _
+
+from groups.base import Group
+from tagging.fields import TagField
+from threadedcomments.models import ThreadedComment
 
 from photologue.models import *
 
-from tagging.fields import TagField
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
 
-from django.utils.translation import ugettext_lazy as _
-
-
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 PUBLISH_CHOICES = (
     (1, _("Public")),
     (2, _("Private")),
 )
-
 
 
 class PhotoSet(models.Model):
@@ -75,11 +84,79 @@ class Image(ImageModel):
     )
     tags = TagField()
     
-    def __unicode__(self):
+    def __str__(self):
         return self.title
     
     def get_absolute_url(self):
-        return reverse("photo_details", args=[self.pk])
+        if self.group:
+            group = self.pool_set.all()[0].content_object
+            return group.content_bridge.reverse(
+                'photo_details', group,
+                kwargs={'id': self.pk, }
+            )
+        return urlresolvers.reverse("photo_details", args=[self.pk])
+
+    @property
+    def group(self):
+        """Returns group"""
+        for pool in self.pool_set.all():
+            group = pool.content_object
+            if isinstance(group, Group):
+                return group
+        return None
+
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if self.group:
+            if perm in ('photos.view_image',
+                        'photos.browse_image', ):
+                return user.has_perm('view', self.group)
+
+            if perm in ('photos.change_image', ):
+                return self.member == user or user.has_perm(perm, self.group)
+
+            if perm in ('photos.add_image', ):
+                return self.group.user_is_member(user)
+
+            if perm in ('comments.add_comment', ):
+                return self.group.user_is_member(user) or\
+                    user.has_perm(perm, self.group) or\
+                    user.has_perm('photos.comment_image', self.group)
+
+            if perm in ('photos.delete_image',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return user.has_perm(perm, self.group)
+
+        else:
+            if perm in ('photos.view_image',
+                        'photos.browse_image', ):
+                return True
+
+            if perm in ('photos.change_image', ):
+                return self.member == user
+
+            if perm in ('photos.add_image',
+                        'comments.add_comment', ):
+                return user.is_authenticated()
+
+            if perm in ('photos.delete_image',
+                        'comments.change_comment', 
+                        'comments.delete_comment', ):
+                return False
+
+        return False
+
+
+def reduce_patched(self, *a, **kw):
+    """Excludes curry"""
+    r = list(super(ImageModel, self).__reduce__(*a, **kw))
+    for k, v in r[2].copy().items():
+        if getattr(v, '__name__', None) == '_curried':
+            del r[2][k]
+    return tuple(r)
+
+setattr(ImageModel, '__reduce__', reduce_patched)
 
 
 class Pool(models.Model):
@@ -98,3 +175,40 @@ class Pool(models.Model):
         unique_together = [("photo", "content_type", "object_id")]
         verbose_name = _("pool")
         verbose_name_plural = _("pools")
+
+
+def photos_image_comment(sender, instance, **kwargs):
+    if isinstance(instance.content_object, Image):
+        image = instance.content_object
+        if notification:
+            group = image.group
+            notify_list = [image.member.pk, ]
+            from django.contrib.sites.models import Site
+            current_site = Site.objects.get_current()
+            notify_list += ThreadedComment.objects.for_model(image).filter(
+                is_public=True,
+                is_removed=False,
+                site=current_site,
+                object_pk=image.pk
+            ).values_list('user', flat=True)
+            notify_list = list(set(notify_list))
+            if instance.user.pk in notify_list:
+                notify_list.remove(instance.user.pk)
+            notification.send(notify_list, "photos_image_comment", {
+                "user": instance.user,
+                "image": image,
+                "comment": instance,
+                "group": group,
+            })
+
+models.signals.post_save.connect(photos_image_comment, sender=ThreadedComment)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (PhotoSet, Image, Pool, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

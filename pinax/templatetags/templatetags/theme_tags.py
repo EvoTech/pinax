@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 from django.conf import settings
 
@@ -25,13 +26,13 @@ class SilkNode(template.Node):
         """
         name = self.name.resolve(context)
         attrs = []
-        for k, v in self.attrs.iteritems():
-            attrs.append('%s="%s"' % (k, v.resolve(context)))
+        for k, v in self.attrs.items():
+            attrs.append('{0}="{1}"'.format(k, v.resolve(context)))
         if attrs:
-            attrs = " %s" % " ".join(attrs)
+            attrs = " {0}".format(" ".join(attrs))
         else:
             attrs = ""
-        return """<img src="%spinax/img/silk/icons/%s.png"%s />""" % (
+        return """<img src="{0}pinax/img/silk/icons/{1}.png"{2} />""".format(
             settings.STATIC_URL,
             name,
             attrs,

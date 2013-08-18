@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.conf.urls.defaults import *
 
@@ -14,6 +15,7 @@ urlpatterns = patterns("",
     url(r"^email/$", "pinax.apps.account.views.email", name="acct_email"),
     url(r"^signup/$", signup_view, name="acct_signup"),
     url(r"^login/$", "pinax.apps.account.views.login", name="acct_login"),
+    url(r"^delete/$", "pinax.apps.account.views.mark_delete", name="acct_mark_delete"),
     url(r"^password_change/$", "pinax.apps.account.views.password_change", name="acct_passwd"),
     url(r"^password_set/$", "pinax.apps.account.views.password_set", name="acct_passwd_set"),
     url(r"^password_delete/$", "pinax.apps.account.views.password_delete", name="acct_passwd_delete"),

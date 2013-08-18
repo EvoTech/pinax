@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import datetime
 import time
 
@@ -41,7 +42,7 @@ def calculate_shorttimesince(d, now=None):
     since = delta.days * 24 * 60 * 60 + delta.seconds
     if since <= 0:
         # d is in the future compared to now, stop processing.
-        return u"0" + ugettext("min")
+        return "0" + ugettext("min")
     for i, (seconds, name) in enumerate(chunks):
         count = since // seconds
         if count != 0:
@@ -63,7 +64,7 @@ def shorttimesince(value, arg=None):
     """Formats a date as the time since that date (i.e. "4 days, 6 hours")."""
     from django.utils.timesince import timesince
     if not value:
-        return u""
+        return ""
     if arg:
         return calculate_shorttimesince(arg, value)
     return calculate_shorttimesince(value)

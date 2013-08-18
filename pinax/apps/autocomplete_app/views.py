@@ -1,12 +1,10 @@
+from __future__ import absolute_import, unicode_literals
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden
 from django.utils import simplejson
 
-
-
 # @@@ these can be cleaned up a lot, made more generic and with better queries
-
 
 
 def username_autocomplete_all(request):
@@ -29,7 +27,7 @@ def username_autocomplete_all(request):
 
         content = []
         if q:
-            users = User.objects.filter(username__istartswith=q).order_by("username")[:limit]
+            users = User.objects.filter(is_active=True, username__istartswith=q).order_by("username")[:limit]
             # @@@ temporary hack -- don't try this at home (or on real sites)
             for user in users:
                 try:
@@ -73,7 +71,8 @@ def username_autocomplete_friends(request):
         if q:
             friends = Friendship.objects.friends_for_user(request.user)
             for friendship in friends:
-                if friendship["friend"].username.lower().startswith(q):
+                if friendship["friend"].is_active and\
+                        friendship["friend"].username.lower().startswith(q):
                     try:
                         profile = friendship["friend"].get_profile()
                         entry = {

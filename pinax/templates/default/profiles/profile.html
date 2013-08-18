@@ -2,13 +2,15 @@
 
 {% load i18n %}
 {% load account_tags %}
-{% load avatar_tags %}
+{% load avatar_ext_tags %}
 {% load uni_form_tags %}
 {% load group_tags %}
 {% load microblogging_tags %}
 {% load blog_tags %}
+{% load wiki_tags %}
 {% load tagging_tags %}
 {% load photo_tags %}
+{% load theme_tags %}
 
 {% block head_title %}{% user_display other_user as other_user_display %}{% blocktrans %}Profile for {{ other_user_display }}{% endblocktrans %}{% endblock %}
 
@@ -33,16 +35,41 @@
                 <h1>{% blocktrans %}Profile for <span class="fn nickname">{{ other_user_display }}</span>{% endblocktrans %}</h1>
             {% endif %}
             
+            {% if is_me %}
+                <table>
+                    <tr>
+                        <td width="30px" align="left">
+                            <a href="{% url profile_edit %}" title="Edit profile" rel="facebox">
+                                {% silk "pencil" %}
+                            </a>
+                        </td>
+                        <td>
+                            <form action="{% url acct_mark_delete %}" method="POST">
+                                {% csrf_token %}
+                                <input type="image" src="{{ STATIC_URL }}pinax/img/silk/icons/delete.png" border="0" title="{% trans "Delete profile" %}" class="delete" />
+                                <input type="hidden" name="action" value="delete"/>
+                            </form>
+                        </td>
+                    </tr>
+                </table>
+
+                <script type="text/javascript">
+                    $(function(){
+                        $('.delete').on("click", function(e){
+                            if (!confirm('{% trans "Are you sure? Delete it?" %}')) {
+                                e.preventDefault();
+                            }
+                        });
+                    });
+                </script>
+            {% endif %}
+            
             <div class="profile_info">
-                {% if other_user.get_profile.name %}<p><b>{% trans "Name" %}</b>: <span class="fn">{{ other_user.get_profile.name }}</span></p>{% endif %}
+                {% if other_user.get_profile.name %}<p><b>{% trans "Name" context "profiles" %}</b>: <span class="fn">{{ other_user.get_profile.name }}</span></p>{% endif %}
                 {% if other_user.get_profile.about %}<p><b>{% trans "About" %}</b>: {{ other_user.get_profile.about }}</p>{% endif %}
                 {% if other_user.get_profile.location%}<p><b>{% trans "Location" %}</b>: {{ other_user.get_profile.location }}</p>{% endif %}
                 {% if other_user.get_profile.website %}<p><b>{% trans "Website" %}</b>: <a class="url" href="#" onMouseOver="this.href='{{ other_user.get_profile.website }}'" rel="nofollow">{{ other_user.get_profile.website }}</a></p>{% endif %}
             </div>
-            
-            {% if is_me %}
-                <p><a href="{% url profile_edit %}" rel="facebox">Edit profile</a></p>
-            {% endif %}
             
             {% if user.is_authenticated %}
                 <p>
@@ -61,6 +88,7 @@
                             {% else %}
                                 <input type="hidden" name="action" value="follow" /><input type="submit" value="{% trans "follow tweets" %}"/>
                             {% endif %}
+                            <a href="{% url messages_compose_to other_user.username %}">{% trans "Send private message." as priv_msg %}{% silk 'email_go' alt=priv_msg title=priv_msg %}</a>
                         </form>
                     </div>
                     
@@ -97,7 +125,8 @@
                             {% if previous_invitations_to %}
                                 <p>{% trans "Friendship request sent." %}</p>
                             {% else %}
-                                <h2>{% trans "Add As Friend" %}</h2>
+                                <a href="javascript:;" onclick="$(this).next().slideToggle();" >{% trans "Add As Friend" %}</a>
+                                <div style="display: none;">
                                 <form class="uniForm" method="POST" action="">
                                     {% csrf_token %}
                                     <fieldset class="inlineLabels">
@@ -109,6 +138,7 @@
                                         </div>
                                     </fieldset>
                                 </form>
+                                </div>
                             {% endif %} {# previous_invitations_to #}
                         {% endif %} {# previous_invitations_from #}
                     {% endif %} {# is_friend #}
@@ -120,15 +150,7 @@
                 {% if other_user.article_set.all %}
                     <table class="bookmarks">
                         {% for article in other_user.article_set.all|slice:":5" %}
-                        <tr class="{% cycle odd,even %}">
-                            <td class="meta">
-                                {{ article.created_at|date }}
-                            </td>
-                            <td>
-                                <h2><a href="{% groupurl wiki_article article.group title=article.title %}">{{ article.title }}</a></h2>
-                                <div class="body">{{ article.content|truncatewords:25 }}</div>
-                            </td>
-                        </tr>
+                            {% show_teaser article %}
                         {% endfor %}
                     </table>
                 {% else %}

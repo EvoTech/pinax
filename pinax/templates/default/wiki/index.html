@@ -11,11 +11,10 @@
 {% block body %}
     {% wiki_title group %}
 
-    {% include "wiki/searchbox.html" %}
-
-    
-
     {% if articles %}
+
+        {% include "wiki/searchbox.html" %}
+
         {% autopaginate articles %}
             <table class="topics">
                 {% for article in articles %}
@@ -26,6 +25,11 @@
                 {% endfor %}
             </table>
         {% paginate %}
+
+    {% else %}
+
+        <div>{% trans "There are no articles yet." %}</div>
+
     {% endif %}
 
     {% if allow_write %}

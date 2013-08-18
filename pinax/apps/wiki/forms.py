@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 import re
+import sys
 
 from django import forms
-from django.forms import widgets
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
@@ -10,20 +11,35 @@ from django.utils.translation import ugettext_lazy as _
 from tagging.forms import TagField
 from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from markup_form.forms import make_maprkup_form
-from wiki.models import Article
+from pinax.apps.wiki.models import Article
 
-try:
-    WIKI_WORD_RE = settings.WIKI_WORD_RE
-except AttributeError:
-    WIKI_WORD_RE = r'(?:[A-Z]+[a-z]+){2,}'
+#DEFAULT_WIKI_WORD_RE = ur"(?:[A-Z]+[a-z0-9']+){2,}"
+#DEFAULT_WIKI_WORD_RE = ur"((([A-Z]+[a-z0-9']+){2,})(/([A-Z]+[a-z0-9']+){2,})*)"
 
+uppers = []
+lowers = []
 
-wikiword_pattern = re.compile('^' + WIKI_WORD_RE + '$')
+for i in range(sys.maxunicode):
+    c = unichr(i)
+    if c.isupper():
+        uppers.append(c)
+    elif c.islower():
+        lowers.append(c)
+
+uppers = r"".join(uppers)
+lowers = r"".join(lowers)
+
+DEFAULT_WIKI_WORD_RE = r"((([" + uppers + r"]+[" + lowers + r"0-9']+){2,})(/([" + uppers + r"]+[" + lowers + r"0-9']+){2,})*)"
+
+WIKI_WORD_RE = getattr(settings, 'WIKI_WORD_RE', DEFAULT_WIKI_WORD_RE)
+
+wikiword_pattern = re.compile(r'^' + WIKI_WORD_RE + r'$', re.U)
 
 try:
     WIKI_BANNED_TITLES = settings.WIKI_BANNED_TITLES
 except AttributeError:
     WIKI_BANNED_TITLES = ('NewArticle', 'EditArticle',)
+
 
 class ArticleFormBase(forms.ModelForm):
 
@@ -31,11 +47,11 @@ class ArticleFormBase(forms.ModelForm):
         widget=forms.Textarea(attrs={'rows': '20'}))
 
     summary = forms.CharField(
-        required=False, max_length=150,
+        required=False, max_length=255,
         widget=forms.Textarea(attrs={'rows': '5'}))
 
     tags = TagField(label="Tags", required=False,
-                    widget = TagAutoCompleteInput(
+                    widget=TagAutoCompleteInput(
                     app_label=Article._meta.app_label,
                     model=Article._meta.module_name))
 
@@ -77,7 +93,7 @@ class ArticleFormBase(forms.ModelForm):
                 kw['content_type'] = self.cleaned_data['content_type']
                 kw['object_id'] = self.cleaned_data['object_id']
             except KeyError:
-                pass # some error in this fields
+                pass  # some error in this fields
             else:
                 if Article.objects.filter(**kw).count():
                     raise forms.ValidationError(
@@ -86,40 +102,26 @@ class ArticleFormBase(forms.ModelForm):
         return self.cleaned_data
 
     def save(self):
-        # 0 - Extra data
+        self.instance.revision_info = {
+            'comment': self.cleaned_data['comment'],
+            'editor_ip': self.cleaned_data['user_ip'],
+            'editor': getattr(self, 'editor', None),
+        }
+        article = super(ArticleFormBase, self).save(commit=False)
+
         editor_ip = self.cleaned_data['user_ip']
-        comment = self.cleaned_data['comment']
-
-        # 1 - Get the old stuff before saving
-        if self.instance.id is None:
-            old_title = old_content = old_markup = ''
-            new = True
-        else:
-            old = Article.objects.get(pk=self.instance.pk)
-            old_title = old.title
-            old_content = old.content
-            old_markup = old.markup
-            new = False
-
-        # 2 - Save the Article
-        article = super(ArticleFormBase, self).save()
-
-        # 3 - Set creator and group
         editor = getattr(self, 'editor', None)
         group = getattr(self, 'group', None)
-        if new:
+
+        if not self.instance.pk:
             article.creator_ip = editor_ip
+            article.group = group
             if editor is not None:
                 article.creator = editor
-                article.group = group
-            article.save()
 
-        # 4 - Create new revision
-        changeset = article.new_revision(
-            old_content, old_title, old_markup,
-            comment, editor_ip, editor)
-
-        return article, changeset
+        article.save()
+        self.save_m2m()
+        return article
 
 
 class SearchForm(forms.Form):

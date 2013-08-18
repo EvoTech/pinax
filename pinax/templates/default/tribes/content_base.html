@@ -10,6 +10,7 @@
             <li><a href="{% groupurl topic_list group %}">{% trans "Topics" %}</a></li>
             <li><a href="{% groupurl wiki_list group %}">{% trans "Wiki" %}</a></li>
             <li><a href="{% groupurl photos group %}">{% trans "Photos" %}</a></li>
+            <li><a href="{% url tribe_members group.slug %}">{% trans "Members" %}</a></li>
         </ul>
     </div>
     <div class="clearfix" style="background: #F0F7FF;">

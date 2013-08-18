@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load uni_form_tags %}
+{% load markup_form_tags %}
 {% load pagination_tags %}
 
 {% block head_title %}{% spaceless %}
@@ -11,6 +12,10 @@
     {% trans "Discussion Topics" %}
 {% endif %}
 {% endspaceless %}{% endblock %}
+
+{% block extra_head %}
+    {% mapkup_form_init %}
+{% endblock %}
 
 {% block body %}
     <h1>{% spaceless %}

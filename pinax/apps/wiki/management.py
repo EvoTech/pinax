@@ -1,5 +1,5 @@
+from __future__ import absolute_import, unicode_literals
 from django.db.models import signals
-
 from django.utils.translation import ugettext_noop as _
 
 try:
@@ -15,9 +15,13 @@ try:
         notification.create_notice_type("wiki_observed_article_changed",
                                         _("Observed Article Changed"),
                                         _("an article you observe has changed"))
+        
+        notification.create_notice_type("wiki_article_comment",
+                                        _("Article Comment"),
+                                        _("a new comment has been made on a article"))
 
 
     signals.post_syncdb.connect(create_notice_types,
                                 sender=notification)
 except ImportError:
-    print "Skipping creation of NoticeTypes as notification app not found"
+    print("Skipping creation of NoticeTypes as notification app not found")

@@ -3,11 +3,18 @@
 {% load i18n %}
 {% load wiki_tags %}
 {% load group_tags %}
+{% load comments_tag %}
 {% load markup_tags %}
 {% load extra_tagging_tags %}
-
+{% load contenttypes_tags %}
+{% load is_allowed_tags %}
+{% load notification_observe_tags %}
 
 {% block head_title %}Wiki for {{ group.name }} - {{ article.title }} {% endblock %}
+
+{% block extra_head %}
+    {% include "notification/observe_init.html" %}
+{% endblock %}
 
 {% block body %}
 
@@ -17,13 +24,31 @@
             <h2>{% trans "Actions" %}</h2>
             {% if article.id %}
 
-            {% if allow_write %}<li><a href="{% groupurl wiki_edit group title=article.title %}">{% trans "Edit this article" %}</a> </li>
-            {% endif %}
-            <li><a href="{% groupurl wiki_article_history group title=article.title %}">{% trans "Editing history" %}</a> </li>
+                {% if allow_write %}
+                    <li><a href="{% groupurl wiki_edit group title=article.title %}">{% trans "Edit this article" %}</a> </li>
+                {% endif %}
+
+                {% ifallowed perm="wiki.browse_revision_article" obj=article %}
+                    <li><a href="{% url versioning_revision_list content_type=article|contenttype_id object_id=article.pk %}">{% trans "Editing history" %}</a> </li>
+                {% endifallowed %}
+
+                {% observe_link article 'post_save' 'wiki_observed_article_changed' text_observe=_("Observe Article") text_stop_observing=_("Stop Observing Article") as observe_article_html %}
+                {% if observe_article_html %}
+                    <li>{{ observe_article_html }}</li>
+                {% endif %}
+
+                {% observe_link article 'wiki_article_comment' 'wiki_article_comment' text_observe=_("Observe for new comments") text_stop_observing=_("Stop observing for new comments") as observe_comment_html %}
+                {% if observe_comment_html %}
+                    <li>{{ observe_comment_html }}</li>
+                {% endif %}
+
+                {% ifallowed perm="wiki.mark_removed_article" obj=article %}
+                    <li><a href="{% groupurl wiki_remove_article group title=article.title %}">{% trans "Remove this article" %}</a></li>
+                {% endifallowed %}
 
             {% else %}
 
-            <li><a href="{% groupurl wiki_edit group title=article.title %}">{% trans "Create this article" %}</a></li>
+                <li><a href="{% groupurl wiki_edit group title=article.title %}">{% trans "Create this article" %}</a></li>
 
             {% endif %}
         </div>
@@ -41,22 +66,12 @@
         </p>
     {% endif %}
     
-    {{ article.content|apply_markup:article.markup|wiki_links }}
+    <div>
+        {{ article.content|apply_markup:article.markup|wiki_links:article.group }}
+    </div>
 
     {% show_tags_for article %}
 
-    {# @@@ this should be done via inclusion tag provided by notification #}
-    {% if article.id and can_observe %}
-        {% if is_observing %}
-            <form action="{% groupurl wiki_stop_observing group title=article.title %}" method="post">
-                {% csrf_token %}
-                <input type="submit" value="{% trans "Stop Observing Article" %}">
-            </form>
-        {% else %}
-            <form action="{% groupurl wiki_observe group title=article.title %}" method="post">
-                {% csrf_token %}
-                <input type="submit" value="{% trans "Observe Article" %}">
-            </form>
-        {% endif %}
-    {% endif %}
+    <h3>{% trans "Comments on This Article" %}:</h3>
+    {% comments article %}
 {% endblock %}

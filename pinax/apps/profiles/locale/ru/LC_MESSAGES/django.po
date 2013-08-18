@@ -5,23 +5,23 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: profiles\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-07-28 23:51+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2013-05-04 22:18+0300\n"
+"Last-Translator: Ivan <ivzak@yandex.ru>\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
 #: models.py:14
 msgid "user"
 msgstr "пользователь"
 
 #: models.py:15
+msgctxt "profiles"
 msgid "name"
 msgstr "имя"
 
@@ -50,7 +50,9 @@ msgstr "профили"
 msgid "You have removed %(from_user)s from friends"
 msgstr "вы удалили %(from_user)s из друзей"
 
-#: views.py:86 views.py:98 views.py:131
+#: views.py:86
+#: views.py:98
+#: views.py:131
 msgid "Let's be friends!"
 msgstr "Будем друзьями!"
 
@@ -69,6 +71,7 @@ msgid "Your profile has been updated."
 msgstr "Ваш профиль обновлен."
 
 #: templates/profile_item.html:11
+msgctxt "profiles"
 msgid "Name"
 msgstr "Имя"
 
@@ -83,3 +86,4 @@ msgstr "Местоположение"
 #: templates/profile_item.html:14
 msgid "Website"
 msgstr "Веб-сайт"
+

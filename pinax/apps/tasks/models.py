@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
@@ -24,10 +25,12 @@ from threadedcomments.models import ThreadedComment
 
 from pinax.apps.tasks.fields import MarkupField
 
-
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 workflow = import_module(getattr(settings, "TASKS_WORKFLOW_MODULE", "pinax.apps.tasks.workflow"))
-
 
 
 class Task(models.Model):
@@ -45,7 +48,7 @@ class Task(models.Model):
     
     summary = models.CharField(_("summary"), max_length=100)
     detail = models.TextField(_("detail"), blank=True)
-    markup = MarkupField(_(u"Detail Markup"))
+    markup = MarkupField(_("Detail Markup"))
     creator = models.ForeignKey(User,
         related_name = "created_tasks",
         verbose_name = _("creator")
@@ -91,7 +94,7 @@ class Task(models.Model):
         "resolution",
     ]
     
-    def __unicode__(self):
+    def __str__(self):
         return self.summary
     
     def save(self, **kwargs):
@@ -214,7 +217,7 @@ class TaskHistory(models.Model):
     group = generic.GenericForeignKey("content_type", "object_id")
     summary = models.CharField(_("summary"), max_length=100)
     detail = models.TextField(_("detail"), blank=True)
-    markup = MarkupField(_(u"Detail Markup"))
+    markup = MarkupField(_("Detail Markup"))
     creator = models.ForeignKey(User,
         related_name = "history_created_tasks",
         verbose_name = _("creator")
@@ -252,7 +255,7 @@ class TaskHistory(models.Model):
         verbose_name=_("Owner")
     )
     
-    def __unicode__(self):
+    def __str__(self):
         return "for " + str(self.task)
     
     def save(self, **kwargs):
@@ -271,3 +274,13 @@ class Nudge(models.Model):
         verbose_name = _("task")
     )
     modified = models.DateTimeField(_("nudge date"), default=datetime.now)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Task. TaskHistory, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

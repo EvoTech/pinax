@@ -1,0 +1,21 @@
+{% load i18n %}
+{% load account_tags %}
+{% load group_tags %}
+{% load comments %}
+{% load is_allowed_tags %}
+{% load theme_tags %}
+
+{% is_allowed perm="photos.browse_image" obj=photo as allowed_for_browse %}
+{% if allowed_for_browse %}
+        <div class="gallery-photo-thumb">
+            <a href="{{ photo.get_absolute_url }}"><img src="{{ photo.get_thumbnail_url }}" alt="{{ photo.title }}"/></a><br />
+            from <a href="{% url profile_detail photo.member.username %}">{% user_display photo.member %}</a><br />
+            {% silk "comment" %}<a href="{{ photo.get_absolute_url }}#photocomments">{% get_comment_count for photo as commentcount %} {{ commentcount }} Comments</a><br />
+            {% blocktrans with photo.view_count as view_count %}Viewed {{ view_count }} times{% endblocktrans %}
+        </div>
+{% else %}
+        <div class="gallery-photo-thumb">
+            {% trans "Private content" as private_msg %}
+            &nbsp; {% silk "lock" alt=private_msg title=private_msg %} {{ private_msg }}
+        </div>
+{% endif %}

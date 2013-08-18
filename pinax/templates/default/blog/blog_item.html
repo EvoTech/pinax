@@ -1,9 +1,12 @@
 {% load i18n %}
 {% load account_tags %}
 {% load markup_tags %}
-{% load avatar_tags %}
+{% load avatar_ext_tags %}
 {% load extra_tagging_tags %}
+{% load cache_tagging_tags %}
 
+{% get_current_language as LANGUAGE_CODE %}
+{% cache_tagging 'browse.blog.post.pk:'|concat:blog_post.pk|concat:'.lang:'|concat:LANGUAGE_CODE 'blog.post.pk:'|concat:blog_post.pk timeout=18000 %}
 <div class="blog-post clearfix">
     <h2><a href="{{ blog_post.get_absolute_url }}">{{ blog_post.title }}</a></h2>
     <div class="blog-post-tease">
@@ -26,3 +29,4 @@
         </div>
     </div>
 </div>
+{% end_cache_tagging %}

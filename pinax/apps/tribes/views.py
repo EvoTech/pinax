@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
@@ -20,8 +21,6 @@ else:
 from pinax.apps.tribes.models import Tribe, TribeMember, TribeMemberHistory
 from pinax.apps.tribes.forms import TribeForm, TribeUpdateForm
 
-
-
 TOPIC_COUNT_SQL = """
 SELECT COUNT(*)
 FROM topics_topic
@@ -35,7 +34,6 @@ FROM tribes_tribemember
 WHERE tribes_tribemember.tribe_id = tribes_tribe.id
 AND tribes_tribemember.status='active'
 """
-
 
 
 @login_required
@@ -181,7 +179,7 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
             TribeMemberHistory.objects.create(
                 member=member,
                 status=status,
-                message=u"",
+                message="",
                 actor=request.user
             )
 
@@ -214,7 +212,7 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
             )
             is_member = False
             if notification:
-                pass # @@@ no notification on departure yet
+                pass  # @@@ no notification on departure yet
         elif member.status == 'blocked':
             messages.add_message(
                 request, messages.SUCCESS,
@@ -227,6 +225,26 @@ def tribe(request, group_slug=None, form_class=TribeUpdateForm,
     return render_to_response(template_name, {
         "tribe_form": tribe_form,
         "tribe": tribe,
-        "group": tribe, # @@@ this should be the only context var for the tribe
+        "group": tribe,  # @@@ this should be the only context var for the tribe
         "is_member": is_member,
     }, context_instance=RequestContext(request))
+
+
+@login_required
+def members(request, group_slug=None, template_name="tribes/members.html", extra_context=None):
+    """Members of tribe"""
+    tribe = get_object_or_404(Tribe, slug=group_slug)
+    if not request.user.has_perm('tribes.view_tribe', tribe):
+        raise PermissionDenied
+    if extra_context is None:
+        extra_context = {}
+    users = tribe.member_queryset()
+    search_terms = request.GET.get("search", "")
+    if search_terms:
+        users = users.filter(username__icontains=search_terms)
+    return render_to_response(template_name, dict({
+        "group": tribe,
+        "tribe": tribe,
+        "users": users,
+        "search_terms": search_terms,
+    }, **extra_context), context_instance=RequestContext(request))

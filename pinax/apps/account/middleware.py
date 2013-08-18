@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django.conf import settings
@@ -48,9 +49,9 @@ class AuthenticatedMiddleware(object):
         self.redirect_field_name = redirect_field_name
         self.login_url = login_url
         self.exemptions = [
-            r"^%s" % settings.MEDIA_URL,
-            r"^%s" % settings.STATIC_URL,
-            r"^%s$" % login_url,
+            r"^{0}".format(settings.MEDIA_URL),
+            r"^{0}".format(settings.STATIC_URL),
+            r"^{0}$".format(login_url),
         ] + getattr(settings, "AUTHENTICATED_EXEMPT_URLS", [])
     
     def process_request(self, request):
@@ -60,4 +61,4 @@ class AuthenticatedMiddleware(object):
         if not request.user.is_authenticated():
             path = urlquote(request.get_full_path())
             tup = (self.login_url, self.redirect_field_name, path)
-            return HttpResponseRedirect("%s?%s=%s" % tup)
+            return HttpResponseRedirect("{0}?{1}={2}".format(*tup))

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import template
 
 from pinax.apps.waitinglist.forms import WaitingListEntryForm
@@ -33,5 +34,5 @@ def waitinglist_entry_form(parser, token):
     """
     bits = token.split_contents()
     if len(bits) != 3:
-        raise template.TemplateSyntaxError("'%s' takes one 'as' argument" % bits[0])
+        raise template.TemplateSyntaxError("'{0}' takes one 'as' argument".format(bits[0]))
     return WaitingListEntryFormNode(bits[2])

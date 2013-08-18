@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django import template
@@ -37,11 +38,11 @@ def other_service_tag(parser, token):
         asvar = None
     elif len(bits) == 5: # {% other_service user key as var %}
         if bits[3] != "as":
-            raise template.TemplateSyntaxError("Third argument to %s should be 'as'" % bits[0])
+            raise template.TemplateSyntaxError("Third argument to {0} should be 'as'".format(bits[0]))
         user = parser.compile_filter(bits[1])
         key = bits[2]
         asvar = bits[4]
     else:
-        raise template.TemplateSyntaxError("wrong number of arguments to %s" % bits[0])
+        raise template.TemplateSyntaxError("wrong number of arguments to {0}".format(bits[0]))
     
     return OtherServiceNode(user, key, asvar)

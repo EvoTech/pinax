@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django import forms
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -15,7 +16,7 @@ class TagAutoCompleteInput(forms.TextInput):
     def render(self, name, value, attrs=None):
         output = super(TagAutoCompleteInput, self).render(name, value, attrs)
         
-        return output + mark_safe(u"""<script type="text/javascript">
+        return output + mark_safe("""<script type="text/javascript">
             jQuery("#id_{name}").autocomplete({{
                 focus: function(){{
                     // prevent value inserted on focus

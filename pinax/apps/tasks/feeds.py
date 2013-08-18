@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from atomformat import Feed
@@ -19,7 +20,7 @@ ITEMS_PER_FEED = getattr(settings, "PINAX_ITEMS_PER_FEED", 20)
 class BaseTaskFeed(Feed):
     
     def item_id(self, item):
-        return "http://%s%s" % (
+        return "http://{0}{1}".format(
             Site.objects.get_current().domain,
             item.task.get_absolute_url(),
         )
@@ -36,9 +37,9 @@ class BaseTaskFeed(Feed):
     def item_content(self, item):
         output = item.detail
         if item.status:
-            output = "%s\n\nStatus: %s" % (output, item.status)
+            output = "{0}\n\nStatus: {1}".format(output, item.status)
         if item.comment:
-            output = "%s\n\nComment:\n%s" % (output, item.comment)
+            output = "{0}\n\nComment:\n{1}".format(output, item.comment)
         
         return {"type" : "html", }, linebreaks(escape(output))
     
@@ -49,7 +50,7 @@ class BaseTaskFeed(Feed):
         return [{"name" : item.owner.username}]
     
     def feed_id(self):
-        return "http://%s/tasks/feeds/all/" % Site.objects.get_current().domain
+        return "http://{0}/tasks/feeds/all/".format(Site.objects.get_current().domain)
     
     def feed_title(self):
         return "Tasks Changes"
@@ -64,7 +65,7 @@ class BaseTaskFeed(Feed):
         return qs.latest("modified").modified
     
     def feed_links(self):
-        complete_url = "http://%s%s" % (
+        complete_url = "http://{0}{1}".format(
             Site.objects.get_current().domain,
             reverse("task_list"),
         )

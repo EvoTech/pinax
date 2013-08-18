@@ -1,8 +1,12 @@
+from __future__ import absolute_import, unicode_literals
 """
 This is pulled from
 Eric Holscher's sandbox code at http://github.com/ericholscher/sandbox/blob/d32da8c36f257bb973a5c0b0fd8f9bca79062f11/serializers/yamlfk.py#L88
 """
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    StringIO import StringIO
 
 from django.conf import settings
 from django.core.serializers import base
@@ -11,6 +15,14 @@ from django.core.serializers.python import _get_model
 from django.db import models
 from django.utils import simplejson
 from django.utils.encoding import smart_unicode
+
+try:
+    str = unicode  # Python 2.* compatible
+    string_types = (basestring,)
+    integer_types = (int, long)
+except NameError:
+    string_types = (str,)
+    integer_types = (int,)
 
 
 class Serializer(JSONSerializer):
@@ -41,7 +53,7 @@ def Deserializer(stream_or_string, **options):
     """
     Deserialize a stream or string of JSON data.
     """
-    if isinstance(stream_or_string, basestring):
+    if isinstance(stream_or_string, string_types):
         stream = StringIO(stream_or_string)
     else:
         stream = stream_or_string
@@ -54,8 +66,8 @@ def Deserializer(stream_or_string, **options):
         data = {Model._meta.pk.attname : Model._meta.pk.to_python(d["pk"])}
         m2m_data = {}
         # Handle each field
-        for (field_name, field_value) in d["fields"].iteritems():
-            if isinstance(field_value, str):
+        for (field_name, field_value) in d["fields"].items():
+            if isinstance(field_value, string_types):
                 field_value = smart_unicode(field_value, options.get("encoding", settings.DEFAULT_CHARSET), strings_only=True)
             
             field = Model._meta.get_field(field_name)
@@ -73,7 +85,7 @@ def Deserializer(stream_or_string, **options):
                     # GFK values)
                     if isinstance(field_value, dict):
                         lookup_params = {}
-                        for k, v in field_value.iteritems():
+                        for k, v in field_value.items():
                             lookup_params[k.encode("ascii")] = v
                         field_value = field.rel.to._default_manager.get(**lookup_params).pk
                     data[field.attname] = field.rel.to._meta.get_field(field.rel.field_name).to_python(field_value)

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django import template
@@ -70,7 +71,7 @@ class TasksForTagNode(template.Node):
         task_contenttype = ContentType.objects.get(app_label="tasks", model="task")
         try:
             qs = TaggedItem.objects.filter(
-                tag__name = str(tag),
+                tag__name = bytes(tag),
                 content_type = task_contenttype
             ).values_list("object_id")
             tasks = selection.filter(id__in=[i[0] for i in qs])
@@ -86,13 +87,13 @@ def tasks_for_tag(parser, token):
     try:
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires arguments" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("{0!r} tag requires arguments".format(token.contents.split()[0]))
     
     m = re.search(r"(\w+) as (\w+) in (\w+)", arg)
     if not m:
         m = re.search(r"(\w+) as (\w+)", arg)
         if not m:
-            raise template.TemplateSyntaxError, "%r tag had invalid arguments" % tag_name
+            raise template.TemplateSyntaxError("{0!r} tag had invalid arguments".format(tag_name))
     
     tag = m.groups()[0]
     var_name = m.groups()[1]

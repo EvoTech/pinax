@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 from sys import stderr
 
@@ -114,7 +115,7 @@ class EditTaskForm(forms.ModelForm):
         ]
     
     def clean_resolution(self):
-        if self.cleaned_data["state"] == u"2":
+        if self.cleaned_data["state"] == "2":
             if not self.cleaned_data["resolution"]:
                 raise forms.ValidationError(
                     ugettext("You must provide a resolution to mark this task as resolved")

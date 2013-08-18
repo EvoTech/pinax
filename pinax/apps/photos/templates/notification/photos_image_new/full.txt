@@ -1,0 +1,13 @@
+{% load i18n %}
+{% if group %}
+{% blocktrans %}{{ creator }} has added an image '{{ image }}' in '{{ group }}'.{% endblocktrans %}
+{% else %}
+{% blocktrans %}{{ creator }} has added an image '{{ image }}'.{% endblocktrans %}
+{% endif %}
+
+Image details:
+{{ image.caption }}
+
+{% blocktrans with image.tags as image_tags %}Tags: {{ image_tags }}{% endblocktrans %}
+
+Link: http://{{ current_site }}{{ image.get_absolute_url }}

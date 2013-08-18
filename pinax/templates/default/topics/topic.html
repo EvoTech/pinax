@@ -3,13 +3,21 @@
 {% load i18n %}
 {% load account_tags %}
 {% load uni_form_tags %}
+{% load markup_form_tags %}
+{% load markup_tags %}
 {% load extra_tagging_tags %}
 {% load pagination_tags %}
 {% load comments_tag %}
-{% load avatar_tags %}
+{% load avatar_ext_tags %}
 {% load group_tags %}
+{% load notification_observe_tags %}
 
 {% block head_title %}{% trans "Topic" %} : {{ topic.title }}{% endblock %}
+
+{% block extra_head %}
+    {% mapkup_form_init %}
+    {% include "notification/observe_init.html" %}
+{% endblock %}
 
 {% block body %}
     <p><a href="{% groupurl topic_list group %}">&larr; {% trans "Back to Topic List" %}</a></p>
@@ -23,9 +31,9 @@
             </div>
             <div class="bulk">
                 <h1>{{ topic.title }}</h1>
-                <div class="body">{{ topic.body|urlize|linebreaks }}</div>
+                <div class="body">{{ topic.body|apply_markup:topic.markup }}</div>
                 <p>{% show_tags_for topic %}</p>
-                {% ifequal user topic.creator %}
+                {% if user == topic.creator %}
                 <form class="uniForm" method="POST" action="{{ request.path }}delete/">
                     {% csrf_token %}
                     <fieldset class="inlineLabels">
@@ -36,7 +44,8 @@
                     </fieldset>
                 </form>
                 {% if not edit %}<p><a href="{{ request.path }}edit/">Edit Topic</a></p>{% endif %}
-                {% endifequal %}
+                {% endif %}
+                {% observe_link topic 'topic_comment' 'topic_comment' text_observe=_("Observe for new comments") text_stop_observing=_("Stop observing for new comments") %}
             </div>
         </li>
     </ul>
@@ -45,8 +54,9 @@
         <form class="uniForm" method="post" action="{{ request.path }}">
             {% csrf_token %}
             <fieldset class="inlineLabels">
+                {{ topic_form.media }}
+                {{ topic_form|as_uni_form }}
                 <div class="form_block">
-                    <textarea id="id_body" name="body">{{ topic.body }}</textarea>
                     <input type="submit" name="edit" value="Edit!" />
                 </div>
             </fieldset>

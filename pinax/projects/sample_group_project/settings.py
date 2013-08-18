@@ -157,7 +157,7 @@ INSTALLED_APPS = [
     "idios",
     "groups",
     "tagging",
-    "wakawaka",
+    "pinax.apps.wiki",
     "avatar",
     "threadedcomments",
     "gravatar",

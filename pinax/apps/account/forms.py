@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django import forms
@@ -15,12 +16,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
 
+from captcha.fields import CaptchaField
 from emailconfirmation.models import EmailAddress
 from timezones.forms import TimeZoneField
 
 from pinax.apps.account.models import Account, PasswordReset
 from pinax.apps.account.models import OtherServiceInfo, other_service, update_other_services
 from pinax.apps.account.utils import user_display, perform_login
+from pinax.utils.make_agreement_form import make_agreement_form
 
 
 
@@ -91,7 +94,7 @@ class LoginForm(GroupForm):
         if self._errors:
             return
         user = authenticate(**self.user_credentials())
-        if user:
+        if user and not user.username.startswith("__"):
             if user.is_active:
                 self.user = user
             else:
@@ -112,7 +115,7 @@ class LoginForm(GroupForm):
             request.session.set_expiry(0)
 
 
-class SignupForm(GroupForm):
+class SignupFormBase(GroupForm):
     
     username = forms.CharField(
         label = _("Username"),
@@ -133,9 +136,10 @@ class SignupForm(GroupForm):
         required = False,
         widget = forms.HiddenInput()
     )
+    captcha = CaptchaField()
     
     def __init__(self, *args, **kwargs):
-        super(SignupForm, self).__init__(*args, **kwargs)
+        super(SignupFormBase, self).__init__(*args, **kwargs)
         if REQUIRED_EMAIL or EMAIL_VERIFICATION or EMAIL_AUTHENTICATION:
             self.fields["email"].label = ugettext("E-mail")
             self.fields["email"].required = True
@@ -144,6 +148,9 @@ class SignupForm(GroupForm):
             self.fields["email"].required = False
     
     def clean_username(self):
+        if self.cleaned_data["username"].startswith("__"):
+            # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
+            raise forms.ValidationError(_("Usernames can't starts with double underscore."))
         if not alnum_re.search(self.cleaned_data["username"]):
             raise forms.ValidationError(_("Usernames can only contain letters, numbers and underscores."))
         try:
@@ -154,6 +161,10 @@ class SignupForm(GroupForm):
     
     def clean_email(self):
         value = self.cleaned_data["email"]
+        if value.startswith("__"):
+            # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
+            # TODO: Add ability to restore account what was marked as deleted.
+            raise forms.ValidationError(_("Email can't starts with double underscore."))
         if UNIQUE_EMAIL or EMAIL_AUTHENTICATION:
             try:
                 User.objects.get(email__iexact=value)
@@ -213,7 +224,7 @@ class SignupForm(GroupForm):
                 join_invitation.accept(new_user) # should go before creation of EmailAddress below
                 if request:
                     messages.add_message(request, messages.INFO,
-                        ugettext(u"Your e-mail address has already been verified")
+                        ugettext("Your e-mail address has already been verified")
                     )
                 # already verified so can just create
                 EmailAddress(user=new_user, email=email, verified=True, primary=True).save()
@@ -223,7 +234,7 @@ class SignupForm(GroupForm):
                 if email:
                     if request:
                         messages.add_message(request, messages.INFO,
-                            ugettext(u"Confirmation e-mail sent to %(email)s") % {
+                            ugettext("Confirmation e-mail sent to %(email)s") % {
                                 "email": email,
                             }
                         )
@@ -233,7 +244,7 @@ class SignupForm(GroupForm):
             if email:
                 if request and not EMAIL_VERIFICATION:
                     messages.add_message(request, messages.INFO,
-                        ugettext(u"Confirmation e-mail sent to %(email)s") % {
+                        ugettext("Confirmation e-mail sent to %(email)s") % {
                             "email": email,
                         }
                     )
@@ -253,6 +264,8 @@ class SignupForm(GroupForm):
         """
         pass
 
+SignupForm = make_agreement_form(SignupFormBase)
+
 
 class UserForm(forms.Form):
     
@@ -271,7 +284,7 @@ class AccountForm(UserForm):
             self.account = Account(user=self.user)
 
 
-class AddEmailForm(UserForm):
+class AddEmailFormBase(UserForm):
     
     email = forms.EmailField(
         label = _("E-mail"),
@@ -302,6 +315,8 @@ class AddEmailForm(UserForm):
     
     def save(self):
         return EmailAddress.objects.add_email(self.user, self.cleaned_data["email"])
+
+AddEmailForm = make_agreement_form(AddEmailFormBase)
 
 
 class ChangePasswordForm(UserForm):
@@ -368,6 +383,8 @@ class ResetPasswordForm(forms.Form):
     def clean_email(self):
         if EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"], verified=True).count() == 0:
             raise forms.ValidationError(_("Email address not verified for any user account"))
+        if EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"]).count() == 0:
+            raise forms.ValidationError(_("Email address not verified for any user account"))
         return self.cleaned_data["email"]
     
     def save(self, **kwargs):
@@ -384,7 +401,7 @@ class ResetPasswordForm(forms.Form):
             password_reset.save()
             
             current_site = Site.objects.get_current()
-            domain = unicode(current_site.domain)
+            domain = str(current_site.domain)
             
             # send the password reset email
             subject = _("Password reset e-mail sent")

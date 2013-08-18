@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 from math import log
 
@@ -30,13 +31,18 @@ class OrderByVotesNode(template.Node):
         ctype = ContentType.objects.get_for_model(model)
         by_score = model.objects.extra(select={"score": """
                 SELECT coalesce(SUM(vote), 0 )
-                FROM %s
-                WHERE content_type_id = %s
-                AND object_id = %s.%s
-            """ % (qn(Vote._meta.db_table), ctype.id, qn(model._meta.db_table), qn(model._meta.pk.attname))},
+                FROM {0}
+                WHERE content_type_id = {1}
+                AND object_id = {2}.{3}
+            """.format(
+                qn(Vote._meta.db_table),
+                ctype.id,
+                qn(model._meta.db_table),
+                qn(model._meta.pk.attname)
+            )},
             order_by=[(direction == "desc" and "-" or "") + "score"])
         context[key] = by_score
-        return u""
+        return ""
 
 
 @register.tag(name="order_by_votes")
@@ -45,7 +51,7 @@ def do_order_by_votes(parser, token):
     if len(split) in (2, 3):
         return OrderByVotesNode(*split[1:])
     else:
-        raise template.TemplateSyntaxError("%r tag takes one or two arguments." % split[0])
+        raise template.TemplateSyntaxError("{0!r} tag takes one or two arguments.".format(split[0]))
 
 
 class OrderByRedditNode(template.Node):
@@ -85,7 +91,7 @@ class OrderByRedditNode(template.Node):
         if direction == "asc":
             by_score.reverse()
         context[key] = by_score
-        return u""
+        return ""
 
 
 @register.tag(name="order_by_reddit")
@@ -94,4 +100,4 @@ def do_order_by_reddit(parser, token):
     if len(split) in (3, 4):
         return OrderByRedditNode(*split[1:])
     else:
-        raise template.TemplateSyntaxError("%r tag takes one or two arguments." % split[0])
+        raise template.TemplateSyntaxError("{0!r} tag takes one or two arguments.".format(split[0]))

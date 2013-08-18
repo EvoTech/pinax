@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import date, datetime, timedelta
 from itertools import chain
 from operator import attrgetter
@@ -85,7 +86,7 @@ def tasks(request, template_name="tasks/task_list.html"):
     tasks = tasks.select_related("assignee")
     
     # default filtering
-    state_keys = dict(workflow.STATE_CHOICES).keys()
+    state_keys = list(dict(workflow.STATE_CHOICES).keys())
     default_states = set(state_keys).difference(
         # don't show these states
         set(["2", "3"])
@@ -159,7 +160,7 @@ def add_task(request, secret_id=None, form_class=TaskForm, template_name="tasks/
                         notify_list = User.objects.all() # @@@
                     notify_list = notify_list.exclude(id__exact=request.user.id)
                     notification.send(notify_list, "tasks_new", {"creator": request.user, "task": task, "group": group})
-                if request.POST.has_key("add-another-task"):
+                if "add-another-task" in request.POST:
                     if group:
                         redirect_to = bridge.reverse("task_add", group)
                     else:
@@ -354,7 +355,7 @@ def user_tasks(request, username, template_name="tasks/user_tasks.html"):
         created_tasks = created_tasks.filter(object_id=None)
     
     # default filtering
-    state_keys = dict(workflow.STATE_CHOICES).keys()
+    state_keys = list(dict(workflow.STATE_CHOICES).keys())
     default_states = set(state_keys).difference(
         # don't show these states
         set(["2", "3"])
@@ -393,11 +394,11 @@ def user_tasks(request, username, template_name="tasks/user_tasks.html"):
     else:
         url = site_url + reverse("tasks_mini_list")
     
-    bookmarklet = """javascript:(function() {
-url = "%s";
+    bookmarklet = """javascript:(function() {{
+url = "{0}";
 window.open(url, "tasklist", "height=500, width=250, title=no, location=no,
 scrollbars=yes, menubars=no, navigation=no, statusbar=no, directories=no,
-resizable=yes, status=no, toolbar=no, menuBar=no");})()""" % url
+resizable=yes, status=no, toolbar=no, menuBar=no");}})()""".format(url)
     
     ctx = group_context(group, bridge)
     ctx.update({
@@ -454,7 +455,7 @@ def focus(request, field, value, template_name="tasks/focus.html"):
         tasks = Task.objects.filter(object_id=None)
     
     # default filtering
-    state_keys = dict(workflow.STATE_CHOICES).keys()
+    state_keys = list(dict(workflow.STATE_CHOICES).keys())
     default_states = set(state_keys).difference(
         # don't show these states
         set(["2", "3"])

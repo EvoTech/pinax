@@ -1,7 +1,8 @@
+from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.db import models
 
-
+from django_markup.markup import formatter
 
 MARKUP_DEFAULT_FILTER = getattr(settings, "MARKUP_DEFAULT_FILTER", None)
 MARKUP_CHOICES = getattr(settings, "MARKUP_CHOICES", [])
@@ -17,7 +18,7 @@ class MarkupField(models.CharField):
         if self.markup_default_filter:
             kwargs["default"] = self.markup_default_filter
         else:
-            kwargs["choices"] = kwargs.get("choices", MARKUP_CHOICES)
+            kwargs["choices"] = kwargs.get("choices", formatter.choices(MARKUP_CHOICES))
         super(MarkupField, self).__init__(*args, **kwargs)
     
     def formfield(self, **kwargs):

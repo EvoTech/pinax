@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 r"""
 WikiCreole to HTML converter
@@ -131,13 +130,14 @@ XXX This might be considered a bug, but it's impossible to detect in general.
 <p><a href="http://example.com">test</a></p>
 """
 
+from __future__ import absolute_import, unicode_literals
 import re
 from creole import Parser
 
 class Rules:
     # For the link targets:
     proto = r'http|https|ftp|nntp|news|mailto|telnet|file|irc'
-    extern = r'(?P<extern_addr>(?P<extern_proto>%s):.*)' % proto
+    extern = r'(?P<extern_addr>(?P<extern_proto>{0}):.*)'.format(proto)
     interwiki = r'''
             (?P<inter_wiki> [A-Z][a-zA-Z]+ ) :
             (?P<inter_page> .* )
@@ -180,44 +180,45 @@ class HtmlEmitter:
         return self.html_escape(node.content)
 
     def separator_emit(self, node):
-        return u'<hr>';
+        return '<hr>';
 
     def paragraph_emit(self, node):
-        return u'<p>%s</p>\n' % self.emit_children(node)
+        return '<p>{0}</p>\n'.format(self.emit_children(node))
 
     def bullet_list_emit(self, node):
-        return u'<ul>\n%s</ul>\n' % self.emit_children(node)
+        return '<ul>\n{0}</ul>\n'.format(self.emit_children(node))
 
     def number_list_emit(self, node):
-        return u'<ol>\n%s</ol>\n' % self.emit_children(node)
+        return '<ol>\n{0}</ol>\n'.format(self.emit_children(node))
 
     def list_item_emit(self, node):
-        return u'<li>%s</li>\n' % self.emit_children(node)
+        return '<li>{0}</li>\n'.format(self.emit_children(node))
 
     def table_emit(self, node):
-        return u'<table>\n%s</table>\n' % self.emit_children(node)
+        return '<table>\n{0}</table>\n'.format(self.emit_children(node))
 
     def table_row_emit(self, node):
-        return u'<tr>%s</tr>\n' % self.emit_children(node)
+        return '<tr>{0}</tr>\n'.format(self.emit_children(node))
 
     def table_cell_emit(self, node):
-        return u'<td>%s</td>' % self.emit_children(node)
+        return '<td>{0}</td>'.format(self.emit_children(node))
 
     def table_head_emit(self, node):
-        return u'<th>%s</th>' % self.emit_children(node)
+        return '<th>{0}</th>'.format(self.emit_children(node))
 
     def emphasis_emit(self, node):
-        return u'<i>%s</i>' % self.emit_children(node)
+        return '<i>{0}</i>'.format(self.emit_children(node))
 
     def strong_emit(self, node):
-        return u'<b>%s</b>' % self.emit_children(node)
+        return '<b>{0}</b>'.format(self.emit_children(node))
 
     def header_emit(self, node):
-        return u'<h%d>%s</h%d>\n' % (
-            node.level, self.html_escape(node.content), node.level)
+        return '<h{0:d}>{1}</h{2:d}>\n'.format(
+            node.level, self.html_escape(node.content), node.level
+        )
 
     def code_emit(self, node):
-        return u'<tt>%s</tt>' % self.html_escape(node.content)
+        return '<tt>{0}</tt>'.format(self.html_escape(node.content))
 
     def link_emit(self, node):
         target = node.content
@@ -228,12 +229,14 @@ class HtmlEmitter:
         m = self.addr_re.match(target)
         if m:
             if m.group('extern_addr'):
-                return u'<a href="%s">%s</a>' % (
-                    self.attr_escape(target), inside)
+                return '<a href="{0}">{1}</a>'.format(
+                    self.attr_escape(target), inside
+                )
             elif m.group('inter_wiki'):
                 raise NotImplementedError
-        return u'<a href="%s">%s</a>' % (
-            self.attr_escape(target), inside)
+        return '<a href="{0}">{1}</a>'.format(
+            self.attr_escape(target), inside
+        )
 
     def image_emit(self, node):
         target = node.content
@@ -241,21 +244,23 @@ class HtmlEmitter:
         m = self.addr_re.match(target)
         if m:
             if m.group('extern_addr'):
-                return u'<img src="%s" alt="%s">' % (
-                    self.attr_escape(target), self.attr_escape(text))
+                return '<img src="{0}" alt="{1}">'.format(
+                    self.attr_escape(target), self.attr_escape(text)
+                )
             elif m.group('inter_wiki'):
                 raise NotImplementedError
-        return u'<img src="%s" alt="%s">' % (
-            self.attr_escape(target), self.attr_escape(text))
+        return '<img src="{0}" alt="{1}">'.format(
+            self.attr_escape(target), self.attr_escape(text)
+        )
 
     def macro_emit(self, node):
         raise NotImplementedError
 
     def break_emit(self, node):
-        return u"<br>"
+        return "<br>"
 
     def preformatted_emit(self, node):
-        return u"<pre>%s</pre>" % self.html_escape(node.content)
+        return "<pre>{0}</pre>".format(self.html_escape(node.content))
 
     def default_emit(self, node):
         """Fallback function for emitting unknown nodes."""
@@ -265,12 +270,12 @@ class HtmlEmitter:
     def emit_children(self, node):
         """Emit all the children of a node."""
 
-        return u''.join([self.emit_node(child) for child in node.children])
+        return ''.join([self.emit_node(child) for child in node.children])
 
     def emit_node(self, node):
         """Emit a single node."""
 
-        emit = getattr(self, '%s_emit' % node.kind, self.default_emit)
+        emit = getattr(self, '{0}_emit'.format(node.kind), self.default_emit)
         return emit(node)
 
     def emit(self):

@@ -11,7 +11,7 @@ from microblogging.feeds import TweetFeedAll, TweetFeedUser, TweetFeedUserWithFr
 from microblogging.models import Tweet
 from swaps.models import Offer
 from tagging.models import TaggedItem
-from wakawaka.models import WikiPage
+from pinax.apps.wiki.models import Article as WikiArticle
 
 from pinax.apps.blog.feeds import BlogFeedAll, BlogFeedUser
 from pinax.apps.blog.models import Post
@@ -116,12 +116,14 @@ tagged_models = (
     ),
     dict(title="Topics",
         query=lambda tag: TaggedItem.objects.get_by_model(Topic, tag),
+        content_template="pinax_tagging_ext/topic.html",
     ),
     dict(title="Tribes",
         query=lambda tag: TaggedItem.objects.get_by_model(Tribe, tag),
     ),
     dict(title="Wiki Articles",
-        query=lambda tag: TaggedItem.objects.get_by_model(WikiPage, tag),
+        query=lambda tag: TaggedItem.objects.get_by_model(WikiArticle, tag),
+        content_template="pinax_tagging_ext/wiki.html",
     ),
 )
 tagging_ext_kwargs = {

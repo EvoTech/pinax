@@ -1,15 +1,18 @@
+from __future__ import absolute_import, unicode_literals
 # -*- coding: utf-8 -*-
 """
 We break out workflow elements to enable us to more easily refactor in the
 future.
 """
 from django.contrib.auth.models import Group
-
 from pinax.utils.compat import any
 
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 TASK_MANAGER = "coredev"
-
 
 
 def always(task, user):
@@ -151,7 +154,7 @@ def export_state_transitions(format="csv"):
         new_state = STATE_CHOICES_DICT[str(row[1])]
         permission = str(row[2]).split()[1]
         transition_name = row[3]
-        record = """ "%s","%s","%s","%s" """ % (current_state, new_state, permission, transition_name)
+        record = """ "{0}","{1}","{2}","{3}" """.format(current_state, new_state, permission, transition_name)
         rows.append(record.strip())
     
     # ick turn this into a string.

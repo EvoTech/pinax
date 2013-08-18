@@ -1,0 +1,12 @@
+{% load i18n %}
+{% if group %}
+{% blocktrans %}{{ user }} has commented on image '{{ image }}' in '{{ group }}':{% endblocktrans %}
+{% else %}
+{% blocktrans %}{{ user }} has commented on image '{{ image }}':{% endblocktrans %}
+{% endif %}
+
+{{ comment.comment }}
+
+{% blocktrans with image.tags as image_tags %}Tags: {{ image_tags }}{% endblocktrans %}
+
+Link: http://{{ current_site }}{{ image.get_absolute_url }}

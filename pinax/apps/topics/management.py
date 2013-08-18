@@ -1,3 +1,4 @@
+from __future__ import absolute_import, unicode_literals
 from django.db.models import signals, get_app
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_noop as _
@@ -13,4 +14,4 @@ try:
         
     signals.post_syncdb.connect(create_notice_types, sender=notification)
 except ImproperlyConfigured:
-    print "Skipping creation of NoticeTypes as notification app not found"
+    print("Skipping creation of NoticeTypes as notification app not found")

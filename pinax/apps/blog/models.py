@@ -1,12 +1,13 @@
+from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
+from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import User
-
+from django_markup.markup import formatter
 from tagging.fields import TagField
 from tagging.models import Tag
 from threadedcomments.models import ThreadedComment
@@ -16,10 +17,12 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
-
+try:
+    str = unicode  # Python 2.* compatible
+except NameError:
+    pass
 
 MARKUP_CHOICES = getattr(settings, "MARKUP_CHOICES", [])
-
 
 
 class Post(models.Model):
@@ -46,11 +49,11 @@ class Post(models.Model):
     publish = models.DateTimeField(_("publish"), default=datetime.now)
     created_at = models.DateTimeField(_("created at"), default=datetime.now)
     updated_at = models.DateTimeField(_("updated at"))
-    markup = models.CharField(_(u"Post Content Markup"),
-        max_length = 20,
-        choices = MARKUP_CHOICES,
-        null = True,
-        blank = True
+    markup = models.CharField(_("Post Content Markup"),
+        max_length=50,
+        choices=formatter.choices(MARKUP_CHOICES),
+        null=True,
+        blank=True
     )
     tags = TagField()
     
@@ -60,7 +63,7 @@ class Post(models.Model):
         ordering = ["-publish"]
         get_latest_by = "publish"
     
-    def __unicode__(self):
+    def __str__(self):
         return self.title
     
     def save(self, **kwargs):
@@ -68,12 +71,32 @@ class Post(models.Model):
         super(Post, self).save(**kwargs)
     
     def get_absolute_url(self):
-        return reverse("blog_post", kwargs={
+        return urlresolvers.reverse("blog_post", kwargs={
             "username": self.author.username,
             "year": self.publish.year,
-            "month": "%02d" % self.publish.month,
+            "month": "{0:02d}".format(self.publish.month),
             "slug": self.slug
         })
+
+    def is_allowed(self, user, perm=None):
+        """Checks permissions."""
+        if perm in ('blog.view_post',
+                    'blog.browse_post'):
+            return self.status == 2 or self.author == user
+
+        if perm in ('blog.add_post',
+                    'comments.add_comment', ):
+            return user.is_authenticated()
+
+        if perm in ('blog.change_post', ):
+            return self.author == user
+
+        if perm in ('blog.delete_post',
+                    'comments.change_comment', 
+                    'comments.delete_comment', ):
+            return False
+
+        return False
 
 
 # handle notification of new comments
@@ -89,3 +112,13 @@ def new_comment(sender, instance, **kwargs):
 
 
 models.signals.post_save.connect(new_comment, sender=ThreadedComment)
+
+# Python 2.* compatible
+try:
+    unicode
+except NameError:
+    pass
+else:
+    for cls in (Post, ):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda self: self.__unicode__().encode('utf-8')

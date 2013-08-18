@@ -31,8 +31,8 @@
                 <dt><a href="{% url invitations %}">invite more people to the site</a></dt>
                 <dd>so more people can share in the fun.</dd>
             {% else %}
-                {% if user.is_staff %}
-                    <dt><a href="{% url admin_invite_user %}">invite more people to the site</a> [admin only]</dt>
+                {% if perms.signup_codes.add_signupcode %}
+                    <dt><a href="{% url admin_invite_user %}">invite more people to the site</a></dt>
                     <dd>so more people can share in the fun.</dd>
                 {% endif %}
             {% endifsetting %}
