@@ -3,7 +3,7 @@
 {% load threadedcomments_tags %}
 {# load mptt_comments_tags #}
 {% load i18n %}
-{% load markup_tags %}
+{% load markup_ext_tags %}
 {% load uni_form_tags %}
 {% load pagination_tags %}
 {% load avatar_ext_tags %}
@@ -28,7 +28,7 @@
                 {% ifallowed obj=response perm="comments.delete_comment" %}
                 <form method="POST" action="{% url comments-delete response.id %}">
                     {% csrf_token %}
-                    <input type="submit" value="{% trans "Delete Post" %}" />
+                    <input type="submit" value="{% trans "Delete Post" %}" class="delete" />
                     <input type="hidden" name="next" value="{{ request.path }}" />
                 </form>
                 {% endifallowed %}
@@ -101,3 +101,13 @@
         <h3>Please <a href="{{ acct_login_url }}">Login</a> (or <a href="{{ acct_signup_url }}">Sign Up</a>) to leave a comment</h3>
     {% endblocktrans %}
 {% endif %}
+
+<script type="text/javascript">
+    $(function(){
+        $('.responses .delete').on("click", function(e){
+            if (!confirm('{% trans "Are you sure? Delete it?" %}')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>

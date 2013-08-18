@@ -18,7 +18,7 @@ def is_allowed(self, user, perm=None):
         return False
 
     if perm in ('comments.delete_comment', ):
-        return False
+        return user.has_perm(perm, self.content_object)
 
     return False
 
