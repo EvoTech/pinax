@@ -13,7 +13,7 @@ urlpatterns = patterns("",
     # your photos
     url(r"^yourphotos/$", "pinax.apps.photos.views.yourphotos", name="photos_yours"),
     # a members photos
-    url(r"^member/(?P<username>[\w]+)/$", "pinax.apps.photos.views.memberphotos", name="photos_member"),
+    url(r"^member/(?P<username>[^/]+)/$", "pinax.apps.photos.views.memberphotos", name="photos_member"),
     #destory photo
     url(r"^destroy/(?P<id>\d+)/$", "pinax.apps.photos.views.destroy", name="photo_destroy"),
     #edit photo
