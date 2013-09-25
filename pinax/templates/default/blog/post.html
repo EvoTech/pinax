@@ -5,7 +5,7 @@
 {% load account_tags %}
 {% load comments_tag %}
 {% load markup_tags %}
-{% load tagging_tags %}
+{% load extra_tagging_tags %}
 {% load blog_tags %}
 {% load theme_tags %}
 {% load cache_tagging_tags %}
@@ -23,11 +23,9 @@
         <h2>{{ post.title }}</h2>
         <div class="blog-meta"><p>Posted by: <a href="{% url profile_detail post.author.username %}">{% user_display post.author %}</a> on {{ post.publish|date }}</p></div>
         <div class="blog-tags">
-            <p>{% silk "tag_blue" %}
-            {% tags_for_object post as tags %}
-            {% for tag in tags %}
-                <a href="/tags/{{ tag }}">{{ tag }}</a>
-            {% endfor %}</p>
+            <p>
+                {% show_tags_for post %}
+            </p>
 
             {% nocache %}
             if post.author == request.user:
