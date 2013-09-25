@@ -31,3 +31,6 @@
 .blog-post-meta img.noborder {
     border: 0;
 }
+.blog-tags img {
+    border: none;
+}
