@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load generic_flatblocks %}
-{% load analytics %}
 
 {% block extra_head_base %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/site_tabs.css" />
@@ -40,7 +39,6 @@
 {% endblock %}
 
 {% block extra_body_base %}
-    {% ga %}
     {% block extra_body %}
     <script type="text/javascript">
     $(document).ready(function(){

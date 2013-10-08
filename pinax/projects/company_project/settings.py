@@ -139,7 +139,6 @@ INSTALLED_APPS = [
     "biblion",
     
     # Pinax
-    "pinax.apps.analytics",
     
     # project
 ]

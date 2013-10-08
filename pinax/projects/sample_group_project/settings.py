@@ -172,7 +172,6 @@ INSTALLED_APPS = [
     # Pinax
     "pinax.apps.account",
     "pinax.apps.signup_codes",
-    "pinax.apps.analytics",
     "pinax.apps.tagging_utils",
     "pinax.apps.threadedcomments_extras",
     "pinax.apps.topics",

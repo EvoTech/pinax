@@ -160,7 +160,6 @@ INSTALLED_APPS = [
     "django_generic_flatblocks.contrib.gblocks",
     
     # Pinax
-    "pinax.apps.analytics",
     "pinax.apps.account",
     
     # project

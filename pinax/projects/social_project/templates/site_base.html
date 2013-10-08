@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% load i18n %}
-{% load analytics %}
 
 {% block extra_head_base %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/site_tabs.css" />
@@ -66,7 +65,6 @@
 {% endblock %}
 
 {% block extra_body_base %}
-    {% ga %}
     <script type="text/javascript" src="{{ STATIC_URL }}pinax/js/topics.js"></script>
     {% block extra_body %}{% endblock %}
 {% endblock %}
