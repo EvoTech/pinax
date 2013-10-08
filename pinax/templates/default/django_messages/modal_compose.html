@@ -68,7 +68,7 @@
                     return false;
                 }
             }).data( "autocomplete" )._renderItem = function( ul, item) {
-                var html = item.avatar + item.label + (item.location ? "<br />" + item.location : "");
+                var html = item.avatar + htmlEncode(item.label) + (item.location ? "<br />" + htmlEncode(item.location) : "");
 		        return $( "<li></li>" )
 			        .data( "item.autocomplete", item )
 			        .append( $( "<a></a>" ).html( html ) )
