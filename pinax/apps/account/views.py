@@ -4,7 +4,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import urlresolvers
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.http import base36_to_int
@@ -98,7 +98,8 @@ def login(request, **kwargs):
 
 
 def signup(request, **kwargs):
-
+    from django_ext.forms.utils import format_errors
+    import json
     form_class = kwargs.pop("form_class", SignupForm)
     template_name = kwargs.pop("template_name", "account/signup.html")
     redirect_field_name = kwargs.pop("redirect_field_name", "next")
@@ -117,8 +118,17 @@ def signup(request, **kwargs):
                 fallback_url = settings.LOGIN_REDIRECT_URL
         success_url = get_default_redirect(request, fallback_url, redirect_field_name)
 
+    form = form_class(request.POST or None, group=group)
+
     if request.method == "POST":
-        form = form_class(request.POST, group=group)
+
+        if request.is_ajax() and request.POST.get('__validate__'):
+            return HttpResponse(
+                json.dumps(format_errors(
+                    form,
+                    fields=request.POST.get('__fields__')
+                )), mimetype="application/json")
+
         if form.is_valid():
             user = form.save(request=request)
             if settings.ACCOUNT_EMAIL_VERIFICATION:
@@ -136,8 +146,9 @@ def signup(request, **kwargs):
                     }
                 )
                 return HttpResponseRedirect(success_url)
-    else:
-        form = form_class(group=group)
+        elif request.is_ajax():
+            return HttpResponse(json.dumps(format_errors(form)),
+                                mimetype="application/json")
 
     ctx.update({
         "form": form,

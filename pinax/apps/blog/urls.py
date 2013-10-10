@@ -27,10 +27,4 @@ urlpatterns = patterns("",
     
     #destory blog post
     url(r"^destroy/(\d+)/$", "pinax.apps.blog.views.destroy", name="blog_destroy"),
-    
-    # ajax validation
-    (r"^validate/$", "ajax_validation.views.validate", {
-        "form_class": BlogForm,
-        "callback": lambda request, *args, **kwargs: {"user": request.user}
-    }, "blog_form_validate"),
 )

@@ -1,6 +1,7 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load static_tags %}
 {% load uni_form_tags %}
 
 {% block head_title %}{% trans "Signup" %}{% endblock %}
@@ -43,12 +44,13 @@
 {% endblock %}
 
 {% block extra_body %}
-    {% load jquery_validation %}
-    {% include_validation %}
+    <script type="text/javascript" src="{% static_url 'django_ext/forms.js' %}"></script>
     <script type="text/javascript">
         $(function(){
-            $('#signup_form').validate('{% url signup_form_validate %}', {type: 'table', fields: ['username'], dom: $('#id_username'), event: 'change'});
-            $("#id_username").focus();
+            $('#signup_form').simpleAjax({event: false});
+            $("#id_username").on('change', function() {
+                $(this.form).simpleAjax().validate($(this).attr('name'));
+            });
         });
     </script>
 {% endblock %}

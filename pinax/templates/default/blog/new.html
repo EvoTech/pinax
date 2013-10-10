@@ -26,13 +26,3 @@
     </form>
     
 {% endblock %}
-
-{% block extra_body %}
-    {% load jquery_validation %}
-    {% include_validation %}
-    <script type="text/javascript">
-        $(function(){
-            $('#blog_form').validate('{% url blog_form_validate %}', {type: 'table'});
-        });
-    </script>
-{% endblock %}

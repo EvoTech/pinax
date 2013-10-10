@@ -149,7 +149,6 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "mailer",
     "uni_form",
-    "ajax_validation",
     "timezones",
     "emailconfirmation",
     "announcements",
