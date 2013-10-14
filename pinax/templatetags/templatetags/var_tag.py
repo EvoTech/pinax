@@ -19,9 +19,7 @@ class VarNode(template.Node):
         return top_context
     def render(self, context):
         try:
-            resolved_var = template.resolve_variable(
-                self.var_to_resolve, context
-            )
+            resolved_var = self.var_to_resolve.resolve(context)
             self.get_context(context)[self.var_name] = resolved_var
         except template.VariableDoesNotExist:
             self.get_context(context)[self.var_name] = ""
@@ -43,4 +41,4 @@ def var(parser, token):
             "'{0}' statement requires the form {{% {1} foo = bar %}}.".format(
                 args[0], args[0])
             )
-    return VarNode(args[1], args[3])
+    return VarNode(args[1], parser.compile_filter(args[3]))
