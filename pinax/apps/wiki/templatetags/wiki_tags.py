@@ -7,19 +7,19 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import stringfilter
 from django.utils.encoding import force_unicode
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, escape
 from django.utils.http import urlquote
 from django.utils.functional import curry
 from django.utils.safestring import mark_safe, SafeData
 
-from pinax.apps.wiki.forms import WIKI_WORD_RE
+from pinax.apps.wiki.forms import WIKI_WORD_RE, camel_case_pattern
 
 
 register = template.Library()
 
 # wikiword_link = re.compile(r'(?<!!)\b((?:\.?\./)*{0})\b'.format(WIKI_WORD_RE), re.U)
-wikiword_link = re.compile(r'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U|re.S)
-wikiword_link_href = re.compile(r'^(\!?(?:\.?\./)*{0})$'.format(WIKI_WORD_RE), re.U|re.S)
+wikiword_link = re.compile(r'(\!?(?:\.?\./)*\b{0})\b'.format(WIKI_WORD_RE), re.U | re.S)
+wikiword_link_href = re.compile(r'^(\!?(?:\.?\./)*{0})$'.format(WIKI_WORD_RE), re.U | re.S)
 
 
 def _re_callback(match, inside=False, group=None):
@@ -48,7 +48,7 @@ def wiki_links(text, group=None):
     """Replaces CamelCase words to wiki-links."""
     from BeautifulSoup import BeautifulSoup
 
-    autoescape=False
+    autoescape = False
     safe_input = isinstance(text, SafeData)
     conditional_escape(text)
     soup = BeautifulSoup(text)
@@ -83,6 +83,12 @@ def show_teaser(context, article):
     context = copy.copy(context)
     context.update({'article': article})
     return context
+
+
+@register.filter
+def camel_case_to_space(val):
+    """Converts camel case to space"""
+    return camel_case_pattern.sub(r'\1  \2', val)
 
 
 @register.inclusion_tag('wiki/wiki_title.html')

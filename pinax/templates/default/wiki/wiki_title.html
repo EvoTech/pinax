@@ -1,5 +1,6 @@
+{% spaceless %}
 {% load i18n %}
 
 {% if group %}
-    <h1>{% blocktrans %}Wiki articles. {{ group_type }} <a href="{{ group_url }}">{{ group }}</a>{% endblocktrans %}</h1>
-{% endif %}
+{% blocktrans %}Wiki articles. {{ group_type }} <a href="{{ group_url }}">{{ group }}</a>{% endblocktrans %}
+{% endif %}{% endspaceless %}
