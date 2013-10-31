@@ -23,6 +23,10 @@
     vertical-align: top;
     padding: 3px 3px 15px 3px;
 }
+.blog-list th {
+    vertical-align: top;
+    padding: 3px 3px 5px 3px;
+}
 .blog-list td p {
     padding: 0;
     margin: 0;
