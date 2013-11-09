@@ -46,9 +46,14 @@ class Helper(Promise):
         return self.callback(self.key)
 
     def __str__(self):
+
         url = str(self.get_url())
+
         if not url:
             return ""
+
+        if not self.msg:
+            return url
 
         onclick = escape("".format(
             url=escapejs(str(url))

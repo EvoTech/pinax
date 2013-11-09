@@ -16,7 +16,7 @@ class Ads(Tag):
     options = Options(
         Argument('name', required=True),
         'as',
-        Argument('varname', required=False, resolve=True)
+        Argument('varname', required=False, resolve=False)
     )
     
     def render_tag(self, context, name, varname):
@@ -54,4 +54,3 @@ def in_list_ads(current, total):
     if current == math.floor(total/3.8):
         return True
     return False
-
