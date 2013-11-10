@@ -44,26 +44,42 @@ except AttributeError:
 class ArticleFormBase(forms.ModelForm):
 
     content = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': '20'}))
+        label=_("Content"),
+        widget=forms.Textarea(attrs={'rows': '20'})
+    )
 
     summary = forms.CharField(
-        required=False, max_length=255,
-        widget=forms.Textarea(attrs={'rows': '5'}))
+        label=_("Summary"),
+        required=False,
+        max_length=255,
+        widget=forms.Textarea(attrs={'rows': '5'})
+    )
 
-    tags = TagField(label="Tags", required=False,
-                    widget=TagAutoCompleteInput(
-                    app_label=Article._meta.app_label,
-                    model=Article._meta.module_name))
+    tags = TagField(
+        label="Tags",
+        required=False,
+        widget=TagAutoCompleteInput(
+            app_label=Article._meta.app_label,
+            model=Article._meta.module_name
+        )
+    )
 
-    comment = forms.CharField(required=False, max_length=50)
+    comment = forms.CharField(
+        label=_("Comment"),
+        required=False,
+        max_length=50
+    )
     user_ip = forms.CharField(widget=forms.HiddenInput)
 
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.all(),
         required=False,
-        widget=forms.HiddenInput)
-    object_id = forms.IntegerField(required=False,
-                                   widget=forms.HiddenInput)
+        widget=forms.HiddenInput
+    )
+    object_id = forms.IntegerField(
+        required=False,
+        widget=forms.HiddenInput
+    )
 
     action = forms.CharField(widget=forms.HiddenInput)
 

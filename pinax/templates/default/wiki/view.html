@@ -4,6 +4,7 @@
 {% load wiki_tags %}
 {% load group_tags %}
 {% load comments_tag %}
+{% load helper_tags %}
 {% load markup_tags %}
 {% load extra_tagging_tags %}
 {% load contenttypes_tags %}
@@ -46,6 +47,9 @@
                 {% ifallowed perm="wiki.mark_removed_article" obj=article %}
                     <li><a href="{% groupurl wiki_remove_article group title=article.title %}">{% trans "Remove this article" %}</a></li>
                 {% endifallowed %}
+
+                {% helper "wiki" _("How to add new article?") as h %}
+                {% if h %}<li>{{ h }}</li>{% endif %}
 
             {% else %}
 

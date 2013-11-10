@@ -11,6 +11,7 @@ from django.contrib.contenttypes import generic
 from django.db.models.query import QuerySet
 
 import versioning
+from pinax.utils.helper import helper
 from django_markup.markup import formatter
 from versioning.utils import revisions_for_object
 from tagging.fields import TagField
@@ -57,6 +58,7 @@ class Article(models.Model):
     title = models.CharField(
         _("Title"),
         max_length=255,
+        help_text=helper("wiki", _("About WikiTitle")),
         db_index=True
     )
     content = models.TextField(
@@ -73,6 +75,7 @@ class Article(models.Model):
         _("Content Markup"),
         max_length=100,
         choices=formatter.choices(MARKUP_CHOICES),
+        help_text=helper("markup", _("About formatting")),
         null=True,
         blank=True
     )
@@ -125,16 +128,18 @@ class Article(models.Model):
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
+    def get_absolute_url(self, **kwargs):
         if self.group is None:
             return urlresolvers.reverse(
                 'wiki_article',
-                kwargs={'title': self.title, }
+                kwargs={'title': self.title, },
+                **kwargs
             )
         #return self.group.get_absolute_url() + 'wiki/' + self.title
         return self.group.content_bridge.reverse(
             'wiki_article', self.group,
-            kwargs={'title': self.title, }
+            kwargs={'title': self.title, },
+            **kwargs
         )
 
     def mark_removed(self):
