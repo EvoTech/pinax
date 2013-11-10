@@ -33,7 +33,7 @@ DEFAULT_WIKI_WORD_RE = r"((([" + uppers + r"]+[" + lowers + r"0-9']+){2,})(/([" 
 WIKI_WORD_RE = getattr(settings, 'WIKI_WORD_RE', DEFAULT_WIKI_WORD_RE)
 wikiword_pattern = re.compile(r'^' + WIKI_WORD_RE + r'$', re.U)
 
-camel_case_pattern = re.compile(r"([" + lowers + r"0-9'])([" + uppers + r"])", re.U)
+camel_case_pattern = re.compile(r"(.)([" + uppers + r"])", re.U)
 
 try:
     WIKI_BANNED_TITLES = settings.WIKI_BANNED_TITLES
