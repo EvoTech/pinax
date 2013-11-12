@@ -56,9 +56,8 @@ def reverse_full(viewname, urlconf=None, args=None, kwargs=None, prefix=None,
     elif subdomain:
         urlconf = settings.ROOT_URLCONF_FIRM
 
-    else:
+    if subdomain is None:
         subdomain = getattr(settings, 'DEFAULT_SUBDOMAIN', 'www')
-        urlconf = settings.ROOT_URLCONF
 
     if host is None:
         current_site = Site.objects.get_current()
@@ -73,4 +72,5 @@ def reverse_full(viewname, urlconf=None, args=None, kwargs=None, prefix=None,
         host=host,
         path=url
     )
+
     return full_url

@@ -147,7 +147,7 @@
             <h2><a href="{% groupurl wiki_list tribe %}">{% trans "Wiki Articles" %}{% if articles %} ({{ articles|length }}){% endif %}</a></h2>
             
             {% if articles %}
-                <table class="topics">
+                <table class="bookmarks">
                     {% for article in articles|slice:":5" %}
                         {% show_teaser article %}
                     {% endfor %}
