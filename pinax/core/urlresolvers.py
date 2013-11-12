@@ -25,6 +25,9 @@ def reverse_full(viewname, urlconf=None, args=None, kwargs=None, prefix=None,
     if subdomain is None:
         subdomain = kwargs.pop('_subdomain', None)
 
+    if urlconf is None:
+        urlconf = settings.ROOT_URLCONF
+
     kwargs2 = defaults.copy()
     kwargs2.update(kwargs)
     
