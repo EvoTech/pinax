@@ -11,6 +11,7 @@ from django.contrib.contenttypes import generic
 from django.db.models.query import QuerySet
 
 import versioning
+from pinax.core.urlresolvers import reverse_full
 from pinax.utils.helper import helper
 from django_markup.markup import formatter
 from versioning.utils import revisions_for_object
@@ -141,6 +142,9 @@ class Article(models.Model):
             kwargs={'title': self.title, },
             **kwargs
         )
+
+    def get_full_url(self):
+        return reverse_full('wiki_article', kwargs={'title': self.title, }, group=self.group)
 
     def mark_removed(self):
         """ Mark the Article as 'removed'."""

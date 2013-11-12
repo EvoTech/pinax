@@ -24,7 +24,7 @@
         {{ article.last_update|date }}
     </td>
     <td>
-        <h2><a href="{{ article.get_absolute_url }}">{{ article.title|camel_case_to_space }}</a></h2>
+        <h2><a href="{{ article.get_full_url }}">{{ article.title|camel_case_to_space }}</a></h2>
         <div class="body">{{ article.summary|apply_markup:article.markup|wiki_links:article.group }}</div>
     </td>
 </tr>
