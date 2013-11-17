@@ -72,7 +72,7 @@ def username_autocomplete_friends(request):
             friends = Friendship.objects.friends_for_user(request.user)
             for friendship in friends:
                 if friendship["friend"].is_active and\
-                        friendship["friend"].username.lower().startswith(q):
+                        friendship["friend"].username.lower().startswith(q.lower()):
                     try:
                         profile = friendship["friend"].get_profile()
                         entry = {

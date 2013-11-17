@@ -31,7 +31,7 @@ except ImportError:
 def blogs(request, username=None, template_name="blog/blogs.html"):
     blogs = Post.objects.filter(status=2).select_related(depth=1).order_by("-publish")
     if username is not None:
-        user = get_object_or_404(User, username=username.lower())
+        user = get_object_or_404(User, username=username)
         blogs = blogs.filter(author=user)
     return render_to_response(template_name, {
         "blogs": blogs,
