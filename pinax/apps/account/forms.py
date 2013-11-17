@@ -378,11 +378,17 @@ class ResetPasswordForm(forms.Form):
     )
     
     def clean_email(self):
-        if EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"], verified=True).count() == 0:
+        email = self.cleaned_data["email"]
+        if EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=email, verified=True).count() == 0:
             raise forms.ValidationError(_("Email address not verified for any user account"))
-        if EmailAddress.objects.filter(email__iexact=self.cleaned_data["email"]).count() == 0:
-            raise forms.ValidationError(_("Email address not verified for any user account"))
-        return self.cleaned_data["email"]
+        if not EmailAddress.objects.filter(email__iexact=email).exists():
+            exists = False
+            for user in User.objects.filter(email__iexact=email):
+                EmailAddress.objects.add_email(user, user.email)
+                exists = True
+            if not exists:
+                raise forms.ValidationError(_("Email address not exists for any user account"))
+        return email
     
     def save(self, **kwargs):
         
@@ -401,7 +407,7 @@ class ResetPasswordForm(forms.Form):
             domain = str(current_site.domain)
             
             # send the password reset email
-            subject = _("Password reset e-mail sent")
+            subject = _("[%s] Password reset e-mail sent") % domain
             message = render_to_string("account/password_reset_key_message.txt", {
                 "user": user,
                 "uid": int_to_base36(user.id),
