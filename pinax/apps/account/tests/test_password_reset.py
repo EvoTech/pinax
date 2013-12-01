@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import re
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -10,9 +10,8 @@ from django.utils import translation
 
 from django.contrib.auth.models import User
 
-import pinax
-
 from emailconfirmation.models import EmailAddress, EmailConfirmation
+from pinax.apps.account import settings
 
 
 class PasswordResetTest(TestCase):
@@ -21,16 +20,19 @@ class PasswordResetTest(TestCase):
     # urls = "pinax.apps.account.tests.account_urls"
     
     def setUp(self):
-        settings.INSTALLED_APPS = list(settings.INSTALLED_APPS)
-        self.OLD_INSTALLED_APPS = list(settings.INSTALLED_APPS)
+        django_settings.INSTALLED_APPS = list(django_settings.INSTALLED_APPS)
+        self.OLD_INSTALLED_APPS = list(django_settings.INSTALLED_APPS)
         # remove django-mailer to properly test for outbound e-mail
         self.old_language_code = translation.get_language()
         translation.activate('en')
-        if "mailer" in settings.INSTALLED_APPS:
-            settings.INSTALLED_APPS.remove("mailer")
+        self.OLD_EMAIL_VERIFICATION_PASSWORD_RESET = settings.EMAIL_VERIFICATION_PASSWORD_RESET
+        settings.EMAIL_VERIFICATION_PASSWORD_RESET = True
+        if "mailer" in django_settings.INSTALLED_APPS:
+            django_settings.INSTALLED_APPS.remove("mailer")
     
     def tearDown(self):
-        settings.INSTALLED_APPS = self.OLD_INSTALLED_APPS
+        django_settings.INSTALLED_APPS = self.OLD_INSTALLED_APPS
+        settings.EMAIL_VERIFICATION_PASSWORD_RESET = self.OLD_EMAIL_VERIFICATION_PASSWORD_RESET
         translation.activate(self.old_language_code)
     
     def context_lookup(self, response, key):

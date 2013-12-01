@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import re
 
 from django import forms
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _, ugettext
@@ -20,20 +20,12 @@ from timezones.forms import TimeZoneField
 
 from pinax.apps.account.models import Account, PasswordReset
 from pinax.apps.account.utils import perform_login
+from pinax.apps.account import settings
 from pinax.utils.make_agreement_form import make_agreement_form
 
 
 
 alnum_re = re.compile(r"^\w+$")
-
-
-# @@@ might want to find way to prevent settings access globally here.
-REQUIRED_EMAIL = getattr(settings, "ACCOUNT_REQUIRED_EMAIL", False)
-EMAIL_VERIFICATION = getattr(settings, "ACCOUNT_EMAIL_VERIFICATION", False)
-EMAIL_VERIFICATION_PASSWORD_RESET = getattr(settings, "ACCOUNT_EMAIL_VERIFICATION_PASSWORD_RESET", False)
-EMAIL_AUTHENTICATION = getattr(settings, "ACCOUNT_EMAIL_AUTHENTICATION", False)
-UNIQUE_EMAIL = getattr(settings, "ACCOUNT_UNIQUE_EMAIL", False)
-
 
 
 class GroupForm(forms.Form):
@@ -60,7 +52,7 @@ class LoginForm(GroupForm):
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
         ordering = []
-        if EMAIL_AUTHENTICATION:
+        if settings.EMAIL_AUTHENTICATION:
             self.fields["email"] = forms.EmailField(
                 label = ugettext("E-mail"),
             )
@@ -80,7 +72,7 @@ class LoginForm(GroupForm):
         login.
         """
         credentials = {}
-        if EMAIL_AUTHENTICATION:
+        if settings.EMAIL_AUTHENTICATION:
             credentials["email"] = self.cleaned_data["email"]
         else:
             credentials["username"] = self.cleaned_data["username"]
@@ -97,7 +89,7 @@ class LoginForm(GroupForm):
             else:
                 raise forms.ValidationError(_("This account is currently inactive."))
         else:
-            if EMAIL_AUTHENTICATION:
+            if settings.EMAIL_AUTHENTICATION:
                 error = _("The e-mail address and/or password you specified are not correct.")
             else:
                 error = _("The username and/or password you specified are not correct.")
@@ -137,7 +129,7 @@ class SignupFormBase(GroupForm):
     
     def __init__(self, *args, **kwargs):
         super(SignupFormBase, self).__init__(*args, **kwargs)
-        if REQUIRED_EMAIL or EMAIL_VERIFICATION or EMAIL_AUTHENTICATION:
+        if settings.REQUIRED_EMAIL or settings.EMAIL_VERIFICATION or settings.EMAIL_AUTHENTICATION:
             self.fields["email"].label = ugettext("E-mail")
             self.fields["email"].required = True
         else:
@@ -162,7 +154,7 @@ class SignupFormBase(GroupForm):
             # Prefix "__" or "__NUMBER_" e.g. "__3_" reserved for marked as removed users.
             # TODO: Add ability to restore account what was marked as deleted.
             raise forms.ValidationError(_("Email can't starts with double underscore."))
-        if UNIQUE_EMAIL or EMAIL_AUTHENTICATION:
+        if settings.UNIQUE_EMAIL or settings.EMAIL_AUTHENTICATION:
             try:
                 User.objects.get(email__iexact=value)
             except User.DoesNotExist:
@@ -239,7 +231,7 @@ class SignupFormBase(GroupForm):
         else:
             new_user = self.create_user(username)
             if email:
-                if request and not EMAIL_VERIFICATION:
+                if request and not settings.EMAIL_VERIFICATION:
                     messages.add_message(request, messages.INFO,
                         ugettext("Confirmation e-mail sent to %(email)s") % {
                             "email": email,
@@ -247,7 +239,7 @@ class SignupFormBase(GroupForm):
                     )
                 EmailAddress.objects.add_email(new_user, email)
         
-        if EMAIL_VERIFICATION:
+        if settings.EMAIL_VERIFICATION:
             new_user.is_active = False
             new_user.save()
         
@@ -295,7 +287,7 @@ class AddEmailFormBase(UserForm):
             "this_account": _("This e-mail address already associated with this account."),
             "different_account": _("This e-mail address already associated with another account."),
         }
-        if UNIQUE_EMAIL:
+        if settings.UNIQUE_EMAIL:
             try:
                 email = EmailAddress.objects.get(email__iexact=value)
             except EmailAddress.DoesNotExist:
@@ -379,7 +371,7 @@ class ResetPasswordForm(forms.Form):
     
     def clean_email(self):
         email = self.cleaned_data["email"]
-        if EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=email, verified=True).count() == 0:
+        if settings.EMAIL_VERIFICATION_PASSWORD_RESET and EmailAddress.objects.filter(email__iexact=email, verified=True).count() == 0:
             raise forms.ValidationError(_("Email address not verified for any user account"))
         if not EmailAddress.objects.filter(email__iexact=email).exists():
             exists = False
@@ -414,7 +406,7 @@ class ResetPasswordForm(forms.Form):
                 "temp_key": temp_key,
                 "domain": domain,
             })
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+            send_mail(subject, message, django_settings.DEFAULT_FROM_EMAIL, [user.email])
         return self.cleaned_data["email"]
 
 
@@ -467,7 +459,7 @@ class ChangeLanguageForm(AccountForm):
     language = forms.ChoiceField(
         label = _("Language"),
         required = True,
-        choices = settings.LANGUAGES
+        choices = django_settings.LANGUAGES
     )
     
     def __init__(self, *args, **kwargs):
