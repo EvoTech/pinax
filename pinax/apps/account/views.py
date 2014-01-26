@@ -126,7 +126,7 @@ def signup(request, **kwargs):
             return HttpResponse(
                 json.dumps(format_errors(
                     form,
-                    fields=request.POST.get('__fields__')
+                    fields=request.POST.getlist('__fields__[]')
                 )), mimetype="application/json")
 
         if form.is_valid():
