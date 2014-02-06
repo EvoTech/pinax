@@ -71,7 +71,7 @@ class TasksForTagNode(template.Node):
         task_contenttype = ContentType.objects.get(app_label="tasks", model="task")
         try:
             qs = TaggedItem.objects.filter(
-                tag__name = bytes(tag),
+                tag__name = tag.encode('utf-8'),
                 content_type = task_contenttype
             ).values_list("object_id")
             tasks = selection.filter(id__in=[i[0] for i in qs])
