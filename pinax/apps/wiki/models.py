@@ -202,15 +202,23 @@ class Article(models.Model):
         except IndexError:
             return None
 
-if notification is not None:
-    signals.post_save.connect(notification.handle_observations, sender=Article)
+
+def subscribe_creator(sender, instance, created, **kwargs):
+    if notification and created and instance.creator:
+        if not notification.is_observing(instance, instance.creator, 'post_save'):
+            notification.observe(instance, instance.creator, 'wiki_observed_article_changed', 'post_save')
+        if not notification.is_observing(instance, instance.creator, 'wiki_article_comment'):
+            notification.observe(instance, instance.creator, 'wiki_article_comment', 'wiki_article_comment')
 
 
-def wiki_article_comment(sender, instance, **kwargs):
+def wiki_article_comment(sender, instance, created, **kwargs):
     if isinstance(instance.content_object, Article):
         article = instance.content_object
         # Article.objects.filter(pk=article.pk).update(last_update=datetime.now())  # Don't send a signal
-        if notification and kwargs.get('created'):
+        if notification and created:
+            if not notification.is_observing(article, instance.user, 'wiki_article_comment'):
+                notification.observe(article, instance.user, 'wiki_article_comment', 'wiki_article_comment')
+
             current_site = Site.objects.get_current()
             group = article.group
             notice_uid = 'wiki_article_comment_{0}_{1}'.format(
@@ -229,26 +237,10 @@ def wiki_article_comment(sender, instance, **kwargs):
                 }
             )
 
-            notify_list = [article.creator.pk, ]
-            current_site = Site.objects.get_current()
-            notify_list += ThreadedComment.objects.for_model(article).filter(
-                is_public=True,
-                is_removed=False,
-                site=current_site,
-                object_pk=article.pk
-            ).values_list('user', flat=True)
-            notify_list = list(set(notify_list))
-            if instance.user.pk in notify_list:
-                notify_list.remove(instance.user.pk)
-            notification.send(notify_list, "wiki_article_comment", {
-                "user": instance.user,
-                "article": article,
-                "comment": instance,
-                "group": group,
-                "notice_uid": notice_uid,
-            })
-
-models.signals.post_save.connect(wiki_article_comment, sender=ThreadedComment)
+if notification is not None:
+    signals.post_save.connect(notification.handle_observations, sender=Article)
+    signals.post_save.connect(subscribe_creator, sender=Article)
+    models.signals.post_save.connect(wiki_article_comment, sender=ThreadedComment)
 
 versioning.register(Article, ['title', 'content', 'summary', 'markup', ])
 

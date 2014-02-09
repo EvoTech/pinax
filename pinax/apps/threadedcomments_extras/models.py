@@ -1,9 +1,12 @@
 from __future__ import absolute_import, unicode_literals
+import re
 from threadedcomments.models import ThreadedComment
 
+TRANS_RE = re.compile('^threadedcomments\.(.+)_threadedcomment$')
 
 def is_allowed(self, user, perm=None):
     """Checks permissions."""
+    perm = TRANS_RE.sub('comments.\\1_comment', perm)
     base_perm = perm.split('.', 1)[1].rsplit('_', 1)[0]
 
     if perm in ('comments.view_comment',
@@ -23,3 +26,4 @@ def is_allowed(self, user, perm=None):
     return False
 
 ThreadedComment.is_allowed = is_allowed
+
