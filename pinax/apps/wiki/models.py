@@ -206,7 +206,7 @@ class Article(models.Model):
 def subscribe_creator(sender, instance, created, **kwargs):
     if notification and created and instance.creator:
         if not notification.is_observing(instance, instance.creator, 'post_save'):
-            notification.observe(instance, instance.creator, 'wiki_observed_article_changed', 'post_save')
+            notification.observe(instance, instance.creator, 'wiki_article_edited', 'post_save')
         if not notification.is_observing(instance, instance.creator, 'wiki_article_comment'):
             notification.observe(instance, instance.creator, 'wiki_article_comment', 'wiki_article_comment')
 

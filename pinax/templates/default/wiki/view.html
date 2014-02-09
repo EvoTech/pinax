@@ -34,7 +34,7 @@
                     <li><a href="{% url versioning_revision_list content_type=article|contenttype_id object_id=article.pk %}">{% trans "Editing history" %}</a> </li>
                 {% endifallowed %}
 
-                {% observe_link article 'post_save' 'wiki_observed_article_changed' text_observe=_("Observe Article") text_stop_observing=_("Stop Observing Article") as observe_article_html %}
+                {% observe_link article 'post_save' 'wiki_article_edited' text_observe=_("Observe Article") text_stop_observing=_("Stop Observing Article") as observe_article_html %}
                 {% if observe_article_html %}
                     <li>{{ observe_article_html }}</li>
                 {% endif %}
