@@ -1,8 +1,13 @@
+{% spaceless %}
 {% load i18n %}
+{% load account_tags %}
+{% user_display user as user_display %}
+{% endspaceless %}
+
 {% if group %}
-{% blocktrans %}{{ user }} has commented on article '{{ article }}' in '{{ group }}':{% endblocktrans %}
+{% blocktrans %}{{ user_display }} has commented on article '{{ article }}' in '{{ group }}':{% endblocktrans %}
 {% else %}
-{% blocktrans %}{{ user }} has commented on article '{{ article }}':{% endblocktrans %}
+{% blocktrans %}{{ user_display }} has commented on article '{{ article }}':{% endblocktrans %}
 {% endif %}
 
 {{ comment.comment }}

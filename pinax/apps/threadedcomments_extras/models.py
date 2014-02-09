@@ -26,4 +26,3 @@ def is_allowed(self, user, perm=None):
     return False
 
 ThreadedComment.is_allowed = is_allowed
-

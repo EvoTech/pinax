@@ -1,4 +1,9 @@
-{% load i18n %}{% blocktrans with article.get_absolute_url as article_url %}The wiki article {{ article }} has been edited by {{ user }}.
+{% spaceless %}
+{% load i18n %}
+{% load account_tags %}
+{% user_display user as user_display %}
+{% endspaceless %}
 
-http://{{ current_site }}{{ article_url }}
-{% endblocktrans %}
+{% blocktrans with observed.get_absolute_url as article_url %}The article {{ observed }} has changed by {{ user_display }}.{% endblocktrans %}
+
+URL: http://{{ current_site }}{{ article_url }}

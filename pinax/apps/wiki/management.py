@@ -9,13 +9,7 @@ try:
         notification.create_notice_type("wiki_article_edited",
                                         _("Article Edited"),
                                         _("your article has been edited"))
-        notification.create_notice_type("wiki_revision_reverted",
-                                        _("Article Revision Reverted"),
-                                        _("your revision has been reverted"))
-        notification.create_notice_type("wiki_observed_article_changed",
-                                        _("Observed Article Changed"),
-                                        _("an article you observe has changed"))
-        
+
         notification.create_notice_type("wiki_article_comment",
                                         _("Article Comment"),
                                         _("a new comment has been made on a article"))
