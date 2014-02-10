@@ -129,10 +129,10 @@ def topic_new(sender, instance, **kwargs):
 
 
 def subscribe_creator(sender, instance, created, **kwargs):
-    signal = notice_type_label = 'topic_comment'
-    observer = instance.creator
-    if notification and created and observer:
-        if not notification.is_observing(instance, observer, signal):
+    if notification and created and isinstance(instance, Topic):
+        signal = notice_type_label = 'topic_comment'
+        observer = instance.creator
+        if observer and not notification.is_observing(instance, observer, signal):
             notification.observe(instance, observer, notice_type_label, signal)
 
 
