@@ -127,56 +127,50 @@ def topic_new(sender, instance, **kwargs):
                 "context_object": topic,
             })
 
-models.signals.post_save.connect(topic_new, sender=Topic)
+
+def subscribe_creator(sender, instance, created, **kwargs):
+    signal = notice_type_label = 'topic_comment'
+    observer = instance.creator
+    if notification and created and observer:
+        if not notification.is_observing(instance, observer, signal):
+            notification.observe(instance, observer, notice_type_label, signal)
 
 
-def topic_comment(sender, instance, **kwargs):
+def topic_comment(sender, instance, created, **kwargs):
     if isinstance(instance.content_object, Topic):
-        topic = instance.content_object
-        Topic.objects.filter(pk=topic.pk).update(modified=datetime.now())  # Don't send a signal
+        observed = instance.content_object
+        signal = notice_type_label = 'topic_comment'
+        observer = user = instance.user
+        Topic.objects.filter(pk=observed.pk).update(modified=datetime.now())  # Don't send a signal
 
-        if notification and kwargs.get('created'):
+        if notification and created:
+
+            if not notification.is_observing(observed, observer, signal):
+                notification.observe(observed, observer, notice_type_label, signal)
+
             current_site = Site.objects.get_current()
-            group = topic.group
-            notice_uid = 'topic_comment_{0}_{1}'.format(
+            group = observed.group
+            notice_uid = '{0}_{1}_{2}'.format(
+                signal,
                 current_site.pk,
                 instance.pk
             )
 
             notification.send_observation_notices_for(
-                topic, 'topic_comment', extra_context={
+                observed, signal, extra_context={
                     "context_object": instance,
-                    "user": instance.user,
-                    "topic": topic,
+                    "user": user,
+                    "topic": observed,
                     "comment": instance,
                     "group": group,
                     "notice_uid": notice_uid,
                 }
             )
 
-            # @@@ how do I know which notification type to send?
-            # @@@ notification.send([topic.creator], "tribes_topic_response", {"user": instance.user, "topic": topic})
-            #pass
-            notify_list = [topic.creator.pk, ]
-            notify_list += ThreadedComment.objects.for_model(topic).filter(
-                is_public=True,
-                is_removed=False,
-                site=current_site,
-                object_pk=topic.pk
-            ).values_list('user', flat=True)
-            notify_list = list(set(notify_list))
-            if instance.user.pk in notify_list:
-                notify_list.remove(instance.user.pk)
-
-            notification.send(notify_list, "topic_comment", {
-                "user": instance.user,
-                "topic": topic,
-                "comment": instance,
-                "group": group,
-                "notice_uid": notice_uid,
-            })
-
-models.signals.post_save.connect(topic_comment, sender=ThreadedComment)
+if notification is not None:
+    models.signals.post_save.connect(topic_new, sender=Topic)
+    models.signals.post_save.connect(subscribe_creator, sender=Topic)
+    models.signals.post_save.connect(topic_comment, sender=ThreadedComment)
 
 # Python 2.* compatible
 try:
