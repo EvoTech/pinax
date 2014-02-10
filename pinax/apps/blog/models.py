@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core import urlresolvers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -99,19 +100,45 @@ class Post(models.Model):
         return False
 
 
-# handle notification of new comments
-def new_comment(sender, instance, **kwargs):
-    post = instance.content_object
-    if isinstance(post, Post):
-        if notification:
-            notification.send([post.author], "blog_post_comment", {
-                "user": instance.user,
-                "post": post,
-                "comment": instance
-            })
+def subscribe_creator(sender, instance, created, **kwargs):
+    if notification and created and isinstance(instance, Post):
+        signal = notice_type_label = "blog_post_comment"
+        observer = instance.author
+        if observer and not notification.is_observing(instance, observer, signal):
+            notification.observe(instance, observer, notice_type_label, signal)
 
 
-models.signals.post_save.connect(new_comment, sender=ThreadedComment)
+def topic_comment(sender, instance, created, **kwargs):
+    if isinstance(instance.content_object, Post):
+        observed = instance.content_object
+        signal = notice_type_label = "blog_post_comment"
+        observer = user = instance.user
+        # Post.objects.filter(pk=observed.pk).update(updated_at=datetime.now())  # Don't send a signal
+
+        if notification and created:
+
+            if not notification.is_observing(observed, observer, signal):
+                notification.observe(observed, observer, notice_type_label, signal)
+
+            notice_uid = '{0}_{1}_{2}'.format(
+                notice_type_label,
+                Site.objects.get_current().pk,
+                instance.pk
+            )
+
+            notification.send_observation_notices_for(
+                observed, signal, extra_context={
+                    "context_object": instance,
+                    "notice_uid": notice_uid,
+                    "user": user,
+                    "post": observed,
+                    "comment": instance
+                }
+            )
+
+if notification is not None:
+    models.signals.post_save.connect(subscribe_creator, sender=Post)
+    models.signals.post_save.connect(topic_comment, sender=ThreadedComment)
 
 # Python 2.* compatible
 try:
