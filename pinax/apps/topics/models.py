@@ -148,11 +148,9 @@ def topic_comment(sender, instance, created, **kwargs):
             if not notification.is_observing(observed, observer, signal):
                 notification.observe(observed, observer, notice_type_label, signal)
 
-            current_site = Site.objects.get_current()
-            group = observed.group
             notice_uid = '{0}_{1}_{2}'.format(
-                signal,
-                current_site.pk,
+                notice_type_label,
+                Site.objects.get_current().pk,
                 instance.pk
             )
 
@@ -162,7 +160,7 @@ def topic_comment(sender, instance, created, **kwargs):
                     "user": user,
                     "topic": observed,
                     "comment": instance,
-                    "group": group,
+                    "group": observed.group,
                     "notice_uid": notice_uid,
                 }
             )

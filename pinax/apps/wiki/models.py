@@ -204,34 +204,39 @@ class Article(models.Model):
 
 
 def subscribe_creator(sender, instance, created, **kwargs):
-    if notification and created and instance.creator:
-        if not notification.is_observing(instance, instance.creator, 'post_save'):
-            notification.observe(instance, instance.creator, 'wiki_article_edited', 'post_save')
-        if not notification.is_observing(instance, instance.creator, 'wiki_article_comment'):
-            notification.observe(instance, instance.creator, 'wiki_article_comment', 'wiki_article_comment')
+    if notification and created and isinstance(instance, Article):
+        for observer, notice_type_label, signal in (
+                    (instance.creator, 'wiki_article_edited', 'post_save'),
+                    (instance.creator, 'wiki_article_comment', 'wiki_article_comment'),
+                ):
+            if observer and not notification.is_observing(instance, observer, signal):
+                notification.observe(instance, observer, notice_type_label, signal)
 
 
 def wiki_article_comment(sender, instance, created, **kwargs):
     if isinstance(instance.content_object, Article):
-        article = instance.content_object
-        # Article.objects.filter(pk=article.pk).update(last_update=datetime.now())  # Don't send a signal
-        if notification and created:
-            if not notification.is_observing(article, instance.user, 'wiki_article_comment'):
-                notification.observe(article, instance.user, 'wiki_article_comment', 'wiki_article_comment')
+        observed = instance.content_object
+        signal = notice_type_label = 'wiki_article_comment'
+        observer = user = instance.user
+        # Article.objects.filter(pk=observed.pk).update(last_update=datetime.now())  # Don't send a signal
 
-            current_site = Site.objects.get_current()
-            group = article.group
-            notice_uid = 'wiki_article_comment_{0}_{1}'.format(
-                current_site.pk,
+        if notification and created:
+
+            if not notification.is_observing(observed, observer, signal):
+                notification.observe(observed, observer, notice_type_label, signal)
+
+            notice_uid = '{0}_{1}_{2}'.format(
+                notice_type_label,
+                Site.objects.get_current().pk,
                 instance.pk
             )
 
             notification.send_observation_notices_for(
-                article, 'wiki_article_comment', extra_context={
-                    "user": instance.user,
-                    "article": article,
+                observed, signal, extra_context={
+                    "user": user,
+                    "article": observed,
                     "comment": instance,
-                    "group": group,
+                    "group": observed.group,
                     "context_object": instance,
                     "notice_uid": notice_uid,
                 }
