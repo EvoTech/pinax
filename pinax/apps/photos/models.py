@@ -1,19 +1,20 @@
 from __future__ import absolute_import, unicode_literals
 from datetime import datetime
 
+from django.conf import settings
 from django.core import urlresolvers
 from django.db import models
-
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 
 from groups.base import Group
 from tagging.fields import TagField
 from threadedcomments.models import ThreadedComment
 
-from photologue.models import *
+from photologue.models import ImageModel
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
@@ -177,31 +178,45 @@ class Pool(models.Model):
         verbose_name_plural = _("pools")
 
 
-def photos_image_comment(sender, instance, **kwargs):
-    if isinstance(instance.content_object, Image):
-        image = instance.content_object
-        if notification:
-            group = image.group
-            notify_list = [image.member.pk, ]
-            from django.contrib.sites.models import Site
-            current_site = Site.objects.get_current()
-            notify_list += ThreadedComment.objects.for_model(image).filter(
-                is_public=True,
-                is_removed=False,
-                site=current_site,
-                object_pk=image.pk
-            ).values_list('user', flat=True)
-            notify_list = list(set(notify_list))
-            if instance.user.pk in notify_list:
-                notify_list.remove(instance.user.pk)
-            notification.send(notify_list, "photos_image_comment", {
-                "user": instance.user,
-                "image": image,
-                "comment": instance,
-                "group": group,
-            })
+def subscribe_creator(sender, instance, created, **kwargs):
+    if notification and created and isinstance(instance, Image):
+        signal = notice_type_label = "photos_image_comment"
+        observer = instance.member
+        if observer and not notification.is_observing(instance, observer, signal):
+            notification.observe(instance, observer, notice_type_label, signal)
 
-models.signals.post_save.connect(photos_image_comment, sender=ThreadedComment)
+
+def object_comment(sender, instance, created, **kwargs):
+    if isinstance(instance.content_object, Image):
+        observed = instance.content_object
+        signal = notice_type_label = "photos_image_comment"
+        observer = user = instance.user
+
+        if notification and created:
+
+            if not notification.is_observing(observed, observer, signal):
+                notification.observe(observed, observer, notice_type_label, signal)
+
+            notice_uid = '{0}_{1}_{2}'.format(
+                notice_type_label,
+                Site.objects.get_current().pk,
+                instance.pk
+            )
+
+            notification.send_observation_notices_for(
+                observed, signal, extra_context={
+                    "context_object": instance,
+                    "notice_uid": notice_uid,
+                    "user": user,
+                    "image": observed,
+                    "comment": instance,
+                    "group": observed.group,
+                }
+            )
+
+if notification is not None:
+    models.signals.post_save.connect(subscribe_creator, sender=Image)
+    models.signals.post_save.connect(object_comment, sender=ThreadedComment)
 
 # Python 2.* compatible
 try:

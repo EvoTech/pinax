@@ -213,7 +213,7 @@ def subscribe_creator(sender, instance, created, **kwargs):
                 notification.observe(instance, observer, notice_type_label, signal)
 
 
-def wiki_article_comment(sender, instance, created, **kwargs):
+def object_comment(sender, instance, created, **kwargs):
     if isinstance(instance.content_object, Article):
         observed = instance.content_object
         signal = notice_type_label = 'wiki_article_comment'
@@ -245,7 +245,7 @@ def wiki_article_comment(sender, instance, created, **kwargs):
 if notification is not None:
     signals.post_save.connect(notification.handle_observations, sender=Article)
     signals.post_save.connect(subscribe_creator, sender=Article)
-    models.signals.post_save.connect(wiki_article_comment, sender=ThreadedComment)
+    models.signals.post_save.connect(object_comment, sender=ThreadedComment)
 
 versioning.register(Article, ['title', 'content', 'summary', 'markup', ])
 

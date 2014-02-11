@@ -136,7 +136,7 @@ def subscribe_creator(sender, instance, created, **kwargs):
             notification.observe(instance, observer, notice_type_label, signal)
 
 
-def topic_comment(sender, instance, created, **kwargs):
+def object_comment(sender, instance, created, **kwargs):
     if isinstance(instance.content_object, Topic):
         observed = instance.content_object
         signal = notice_type_label = 'topic_comment'
@@ -168,7 +168,7 @@ def topic_comment(sender, instance, created, **kwargs):
 if notification is not None:
     models.signals.post_save.connect(topic_new, sender=Topic)
     models.signals.post_save.connect(subscribe_creator, sender=Topic)
-    models.signals.post_save.connect(topic_comment, sender=ThreadedComment)
+    models.signals.post_save.connect(object_comment, sender=ThreadedComment)
 
 # Python 2.* compatible
 try:
