@@ -5,7 +5,6 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 
-from timezones.fields import TimeZoneField
 from notification import models as notification
 
 try:
