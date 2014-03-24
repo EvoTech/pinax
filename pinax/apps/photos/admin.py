@@ -4,7 +4,6 @@ from django.contrib import admin
 from pinax.apps.photos.models import Image, Pool
 
 
-
 class PhotoAdmin(admin.ModelAdmin):
     list_display = [
         "title",
@@ -19,9 +18,7 @@ class PhotoAdmin(admin.ModelAdmin):
 
 
 class PoolAdmin(admin.ModelAdmin):
-    list_display = ["photo"]
-
-
+    list_display = ["content_type", "object_id", "content_object", "photo"]
 
 admin.site.register(Image, PhotoAdmin)
 admin.site.register(Pool, PoolAdmin)

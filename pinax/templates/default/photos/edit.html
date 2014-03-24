@@ -6,6 +6,8 @@
 {% load comments_tag %}
 {% load photo_tags %}
 {% load flag_tags %}
+{% load thumbnail %}
+
 
 {% block head_title %}{% blocktrans %}Editing Photo Details{% endblocktrans %}{% endblock %}
 
@@ -18,6 +20,7 @@
     <h1>{% trans "Photo Details" %}</h1>
     
     <div class="gallery-photo">
+        <img src="{% thumbnail photo.image "400" quality=80 as th %}{{ th.url }}{% endthumbnail %}" width="400" alt="{{ photo.title }}" title="{{ photo.title }}" />
         <img src="{{ photo_url }}" alt="{{ photo.title }}"/>
     </div>
     

@@ -4,11 +4,12 @@
 {% load comments %}
 {% load is_allowed_tags %}
 {% load theme_tags %}
+{% load thumbnail %}
 
 {% is_allowed perm="photos.browse_image" obj=photo as allowed_for_browse %}
 {% if allowed_for_browse %}
         <div class="gallery-photo-thumb">
-            <a href="{{ photo.get_absolute_url }}"><img src="{{ photo.get_thumbnail_url }}" alt="{{ photo.title }}"/></a><br />
+            <a href="{{ photo.get_absolute_url }}"><img src="{% thumbnail photo.image "100x75" crop="center" upscale="True" quality=70 as th %}{{ th.url }}{% endthumbnail %}" width="100" height="75" alt="{{ photo.title }}" title="{{ photo.title }}" /></a><br />
             from <a href="{% url profile_detail photo.member.username %}">{% user_display photo.member %}</a><br />
             {% silk "comment" %}<a href="{{ photo.get_absolute_url }}#photocomments">{% get_comment_count for photo as commentcount %} {{ commentcount }} Comments</a><br />
             {% blocktrans with photo.view_count as view_count %}Viewed {{ view_count }} times{% endblocktrans %}

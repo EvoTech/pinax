@@ -10,8 +10,11 @@
 {% load photo_tags %}
 {% load flag_tags %}
 {% load theme_tags %}
+{% load thumbnail %}
+
 
 {% block head_title %}{% blocktrans %}Photo Details{% endblocktrans %}{% endblock %}
+
 
 {% block body %}
   
@@ -30,7 +33,7 @@
     {% if photo %}
         <div class="gallery-photo">
             <a href="{{ photo.image.url }}">
-                <img src="{{ photo_url }}" alt="{{ photo.title }}"/>
+                <img src="{% thumbnail photo.image "400" quality=80 as th %}{{ th.url }}{% endthumbnail %}" width="400" alt="{{ photo.title }}" title="{{ photo.title }}" />
             </a>
         </div>
         <div class="photo-title">

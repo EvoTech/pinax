@@ -14,8 +14,6 @@ from groups.base import Group
 from tagging.fields import TagField
 from threadedcomments.models import ThreadedComment
 
-from photologue.models import ImageModel
-
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
@@ -25,6 +23,14 @@ try:
     str = unicode  # Python 2.* compatible
 except NameError:
     pass
+
+CROP_ANCHOR_CHOICES = (
+    ('top', _('Top')),
+    ('right', _('Right')),
+    ('bottom', _('Bottom')),
+    ('left', _('Left')),
+    ('center', _('Center (Default)')),
+)
 
 PUBLISH_CHOICES = (
     (1, _("Public")),
@@ -36,25 +42,35 @@ class PhotoSet(models.Model):
     """
     A set of photos
     """
-    
+
     name = models.CharField(_("name"), max_length=200)
     description = models.TextField(_("description"))
-    publish_type = models.IntegerField(_("publish_type"),
-        choices = PUBLISH_CHOICES,
-        default = 1
+    publish_type = models.IntegerField(
+        _("publish_type"),
+        choices=PUBLISH_CHOICES,
+        default=1
     )
     tags = TagField()
-    
+
     class Meta:
         verbose_name = _("photo set")
         verbose_name_plural = _("photo sets")
 
+    def __str__(self):
+        return self.name
 
-class Image(ImageModel):
+
+class Image(models.Model):
     """
     A photo with its details
     """
-    
+    image = models.ImageField(_('image'), max_length=100,
+                              upload_to="photologue/photos", blank=True)
+    date_taken = models.DateTimeField(_('date taken'), null=True, blank=True, editable=False)
+    view_count = models.PositiveIntegerField(default=0, editable=False)
+    crop_from = models.CharField(_('crop from'), blank=True, max_length=10, default='center', choices=CROP_ANCHOR_CHOICES)
+    # effect = models.ForeignKey('PhotoEffect', null=True, blank=True, related_name="%(class)s_related", verbose_name=_('effect'))
+
     SAFETY_LEVEL = (
         (1, _("Safe")),
         (2, _("Not Safe")),
@@ -62,32 +78,37 @@ class Image(ImageModel):
     title = models.CharField(_("title"), max_length=200)
     title_slug = models.SlugField(_("slug"))
     caption = models.TextField(_("caption"), blank=True)
-    date_added = models.DateTimeField(_("date added"),
-        default = datetime.now,
-        editable = False
+    date_added = models.DateTimeField(
+        _("date added"),
+        default=datetime.now,
+        editable=False
     )
-    is_public = models.BooleanField(_("is public"),
-        default = True,
-        help_text = _("Public photographs will be displayed in the default views.")
+    is_public = models.BooleanField(
+        _("is public"),
+        default=True,
+        help_text=_("Public photographs will be displayed in the default views.")
     )
-    member = models.ForeignKey(User,
-        related_name = "added_photos",
-        blank = True,
-        null = True
+    member = models.ForeignKey(
+        User,
+        related_name="added_photos",
+        blank=True,
+        null=True
     )
-    safetylevel = models.IntegerField(_("safetylevel"),
-        choices = SAFETY_LEVEL,
-        default = 1
+    safetylevel = models.IntegerField(
+        _("safetylevel"),
+        choices=SAFETY_LEVEL,
+        default=1
     )
-    photoset = models.ManyToManyField(PhotoSet,
-        blank = True,
-        verbose_name = _("photo set")
+    photoset = models.ManyToManyField(
+        PhotoSet,
+        blank=True,
+        verbose_name=_("photo set")
     )
     tags = TagField()
-    
+
     def __str__(self):
         return self.title
-    
+
     def get_absolute_url(self):
         if self.group:
             group = self.pool_set.all()[0].content_object
@@ -125,7 +146,7 @@ class Image(ImageModel):
                     user.has_perm('photos.comment_image', self.group)
 
             if perm in ('photos.delete_image',
-                        'comments.change_comment', 
+                        'comments.change_comment',
                         'comments.delete_comment', ):
                 return user.has_perm(perm, self.group)
 
@@ -142,7 +163,7 @@ class Image(ImageModel):
                 return user.is_authenticated()
 
             if perm in ('photos.delete_image',
-                        'comments.change_comment', 
+                        'comments.change_comment',
                         'comments.delete_comment', ):
                 return False
 
@@ -151,32 +172,34 @@ class Image(ImageModel):
 
 def reduce_patched(self, *a, **kw):
     """Excludes curry"""
-    r = list(super(ImageModel, self).__reduce__(*a, **kw))
+    r = list(super(Image, self).__reduce__(*a, **kw))
     for k, v in r[2].copy().items():
         if getattr(v, '__name__', None) == '_curried':
             del r[2][k]
     return tuple(r)
 
-setattr(ImageModel, '__reduce__', reduce_patched)
+# setattr(Image, '__reduce__', reduce_patched)
 
 
 class Pool(models.Model):
     """
     model for a photo to be applied to an object
     """
-    
+
     photo = models.ForeignKey(Image)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey()
     created_at = models.DateTimeField(_("created_at"), default=datetime.now)
-    
+
     class Meta:
         # Enforce unique associations per object
         unique_together = [("photo", "content_type", "object_id")]
         verbose_name = _("pool")
         verbose_name_plural = _("pools")
 
+    def __str__(self):
+        return str(self.content_object)
 
 def subscribe_creator(sender, instance, created, **kwargs):
     if notification and created and isinstance(instance, Image):
