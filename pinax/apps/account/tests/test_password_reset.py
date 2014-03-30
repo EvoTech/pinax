@@ -11,7 +11,7 @@ from django.utils import translation
 from django.contrib.auth.models import User
 
 from emailconfirmation.models import EmailAddress, EmailConfirmation
-from pinax.apps.account import settings
+from pinax.apps.account.conf import settings
 
 
 class PasswordResetTest(TestCase):

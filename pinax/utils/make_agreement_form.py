@@ -41,3 +41,9 @@ def make_agreement_form(Form, agreement_text=FORM_AGREEMENT_TEXT):
         )
 
     return AgreeForm
+
+
+def agreement_form(*a, **kw):
+    def deco(cls):
+        return make_agreement_form(cls, *a, **kw)
+    return deco

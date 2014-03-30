@@ -20,10 +20,8 @@ from timezones.forms import TimeZoneField
 
 from pinax.apps.account.models import Account, PasswordReset
 from pinax.apps.account.utils import perform_login
-from pinax.apps.account import settings
+from pinax.apps.account.conf import settings
 from pinax.utils.make_agreement_form import make_agreement_form
-
-
 
 alnum_re = re.compile(r"^\w+$")
 
@@ -186,7 +184,7 @@ class SignupFormBase(GroupForm):
     
     def login(self, request, user):
         # nasty hack to get get_user to work in Django
-        user.backend = "django.contrib.auth.backends.ModelBackend"
+        user.backend = django_settings.AUTHENTICATION_BACKENDS[0]
         perform_login(request, user)
     
     def save(self, request=None):
