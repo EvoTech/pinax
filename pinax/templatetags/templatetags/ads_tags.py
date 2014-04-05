@@ -2,7 +2,6 @@ from __future__ import absolute_import, unicode_literals
 import math
 from django import template
 from django.conf import settings
-from django.db import models
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -11,6 +10,7 @@ from classytags.arguments import Argument
 
 register = template.Library()
 
+
 class Ads(Tag):
     name = 'ads'
     options = Options(
@@ -18,7 +18,7 @@ class Ads(Tag):
         'as',
         Argument('varname', required=False, resolve=False)
     )
-    
+
     def render_tag(self, context, name, varname):
         out = ''
         languages = [context['LANGUAGE_CODE'],
@@ -46,11 +46,8 @@ register.tag(Ads)
 
 @register.filter
 def in_list_ads(current, total):
-    if isinstance(total, (models.Model, list, tuple)):
-        total=len(total)
-    if not isinstance(total, (int, float)):
-        total = int(total)
-    
+    total = len(total) if hasattr(total, '__len__') else int(total)
+
     if current == math.floor(total/3.8):
         return True
     return False
