@@ -10,7 +10,6 @@ from pinax.apps.tagging_utils.widgets import TagAutoCompleteInput
 from pinax.apps.blog.models import Post
 
 
-
 class BlogFormBase(forms.ModelForm):
     
     slug = forms.SlugField(
@@ -31,6 +30,10 @@ class BlogFormBase(forms.ModelForm):
             "created_at",
             "updated_at",
             "publish",
+            "translation_of",
+            "language",
+            "content_type",
+            "object_id",
         ]
     
     def __init__(self, user=None, *args, **kwargs):
@@ -59,3 +62,11 @@ BlogForm = make_maprkup_form(
     BlogFormBase,
     {'markup': ['body', 'tease', ], }
 )
+
+
+class BlogSearchForm(forms.Form):
+
+    text = forms.CharField(
+        label=_("Search terms"),
+        required=False,
+    )

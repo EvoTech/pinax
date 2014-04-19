@@ -150,9 +150,10 @@
                 &nbsp;<br />
 
 
-                {% if other_user.added_posts.all %}
+                {% user_blog_posts other_user as other_user_posts %}
+                {% if other_user_posts %}
                     <h2><a href="{% url blog_list_user username=other_user.username %}">{% trans "Blog Posts" %}</a></h2>
-                    {% for blog_post in other_user.added_posts.all|slice:":5" %}
+                    {% for blog_post in other_user_posts|slice:":5" %}
                         {% show_blog_post blog_post %}
                     {% endfor %}
                 {% else %}

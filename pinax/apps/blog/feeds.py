@@ -4,21 +4,17 @@ from datetime import datetime
 from atomformat import Feed
 
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import linebreaks, escape, capfirst
-
-from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
+from django.utils.translation import get_language
 
 from friends.models import friend_set_for
-
 from pinax.apps.blog.models import Post
 
-
-
 ITEMS_PER_FEED = getattr(settings, "PINAX_ITEMS_PER_FEED", 20)
-
 
 
 class BasePostFeed(Feed):
@@ -57,7 +53,7 @@ class BlogFeedAll(BasePostFeed):
         return "Blog post feed for all users"
     
     def feed_updated(self):
-        qs = Post.objects.all()
+        qs = Post.objects.filter(status=2, language=get_language())
         # We return an arbitrary date if there are no results, because there
         # must be a feed_updated field as per the Atom specifications, however
         # there is no real data to go by, and an arbitrary date can be static.
@@ -74,7 +70,10 @@ class BlogFeedAll(BasePostFeed):
         return ({"href": complete_url},)
     
     def items(self):
-        return Post.objects.order_by("-created_at")[:ITEMS_PER_FEED]
+        return Post.objects.filter(
+            status=2,
+            language=get_language()
+        ).order_by("-created_at")[:ITEMS_PER_FEED]
 
 
 class BlogFeedUser(BasePostFeed):
@@ -92,7 +91,7 @@ class BlogFeedUser(BasePostFeed):
         return "Blog post feed for user {0}".format(user.username)
     
     def feed_updated(self, user):
-        qs = Post.objects.filter(author=user)
+        qs = Post.objects.filter(author=user, status=2, language=get_language())
         # We return an arbitrary date if there are no results, because there
         # must be a feed_updated field as per the Atom specifications, however
         # there is no real data to go by, and an arbitrary date can be static.
@@ -112,5 +111,7 @@ class BlogFeedUser(BasePostFeed):
     
     def items(self, user):
         return Post.objects.filter(
-            author = user
+            author=user,
+            status=2,
+            language=get_language()
         ).order_by("-created_at")[:ITEMS_PER_FEED]

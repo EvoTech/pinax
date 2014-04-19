@@ -7,6 +7,7 @@
 {% block head_title %}{% blocktrans %}Write a Blog Post{% endblocktrans %}{% endblock %}
 
 {% block extra_head %}
+    <script src="{{ STATIC_URL }}admin/js/urlify.js" type="text/javascript"></script>
     {% mapkup_form_init %}
 {% endblock %}
 
@@ -25,4 +26,17 @@
         </fieldset>
     </form>
     
+{% endblock %}
+
+
+{% block extra_body %}
+    <script type="text/javascript">
+        $(function(){
+            $('#{{ blog_form.title.auto_id }}').change(function(e){
+                if (!$('#{{ blog_form.slug.auto_id }}').val()) {
+                    $('#{{ blog_form.slug.auto_id }}').val(URLify($(this).val(), 250));
+                }
+            });
+        });
+    </script>
 {% endblock %}

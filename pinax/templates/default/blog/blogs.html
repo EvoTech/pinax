@@ -9,13 +9,23 @@
 {% load restructuredtext %}
 {% load blog_tags %}
 
+
 {% block head_title %}{% blocktrans %}All Blogs{% endblocktrans %}{% endblock %}
+
 
 {% block extra_head %}
     <link rel="alternate" type="application/atom+xml" title="Blog Post Feed for All Users" href="/feeds/posts/all/" />
 {% endblock %}
 
+
 {% block body %}
+
+    <form action="." method="GET">
+    <ul class="swaps-search-form">
+        {{form.as_ul}}
+        <li class="submit"><input type="submit" value="{% trans "Search" %}" /></li>
+    </ul>
+    </form>
 
     <h1>{% trans "All Blogs" %}</h1>
 
