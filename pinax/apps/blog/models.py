@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import fts
 from django_markup.markup import formatter
+from pinax.utils.helper import helper
 from tagging.fields import TagField
 from tagging.models import Tag
 from threadedcomments.models import ThreadedComment
@@ -90,6 +91,7 @@ class Post(fts.SearchableModel):
         _("Post Content Markup"),
         max_length=50,
         choices=formatter.choices(MARKUP_CHOICES),
+        help_text=helper("markup", _("About formatting")),
         null=True,
         blank=True
     )
