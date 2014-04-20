@@ -5,9 +5,9 @@ from django.contrib import admin
 
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ["title", "publish", "status"]
-    list_filter = ["publish", "status"]
-    search_fields = ["title", "body", "tease"]
+    list_display = ["title", "slug", "publish", "status", "author"]
+    list_filter = ["publish", "status", "language"]
+    search_fields = ["title", "body", "tease", "slug"]
     prepopulated_fields = {"slug": ["title"]}
     raw_id_fields = ["author", ]
 
