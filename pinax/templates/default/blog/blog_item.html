@@ -1,6 +1,5 @@
 {% load i18n %}
 {% load account_tags %}
-{% load markup_tags %}
 {% load avatar_ext_tags %}
 {% load extra_tagging_tags %}
 {% load cache_tagging_tags %}
@@ -10,15 +9,7 @@
 <div class="blog-post clearfix">
     <h2><a href="{{ blog_post.get_absolute_url }}">{{ blog_post.title }}</a></h2>
     <div class="blog-post-tease">
-        {% if blog_post.tease %}
-             {% with blog_post.tease as body %}
-                {{ body|apply_markup:blog_post.markup }}
-            {% endwith %}
-        {% else %}
-            {% with blog_post.body|truncatewords_html:"150" as body %}
-                {{ body|apply_markup:blog_post.markup }}
-            {% endwith %}
-        {% endif %}
+        {{ blog_post.tease_rendered|safe }}
     </div>
     <div class="blog-post-meta">
         {% avatar blog_post.author 40 %}

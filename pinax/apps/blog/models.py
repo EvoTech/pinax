@@ -8,10 +8,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import urlresolvers
 from django.db import models
+from django.template.defaultfilters import truncatewords_html
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 import fts
+from cache_tagging.django_cache_tagging import cache
 from django_markup.markup import formatter
 from pinax.utils.helper import helper
 from tagging.fields import TagField
@@ -145,6 +147,30 @@ class Post(fts.SearchableModel):
                 "month": "{0:02d}".format(self.publish.month),
                 "slug": self.slug
             })
+
+    @property
+    def body_rendered(self):
+        cache_key = "blog.post.pk:{0}.body.updated:{1}".format(
+            self.pk,
+            self.updated_at.isoformat()
+        )
+        return cache.get_or_set_callback(
+            cache_key,
+            lambda: formatter(self.body, self.markup),
+            timeout=5 * 3600,
+        )
+
+    @property
+    def tease_rendered(self):
+        cache_key = "blog.post.pk:{0}.tease.updated:{1}".format(
+            self.pk,
+            self.updated_at.isoformat()
+        )
+        return cache.get_or_set_callback(
+            cache_key,
+            lambda: formatter((self.tease or truncatewords_html(self.body, 150)), self.markup),
+            timeout=5 * 3600,
+        )
 
     def is_allowed(self, user, perm=None):
         """Checks permissions."""

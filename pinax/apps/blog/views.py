@@ -1,7 +1,6 @@
 from __future__ import absolute_import, unicode_literals
-import datetime
-
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, get_object_or_404
@@ -77,14 +76,10 @@ def your_posts(request, template_name="blog/your_posts.html"):
 @login_required
 def destroy(request, id):
     post = Post.objects.get(pk=id)
-    user = request.user
     title = post.title
-    if post.author != request.user:
-        messages.add_message(
-            request, messages.ERROR,
-            ugettext("You can't delete posts that aren't yours")
-        )
-        return HttpResponseRedirect(reverse("blog_list_yours"))
+
+    if not request.user.has_perm('blog.delete_post', post):
+        raise PermissionDenied
 
     if request.method == "POST" and request.POST["action"] == "delete":
         post.delete()
@@ -137,13 +132,10 @@ def new(request, form_class=BlogForm, template_name="blog/new.html"):
 def edit(request, id, form_class=BlogForm, template_name="blog/edit.html"):
     post = get_object_or_404(Post, id=id)
 
+    if not request.user.has_perm('blog.change_post', post):
+        raise PermissionDenied
+
     if request.method == "POST":
-        if post.author != request.user:
-            messages.add_message(
-                request, messages.ERROR,
-                ugettext("You can't edit posts that aren't yours")
-            )
-            return HttpResponseRedirect(reverse("blog_list_yours"))
         if request.POST["action"] == "update":
             blog_form = form_class(request.user, request.POST, instance=post)
             if blog_form.is_valid():

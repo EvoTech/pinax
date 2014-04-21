@@ -3,15 +3,20 @@
 {% load i18n %}
 {% load uni_form_tags %}
 {% load markup_form_tags %}
+{% load is_allowed_tags %}
+{% load static_tags %}
+
 
 {% block head_title %}{% blocktrans %}Editing Post{% endblocktrans %}{% endblock %}
+
 
 {% block extra_head %}
     {% mapkup_form_init %}
 {% endblock %}
 
+
 {% block body %}
-    {% ifequal post.author request.user %}
+
     <form class="uniForm" id="edit-profile" method="POST" action="">
         {% csrf_token %}
         <fieldset class="inlineLabels">
@@ -23,7 +28,29 @@
             </div>
         </fieldset>
     </form>
-    {% else %}
-    <p>{% trans "You are not the author of this post" %}</p>
-    {% endifequal %}
+
+    {% ifallowed perm="blog.delete_post" obj=post %}
+    <div class="alignright">
+        <form action="{% url blog_destroy post.id %}" method="POST">
+            {% csrf_token %}
+            <input type="image" src="{% static_url "pinax/img/silk/icons/delete.png" %}" border="0" title="{% trans "Delete" %}" class="delete" />
+            <input type="hidden" name="action" value="delete"/>
+        </form>
+    </div>
+    <div class="cls"></div>
+    {% endifallowed %}
+
+{% endblock %}
+
+
+{% block extra_body %}
+    <script type="text/javascript">
+        $(function(){
+            $('.delete').on("click", function(e){
+                if (!confirm('{% trans "Are you sure? Delete it?" %}')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 {% endblock %}

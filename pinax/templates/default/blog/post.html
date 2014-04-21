@@ -4,18 +4,22 @@
 {% load humanize %}
 {% load account_tags %}
 {% load comments_tag %}
-{% load markup_tags %}
 {% load extra_tagging_tags %}
 {% load blog_tags %}
 {% load theme_tags %}
 {% load cache_tagging_tags %}
+{% load strip_nl_tags %}
+
 
 {% block head_title %}{% blocktrans %}Blog Post{% endblocktrans %} : {{ post.title }}{% endblock %}
+{% block head_description %}{{ post.tease_rendered|striptags|truncatewords:30|strip_nl }}{% endblock %}
+
 
 {% block extra_head %}
     <link rel="alternate" type="application/atom+xml" title="Blog Post Feed for All Users" href="/feeds/posts/all/" />
     <link rel="alternate" type="application/atom+xml" title="Blog Post Feed for User {{ post.author.username }}" href="/feeds/posts/only/{{ post.author.username }}/" />
 {% endblock %}
+
 
 {% block body %}
     {% cache_tagging 'view.blog.post.pk:'|concat:post.pk|concat:'.lang:'|concat:LANGUAGE_CODE 'blog.post.pk:'|concat:post.pk timeout=18000 nocache=1 %}
@@ -27,13 +31,13 @@
                 {% show_tags_for post %}
             </p>
 
-            {% nocache %}
-            if post.author == request.user:
+            {% nocache post=post %}
+            if request.user.has_perm('blog.change_post', post):
                 echo('<a href="', reverse('blog_edit', args=(post.id, )), '">Edit Post</a>\n')
             {% endnocache %}
         </div>
         
-        <div>{{ post.body|apply_markup:post.markup }}</div>
+        <div>{{ post.body_rendered|safe }}</div>
         
     </div>
     {% end_cache_tagging %}
