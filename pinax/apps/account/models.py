@@ -29,7 +29,7 @@ class Account(models.Model):
     language = models.CharField(_("language"),
         max_length = 10,
         choices = settings.LANGUAGES,
-        default = settings.LANGUAGE_CODE
+        default = get_language
     )
     
     def __str__(self):
