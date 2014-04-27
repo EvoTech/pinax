@@ -49,14 +49,13 @@ def create_profile(sender, instance=None, **kwargs):
 post_save.connect(create_profile, sender=User)
 
 
-def should_deliver_callback(sender, **kwargs):
+def configure_notice_callback(sender, **kwargs):
     """Prevents sending notification to inactive and deleted users"""
     user = kwargs.get("recipient")
-    result = kwargs.get("result", {})
     if not user.is_active or user.username.startswith("__"):
-        result['pass'] = False
+        return {'send': False}
 
-notification.should_deliver.connect(should_deliver_callback, notification.Notice)
+notification.configure.connect(configure_notice_callback, notification.Notice)
 
 # Python 2.* compatible
 try:
